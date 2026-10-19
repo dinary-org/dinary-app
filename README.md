@@ -1,12 +1,11 @@
 # DINARY — Expo 앱
 
 `Restaurant app mobile design.zip` 핸드오프(1a 내비게이션 + 1d 비주얼)를 옮기는 중인 네이티브 앱입니다.
-웹(Next.js)과 같은 Supabase 백엔드를 씁니다. 스키마 변경 없음.
+Supabase 스키마와 엣지 함수는 `supabase/` 에 있습니다. 일부 API(geocode · weather · recommend/candidates · account/delete)는 아직 옛 `restaurant-log` 웹(Vercel)에 있습니다.
 
 ## 시작
 
 ```bash
-cd expo-app
 cp .env.example .env      # Supabase 키, API 주소, NAVER_MAP_CLIENT_ID 채우기
 npm install
 npx expo install expo-dev-client
@@ -57,10 +56,9 @@ npm start
 소상공인시장진흥공단 「상가(상권)정보」는 분기마다 갱신됩니다(공공데이터포털 15083033). 새 파일이 나오면:
 
 1. https://www.data.go.kr/data/15083033/fileData.do 에서 전체 zip 을 내려받아 **저장소 밖** 폴더에 풉니다(시도별 CSV, 약 1.5GB).
-2. `expo-app/.env` 에 `SUPABASE_SERVICE_ROLE_KEY` 가 있는지 확인합니다(커밋하지 마세요).
+2. `.env` 에 `SUPABASE_SERVICE_ROLE_KEY` 가 있는지 확인합니다(커밋하지 마세요).
 3. 먼저 미리 보기, 그다음 적재:
    ```bash
-   cd expo-app
    node --experimental-strip-types --env-file=.env scripts/import-stores.ts "<폴더>/소상공인시장진흥공단_상가(상권)정보_서울_YYYYMM.csv" --sido 11 --dry-run
    node --experimental-strip-types --env-file=.env scripts/import-stores.ts "<폴더>/소상공인시장진흥공단_상가(상권)정보_서울_YYYYMM.csv" --sido 11 --full
    ```
@@ -102,7 +100,7 @@ The ID is a native build credential; Metro reloads and EAS Update cannot replace
 5. Leave `EXPO_PUBLIC_NAVER_MAP_STYLE_ID` unset for the first tile check. If using
    a custom style later, ensure it is valid and available to this Maps application.
 
-### EAS setup (run from `expo-app`)
+### EAS setup
 
 Each build profile explicitly selects its matching EAS environment. EAS can infer
 these defaults, but explicit selection avoids accidentally building with another
@@ -112,7 +110,6 @@ profile's credentials. Set the ID in every environment you build from. Use
 in the native binary regardless of EAS visibility.
 
 ```bash
-cd expo-app
 npx eas-cli@latest login
 # Read the actual Client ID without putting it in shell history.
 read -r -s -p "NAVER Maps Client ID: " NAVER_MAP_CLIENT_ID
@@ -143,7 +140,7 @@ npx eas-cli@latest build:run --platform android --profile development --latest
 npx expo start --dev-client
 ```
 
-For future local commands, keep the ID in a git-ignored `expo-app/.env.local`, or
+For future local commands, keep the ID in a git-ignored `.env.local`, or
 pull the selected EAS environment with
 `npx eas-cli@latest env:pull --environment development --path .env.local`.
 Config evaluation requires the ID even for `expo config` and Metro startup.

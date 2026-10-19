@@ -3,9 +3,6 @@ name: EAS Update
 on:
   push:
     branches: [main]
-    paths:
-      - "expo-app/**"
-      - ".github/workflows/eas-update.yml"
   workflow_dispatch:
 
 concurrency:
@@ -15,9 +12,6 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: expo-app
     steps:
       - uses: actions/checkout@v4
 
@@ -25,7 +19,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: expo-app/package-lock.json
 
       - uses: expo/expo-github-action@v8
         with:

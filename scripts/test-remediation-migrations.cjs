@@ -17,7 +17,7 @@ const migrations = [
     await db.exec(`create role anon; create role authenticated;
       create table public.restaurants (id bigint generated always as identity primary key, user_id uuid not null, source_record_id bigint);
       create table public.rec_events (id bigint generated always as identity primary key, user_id uuid not null);`);
-    const sql = migrations.map((name) => readFileSync(resolve(__dirname, '../../supabase/migrations', name), 'utf8'));
+    const sql = migrations.map((name) => readFileSync(resolve(__dirname, '../supabase/migrations', name), 'utf8'));
     for (const source of sql) await db.exec(source);
     const a = '00000000-0000-4000-8000-000000000001';
     const b = '00000000-0000-4000-8000-000000000002';

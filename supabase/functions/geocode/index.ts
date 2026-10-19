@@ -1,0 +1,233 @@
+/**
+ * geocode — 옛 웹 /api/geocode 를 옮긴 것. 카카오 로컬 API(주소·좌표·가게 검색). 카카오 키는 여기에만 둡니다.
+ *
+ *   GET /functions/v1/geocode?q=            주소·상호 → 좌표
+ *   GET /functions/v1/geocode?lat=&lng=     좌표 → 주소
+ *   GET /functions/v1/geocode?q=&food=1     음식점·카페만 이름으로
+ *   GET /functions/v1/geocode?lat=&lng=&near=1  둘레 음식점·카페(500m)
+ *
+ * 환경변수(Edge Function secrets): KAKAO_REST_API_KEY
+ */
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-region",
+};
+const json = (body: unknown, init: { status?: number } = {}) =>
+  new Response(JSON.stringify(body), { status: init.status ?? 200, headers: { "Content-Type": "application/json; charset=utf-8", ...CORS } });
+
+const RAW = Deno.env.get("KAKAO_REST_API_KEY");
+const KEY = RAW?.trim();
+const BASE = "https://dapi.kakao.com/v2/local";
+
+type Place = {
+  name: string;
+  address: string;
+  region: string | null;
+  lat: number;
+  lng: number;
+};
+
+type NearbyPlace = Place & { distance: number; category: string | null; kind: "restaurant" | "cafe"; place_url: string | null };
+
+/** 카카오 카테고리 코드 — 음식점 / 카페 */
+const GROUP = { restaurant: "FD6", cafe: "CE7" } as const;
+
+/** "음식점 > 한식 > 냉면" → "한식". 앱이 쓰는 종류 이름으로 좁힙니다. */
+const KNOWN = [
+  "한식", "중식", "일식", "양식", "아시안", "분식",
+  "커피", "디저트", "베이커리", "차",
+];
+
+const category = (name?: string) => {
+  const parts = (name ?? "").split(">").map((s) => s.trim());
+  for (const part of parts.slice(1)) {
+    const hit = KNOWN.find((k) => part.startsWith(k));
+    if (hit) return hit;
+  }
+  if (parts.some((p) => p.includes("카페") || p.includes("커피"))) return "커피";
+  return null;
+};
+
+async function kakao(path: string, params: Record<string, string>) {
+  const res = await fetch(`${BASE}/${path}?${new URLSearchParams(params)}`, {
+    headers: { Authorization: `KakaoAK ${KEY}` },
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`카카오 ${res.status} — ${body.slice(0, 300)}`);
+  }
+  return res.json();
+}
+
+/** "서울 마포구 동교로 46길" → "서울 마포구" (성남처럼 시 안에 구가 있으면 셋까지) */
+const gu = (address?: string) => {
+  const t = (address ?? "").split(" ").filter(Boolean);
+  if (t.length < 2) return null;
+
+  if (t.length >= 3 && /시$/.test(t[1]) && /구$/.test(t[2])) {
+    return `${t[0]} ${t[1]} ${t[2]}`;
+  }
+  return `${t[0]} ${t[1]}`;
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  const sp = new URL(req.url).searchParams;
+
+  if (!KEY) {
+    return json(
+      { error: "KAKAO_REST_API_KEY 가 설정되지 않았습니다" },
+      { status: 500 }
+    );
+  }
+
+  const lat = sp.get("lat");
+  const lng = sp.get("lng");
+
+  try {
+    // 좌표 둘레의 음식점·카페 — 방문인증 후보 (좌표는 여기서만 쓰고 남기지 않습니다)
+    // 음식점/카페 중 하나만 찾으면 예를 들어 베이커리·카페가 후보에서 통째로 빠지므로,
+    // 항상 둘 다 찾아 하나의 후보 목록으로 합칩니다.
+    if (lat && lng && sp.get("near")) {
+      const toPlaces = (kind: "restaurant" | "cafe") => (json: { documents?: Record<string, string>[] }): NearbyPlace[] =>
+        (json?.documents ?? []).map((d) => {
+          const address = d.road_address_name || d.address_name;
+          return {
+            name: d.place_name,
+            address,
+            region: gu(address),
+            category: category(d.category_name),
+            lat: Number(d.y),
+            lng: Number(d.x),
+            distance: Number(d.distance) || 0,
+            kind,
+            place_url: d.place_url || null,
+          };
+        });
+
+      const [restJson, cafeJson] = await Promise.all([
+        kakao("search/category.json", {
+          category_group_code: GROUP.restaurant,
+          x: lng, y: lat, radius: "500", sort: "distance", size: "10",
+        }),
+        kakao("search/category.json", {
+          category_group_code: GROUP.cafe,
+          x: lng, y: lat, radius: "500", sort: "distance", size: "10",
+        }),
+      ]);
+
+      const places = [...toPlaces("restaurant")(restJson), ...toPlaces("cafe")(cafeJson)].sort(
+        (a, b) => a.distance - b.distance
+      );
+
+      return json({ places });
+    }
+
+    // 좌표 → 주소
+    if (lat && lng) {
+      const found = await kakao("geo/coord2address.json", { x: lng, y: lat });
+      const doc = found?.documents?.[0];
+      if (!doc) return json({ places: [] });
+
+      const address =
+        doc.road_address?.address_name ?? doc.address?.address_name ?? "";
+
+      return json({
+        places: [
+          {
+            name: doc.road_address?.building_name || "",
+            address,
+            region: gu(address),
+            lat: Number(lat),
+            lng: Number(lng),
+          },
+        ] satisfies Place[],
+      });
+    }
+
+    // 이름으로 찾되 음식점·카페만(방문 인증의 가게 찾기 화면 §2) — 거리 제한 없이 전국에서 찾습니다.
+    if (sp.get("food")) {
+      const fq = (sp.get("q") ?? "").trim();
+      if (fq.length < 2) return json({ places: [] });
+
+      const toPlaces = (kind: "restaurant" | "cafe") => (json: { documents?: Record<string, string>[] }): NearbyPlace[] =>
+        (json?.documents ?? []).map((d) => {
+          const address = d.road_address_name || d.address_name;
+          return {
+            name: d.place_name,
+            address,
+            region: gu(address),
+            category: category(d.category_name),
+            lat: Number(d.y),
+            lng: Number(d.x),
+            distance: 0,
+            kind,
+            place_url: d.place_url || null,
+          };
+        });
+
+      const [restJson, cafeJson] = await Promise.all([
+        kakao("search/keyword.json", { query: fq, category_group_code: GROUP.restaurant, size: "15" }),
+        kakao("search/keyword.json", { query: fq, category_group_code: GROUP.cafe, size: "15" }),
+      ]);
+
+      const seen = new Set<string>();
+      const places = [...toPlaces("restaurant")(restJson), ...toPlaces("cafe")(cafeJson)].filter((p) => {
+        const key = `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      return json({ places });
+    }
+
+    // 주소·상호 검색
+    const q = (sp.get("q") ?? "").trim();
+    if (q.length < 2) return json({ places: [] });
+
+    const [byAddress, byKeyword] = await Promise.all([
+      kakao("search/address.json", { query: q, size: "5" }),
+      kakao("search/keyword.json", { query: q, size: "10", sort: "accuracy" }),
+    ]);
+
+    const places: Place[] = [];
+
+    for (const d of byAddress?.documents ?? []) {
+      const address = d.road_address?.address_name ?? d.address_name;
+      places.push({
+        name: d.road_address?.building_name || "",
+        address,
+        region: gu(address),
+        lat: Number(d.y),
+        lng: Number(d.x),
+      });
+    }
+
+    for (const d of byKeyword?.documents ?? []) {
+      const address = d.road_address_name || d.address_name;
+      places.push({
+        name: d.place_name,
+        address,
+        region: gu(d.road_address_name || d.address_name),
+        lat: Number(d.y),
+        lng: Number(d.x),
+      });
+    }
+
+    const seen = new Set<string>();
+    const unique = places.filter((p) => {
+      const key = `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return json({ places: unique.slice(0, 8) });
+  } catch (err) {
+    return json(
+      { error: err instanceof Error ? err.message : "unknown" },
+      { status: 502 }
+    );
+  }
+});

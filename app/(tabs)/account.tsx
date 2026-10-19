@@ -136,7 +136,7 @@ export function MyAccount() {
       {
         text: "탈퇴", style: "destructive",
         onPress: async () => {
-          const res = await apiFetch("/api/account/delete", { method: "POST" });
+          const res = await apiFetch("/account-delete", { method: "POST" });
           if (!res.ok) {
             const body = await res.json().catch(() => null);
             return setError(body?.error ?? "탈퇴하지 못했습니다");

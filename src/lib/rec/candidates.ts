@@ -6,7 +6,7 @@ import { REC_CONFIG } from "./config";
 
 /**
  * Stage A — 후보 모으기. 네 출처를 한 목록으로 합치고 같은 가게를 하나로 묶습니다.
- *   kakao     — 서버(/api/recommend/candidates)가 카카오 음식점(FD6) 검색으로 찾은 둘레 가게
+ *   kakao     — Edge Function recommend-candidates 가 카카오 음식점(FD6) 검색으로 찾은 둘레 가게
  *   community — rec_places: Dinary 인증 기록을 사람 수 · 비율로만 묶은 숫자(남의 기록 원문 없음)
  *   history   — 지금 기록장의 내 기록(연인 기록장이면 둘의 기록)
  *   wish      — 지금 기록장의 위시

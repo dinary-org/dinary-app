@@ -17,6 +17,7 @@ import { useActiveBook, useAnniversaryPicks, useRecordNotes, type BookMember } f
 import { useRows, useWishes } from "@/data/queries";
 import { setState, useAppState } from "@/data/store";
 
+import { useIsAdmin, useReports } from "@/features/community/api";
 import { BuildingTagMarker, GhostMarker, NumberPin, RecordMarker, TapPointMarker, WishMarker } from "@/features/map/Markers";
 import { revealZooms } from "@/features/map/labelZoom";
 import { HereMarker } from "@/features/recommend/ui";
@@ -140,6 +141,8 @@ export default function MapTab() {
   const locateStyle = useAnimatedStyle(() => ({ top: Math.max(minTop, sheetTop.value - GAP_DRAFTS - DRAFTS_H - 10 - LOCATE_H) }));
   const plusStyle = useAnimatedStyle(() => ({ top: Math.max(minTop, sheetTop.value - GAP_PLUS - PLUS_H) }));
   // + 메뉴는 위로 펼칩니다 — 아랫변이 + 단추 아랫변보다 60 위(웹과 같음).
+  // 운영 메뉴 아랫변 = 운영 단추(현재 위치와 같은 줄) 윗변 − 8
+  const adminMenuStyle = useAnimatedStyle(() => ({ bottom: screenH.value - Math.max(minTop, sheetTop.value - GAP_DRAFTS - DRAFTS_H - 10 - LOCATE_H) + 8 }));
   const plusMenuStyle = useAnimatedStyle(() => ({ bottom: screenH.value - Math.max(minTop, sheetTop.value - GAP_PLUS - PLUS_H) - PLUS_H + 60 }));
 
   const [compact, setCompact] = useState(false);
@@ -166,6 +169,10 @@ export default function MapTab() {
   const [regionView, setRegionView] = useState<{ name: string; count: number } | null>(null);
   const [foundHit, setFoundHit] = useState<{ restaurant: Restaurant; place: Place; fromPin?: boolean } | null>(null);
   const [plusOpen, setPlusOpen] = useState(false);
+  const { data: isAdmin } = useIsAdmin();
+  const [adminOpen, setAdminOpen] = useState(false);
+  const { data: reports } = useReports(!!isAdmin);
+  const openReports = useMemo(() => (reports ?? []).filter((r) => r.resolved_at == null).length, [reports]);
   const [me, setMe] = useState<{ lat: number; lng: number } | null>(null);
   const placesAt = usePlacesAt();
 
@@ -651,6 +658,30 @@ export default function MapTab() {
         </Pressable>
       </Animated.View>
 
+      {/* 운영 — 관리자만. 현재 위치 왼쪽에 두고, 메뉴는 위로 펼칩니다. + 메뉴와 하나만 열립니다 */}
+      {adminOpen && <Pressable accessibilityLabel="메뉴 닫기" onPress={() => setAdminOpen(false)} style={StyleSheet.absoluteFill} />}
+      {isAdmin && adminOpen && (
+        <Animated.View style={[s.adminMenu, adminMenuStyle]}>
+          {ADMIN_ITEMS.map((it) => (
+            <Pressable key={it.tab} onPress={() => { setAdminOpen(false); router.push({ pathname: "/admin", params: { tab: it.tab } }); }} style={[s.menuBtn, SHADOW_FAB]}>
+              <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink }}>{it.label}</Text>
+              {it.tab === "reports" && openReports > 0 && <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.brick }}>{openReports}</Text>}
+            </Pressable>
+          ))}
+        </Animated.View>
+      )}
+      {isAdmin && (
+        <Animated.View style={[s.floatAdmin, locateStyle]}>
+          <Pressable
+            onPress={() => { Haptics.selectionAsync(); setPlusOpen(false); setAdminOpen((v) => !v); }}
+            accessibilityLabel="운영"
+            style={[s.round, SHADOW.card, adminOpen && { backgroundColor: C.brick, borderWidth: 0 }]}
+          >
+            <Text style={{ fontFamily: F.mono, fontSize: 11, color: adminOpen ? C.card : C.brick }}>운영</Text>
+          </Pressable>
+        </Animated.View>
+      )}
+
       {/* 보관함 */}
       <Animated.View style={[s.floatRight, draftsStyle]}>
         <Pressable onPress={() => router.push("/drafts")} accessibilityLabel="보관함" style={[s.drafts, SHADOW_FAB]}>
@@ -676,7 +707,7 @@ export default function MapTab() {
         </Animated.View>
       )}
       <Animated.View style={[s.floatPlus, plusStyle]}>
-        <Pressable onPress={() => setPlusOpen((v) => !v)} accessibilityLabel="기록·계획 추가" style={[s.plus, SHADOW_FAB, plusOpen && { backgroundColor: C.brick, borderWidth: 0 }]}>
+        <Pressable onPress={() => { setAdminOpen(false); setPlusOpen((v) => !v); }} accessibilityLabel="기록·계획 추가" style={[s.plus, SHADOW_FAB, plusOpen && { backgroundColor: C.brick, borderWidth: 0 }]}>
           <View style={{ transform: [{ rotate: plusOpen ? "45deg" : "0deg" }] }}>
             <PlusIcon stroke={plusOpen ? C.card : C.ink} />
           </View>
@@ -796,6 +827,14 @@ const shadow = (opacity: number, radius: number, y: number, elevation: number): 
   Platform.select<ViewStyle>({ ios: { shadowColor: C.ink, shadowOpacity: opacity, shadowRadius: radius, shadowOffset: { width: 0, height: y } }, default: { elevation } })!;
 /** 웹 0 6px 18px rgba(28,26,23,.16) — 보관함·+·메뉴. */
 const SHADOW_FAB = shadow(0.15, 17, 6, 6);
+
+/** 지도의 운영 메뉴 — 고르면 운영 화면의 그 칸을 엽니다. */
+const ADMIN_ITEMS = [
+  { tab: "notice", label: "공지 쓰기" },
+  { tab: "reports", label: "신고함" },
+  { tab: "theme", label: "이번 주 주제" },
+  { tab: "rank", label: "랭킹 정지" },
+] as const;
 /** 웹 0 -8px 30px rgba(28,26,23,.16) — 시트. */
 const SHADOW_SHEET = shadow(0.16, 30, -8, 12);
 
@@ -813,6 +852,8 @@ const s = StyleSheet.create({
   floatPlus: { position: "absolute", right: 84 },
   /** 내 위치(44) 가운데를 보관함(56) 가운데에 맞춤 — 16 + (56 − 44) / 2. */
   floatLocate: { position: "absolute", right: 16 + (DRAFTS_H - LOCATE_H) / 2 },
+  floatAdmin: { position: "absolute", right: 16 + (DRAFTS_H - LOCATE_H) / 2 + LOCATE_H + 10 },
+  adminMenu: { position: "absolute", right: 16 + (DRAFTS_H - LOCATE_H) / 2 + LOCATE_H + 10, alignItems: "flex-end", gap: 8 },
   drafts: { width: DRAFTS_H, height: DRAFTS_H, borderRadius: DRAFTS_H / 2, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
   plus: { width: PLUS_H, height: PLUS_H, borderRadius: PLUS_H / 2, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
   plusMenu: { position: "absolute", right: 16, alignItems: "flex-end", gap: 8 },

@@ -12,7 +12,6 @@ import { useActiveBook } from "@/data/books";
 import { useAccount, useOwnedCharacters, useSetCharacter, useSetLeaderboardOptIn, useTickets } from "@/data/profile";
 import { refreshAll } from "@/data/invalidate";
 import { usePersonalRows, usePersonalWishes } from "@/data/queries";
-import { useIsAdmin } from "@/features/community/api";
 import CoupleAccount from "@/features/couple/CoupleAccount";
 import { apiFetch } from "@/lib/api";
 import { CHARACTERS } from "@/lib/characters";
@@ -55,7 +54,6 @@ export function MyAccount() {
   const { tickets } = useTickets();
   const setCharacter = useSetCharacter();
   const setLeaderboardOptIn = useSetLeaderboardOptIn();
-  const { data: isAdmin } = useIsAdmin();
   const [error, setError] = useState("");
 
   const stamps = stampRows(rows).length;
@@ -284,7 +282,6 @@ export function MyAccount() {
           right={<Toggle label="랭킹 참여" value={account.leaderboardOptIn} onChange={(v) => setLeaderboardOptIn(account.userId, v).catch((e) => setError(e instanceof Error ? e.message : "바꾸지 못했습니다"))} />}
         />
         <Row label="라벨첩" onPress={() => router.push("/labels")} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
-        {isAdmin && <Row label="운영" onPress={() => router.push("/admin")} right={<Text style={{ fontFamily: F.mono, fontSize: 11, color: C.brick }}>공지 · 신고함 · 주제 · 랭킹 ›</Text>} />}
         <Row label="기록 내려받기" onPress={exportRecords} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="개인정보 처리방침" onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="이용약관" onPress={() => WebBrowser.openBrowserAsync(TERMS_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />

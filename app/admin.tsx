@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,12 +14,13 @@ import { C, F } from "@/theme";
 
 type Section = "notice" | "reports" | "theme" | "rank";
 
-/** 운영(HANDOFF-board-v2 §4) — 내계정에서 관리자에게만 보입니다. 서버(is_admin)가 모든 동작을 한 번 더 확인합니다. */
+/** 운영(HANDOFF-board-v2 §4) — 지도의 「운영」 단추(관리자만)로 들어옵니다. tab 이 있으면 그 칸부터 엽니다. 서버(is_admin)가 모든 동작을 한 번 더 확인합니다. */
 export default function AdminScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data: isAdmin, isLoading } = useIsAdmin();
-  const [section, setSection] = useState<Section>("reports");
+  const { tab } = useLocalSearchParams<{ tab?: Section }>();
+  const [section, setSection] = useState<Section>(tab ?? "reports");
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: C.paper }}>

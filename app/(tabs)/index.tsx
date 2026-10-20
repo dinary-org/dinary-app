@@ -159,7 +159,10 @@ export default function MapTab() {
   const [viewBounds, setViewBounds] = useState<Bounds | null>(null);
   const shownWishes = useMemo(() => (viewBounds ? wishes.filter((w) => inBounds(viewBounds, w.lat, w.lng)) : wishes), [wishes, viewBounds]);
   const wishItems = useWishItems(wishes, shownWishes);
-  const [zoom, setZoom] = useState(12);
+  /** 실제 줌 — 카메라가 멈출 때마다 바뀌지만 화면을 다시 그릴 일은 아니라 ref 에 둡니다. */
+  const zoomRef = useRef(12);
+  /** 이름표를 정하는 줌 — 어느 마커의 이름표 기준을 넘었을 때만 바꿔, 줌이 끝날 때마다 화면·마커를 통째로 다시 그리지 않습니다. */
+  const [labelZoom, setLabelZoom] = useState(12);
   const [regionView, setRegionView] = useState<{ name: string; count: number } | null>(null);
   const [foundHit, setFoundHit] = useState<{ restaurant: Restaurant; place: Place; fromPin?: boolean } | null>(null);
   const [plusOpen, setPlusOpen] = useState(false);
@@ -332,8 +335,8 @@ export default function MapTab() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setPlusOpen(false);
     openPlacesAt(lat, lng);
-    showAboveSheet(lat, lng, Math.max(zoom, 17));
-  }, [openPlacesAt, showAboveSheet, zoom]);
+    showAboveSheet(lat, lng, Math.max(zoomRef.current, 17));
+  }, [openPlacesAt, showAboveSheet]);
 
   const placesData = placesAt.state.status === "done" ? placesAt.state.data : null;
   const placesPoint = placesAt.state.status === "idle" ? null : placesAt.state.point;
@@ -423,7 +426,26 @@ export default function MapTab() {
     ...recordMarkers.map((p) => ({ id: `r:${p.key}`, lat: p.lat as number, lng: p.lng as number, name: p.name, kind: "record" as const, planned: !!matchWish(wishes, p.name) })),
     ...wishMarkers.map((w) => ({ id: `w:${w.id}`, lat: w.lat as number, lng: w.lng as number, name: w.name, kind: "wish" as const })),
   ]), [recordMarkers, wishMarkers, wishes]);
-  const showLabel = (id: string) => zoom >= (reveal.get(id) ?? Infinity);
+  const showLabel = (id: string) => labelZoom >= (reveal.get(id) ?? Infinity);
+  /** 두 줌 사이에서 이름표가 켜지거나 꺼지는 마커가 있는지 — 없으면 마커를 다시 찍을 일도 없습니다. */
+  const labelsDiffer = useCallback((a: number, b: number) => {
+    for (const t of reveal.values()) if ((a >= t) !== (b >= t)) return true;
+    return false;
+  }, [reveal]);
+  // 마커가 바뀌어 기준이 달라졌으면 지금 줌에 맞춥니다.
+  useEffect(() => {
+    if (labelsDiffer(labelZoom, zoomRef.current)) setLabelZoom(zoomRef.current);
+  }, [labelsDiffer]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 마커 onTap 을 마커마다 한 번만 만들어 memo 가 먹게 합니다 — 화면이 다시 그려져도 마커는 그대로.
+  const recordTaps = useMemo(() => new Map(recordMarkers.map((p) => [p.key, () => {
+    Haptics.selectionAsync();
+    // 이름표가 보이든 안 보이든 요약 카드(이름 · 별점)부터 — 「기록 보기」로 기록 화면에 들어갑니다.
+    setFoundHit({ restaurant: p.latest, place: p, fromPin: true });
+  }])), [recordMarkers]);
+  const wishTaps = useMemo(() => new Map(wishMarkers.map((w) => [w.id, () => {
+    Haptics.selectionAsync();
+    router.push({ pathname: "/wish/[id]", params: { id: w.id } });
+  }])), [wishMarkers, router]);
 
   /* ── 시트 ───────────────────────────────────── */
 
@@ -521,11 +543,8 @@ export default function MapTab() {
         mapPadding={{ top: insets.top + 62, bottom: MAP_PAD_BOTTOM, left: 20, right: 20 }}
         logoAlign="TopLeft"
         logoMargin={{ top: 20, left: 6, right: 0, bottom: 0 }}
-        onCameraChanged={(e) => {
-          if (e.reason !== "Gesture") return;
-          // 핀 요약 카드는 지도를 밀자마자 내립니다 — 같은 값을 돌려주면 다시 그리지 않습니다.
-          setFoundHit((h) => (h?.fromPin ? null : h));
-        }}
+        // 핀 요약 카드는 지도를 밀자마자 내립니다. 카드가 없을 땐 넘기지 않아 움직이는 동안 매 프레임 JS 로 오는 이벤트가 없습니다.
+        onCameraChanged={foundHit?.fromPin ? (e) => { if (e.reason === "Gesture") setFoundHit(null); } : undefined}
         onTapMap={() => {
           // 짧은 탭은 핀 요약 카드를 닫기만 합니다. 그 자리 가게 목록은 길게 눌러서 엽니다.
           if (foundHit?.fromPin) setFoundHit(null);
@@ -536,22 +555,21 @@ export default function MapTab() {
         }}
         onCameraIdle={(e) => {
           regionRef.current = { s: e.region.latitude, w: e.region.longitude, n: e.region.latitude + e.region.latitudeDelta, e: e.region.longitude + e.region.longitudeDelta };
-          if (e.zoom != null) setZoom(e.zoom);
+          if (e.zoom != null) {
+            zoomRef.current = e.zoom;
+            if (labelsDiffer(labelZoom, e.zoom)) setLabelZoom(e.zoom);
+          }
         }}
       >
         {recordMarkers.map((p) => (
           <RecordMarker
             key={p.key} lat={p.lat as number} lng={p.lng as number} name={p.name} category={p.category} revisit={p.revisit}
             rating={p.rating} active={false} planned={!!matchWish(wishes, p.name)} showLabel={showLabel(`r:${p.key}`)} badge={placeTag(p)}
-            onTap={() => {
-              Haptics.selectionAsync();
-              // 이름표가 보이든 안 보이든 요약 카드(이름 · 별점)부터 — 「기록 보기」로 기록 화면에 들어갑니다.
-              setFoundHit({ restaurant: p.latest, place: p, fromPin: true });
-            }}
+            onTap={recordTaps.get(p.key)}
           />
         ))}
         {wishMarkers.map((w) => (
-          <WishMarker key={w.id} lat={w.lat as number} lng={w.lng as number} name={w.name} category={w.category} showLabel={showLabel(`w:${w.id}`)} onTap={() => { Haptics.selectionAsync(); openWish(w.id); }} />
+          <WishMarker key={w.id} lat={w.lat as number} lng={w.lng as number} name={w.name} category={w.category} showLabel={showLabel(`w:${w.id}`)} onTap={wishTaps.get(w.id)} />
         ))}
         {ghost && (
           <GhostMarker lat={ghost.lat} lng={ghost.lng} name={ghost.name} onTap={() => newRecord({ name: ghost.name, address: ghost.address, lat: ghost.lat, lng: ghost.lng })} />

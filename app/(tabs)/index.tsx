@@ -318,7 +318,7 @@ export default function MapTab() {
     const wantY = (insets.top + 62 + h - placesSheetH) / 2;
     const metersPerDp = (156543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** z;
     const dLat = ((centerY - wantY) * metersPerDp) / 111320;
-    lastFit.current = `places:${lat},${lng}`;
+    // lastFit 은 건드리지 않습니다 — 바꿔 두면 시트를 닫을 때 목록 맞춤이 다시 돌아 확대해 둔 지도가 처음 범위로 튑니다.
     mapRef.current?.animateCameraTo({ latitude: lat - dLat, longitude: lng, zoom: z, duration: 450 });
   }, [layoutH, windowH, insets.top, placesSheetH]);
 

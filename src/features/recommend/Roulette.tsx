@@ -306,7 +306,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
                     })}
                     {ready && live.map((o, i) => (
                       <G key={`t${o.key}`} transform={`rotate(${(i + 0.5) * seg} ${R} ${R})`}>
-                        <SvgText x={R} y={R - RI * 0.66} textAnchor="middle" alignmentBaseline="middle" fontFamily={F.serif} fontSize={fontSize} fill={fills[i].ink}>
+                        <SvgText x={R} y={R - RI * 0.66} textAnchor="middle" alignmentBaseline="middle" fontFamily={F.sansBd} fontSize={fontSize} fill={fills[i].ink}>
                           {short(o.label, maxChars)}
                         </SvgText>
                       </G>
@@ -340,7 +340,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
             <View style={{ alignItems: "center", gap: 10 }}>
               <View style={{ alignItems: "center", gap: 4 }}>
                 <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 2, color: C.brick }}>오늘은 이걸로</Text>
-                <Text style={{ fontFamily: F.serif, fontSize: 24, color: C.ink, textAlign: "center" }}>{won.label}</Text>
+                <Text style={{ fontFamily: F.sansBd, fontSize: 24, color: C.ink, textAlign: "center" }}>{won.label}</Text>
               </View>
               {((tab === "place" && !won.key.startsWith("+")) || (tab === "category" && (REC_CATEGORIES as readonly string[]).includes(won.label))) && (
                 <Pressable

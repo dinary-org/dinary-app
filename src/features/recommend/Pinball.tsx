@@ -203,7 +203,7 @@ export function Pinball({ options, tones, busy, onStart, onDone }: {
               const won = hit === i;
               return (
                 <View key={o.key} style={{ flex: 1, backgroundColor: tone.bg, alignItems: "center", justifyContent: "center", borderLeftWidth: i ? 1.5 : 0, borderLeftColor: "#2a2622", opacity: hit != null && !won ? 0.45 : 1 }}>
-                  <Text style={{ fontFamily: F.serif, fontSize: labelSize, lineHeight: labelSize + 2, color: tone.ink, textAlign: "center" }}>
+                  <Text style={{ fontFamily: F.sansBd, fontSize: labelSize, lineHeight: labelSize + 2, color: tone.ink, textAlign: "center" }}>
                     {[...o.label].slice(0, chars).join("\n")}{o.label.length > chars ? "…" : ""}
                   </Text>
                 </View>

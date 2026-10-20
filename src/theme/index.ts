@@ -25,8 +25,6 @@ export const F = {
   sansMd: "NotoSansKR_500Medium",
   sansBd: "NotoSansKR_700Bold",
   mono: "JetBrainsMono_400Regular",
-  /** 지도 기록 카드의 가게 이름 — 함렛 */
-  name: "Hahmlet_600SemiBold",
 } as const;
 
 const shadow = (opacity: number, radius: number, y: number, elevation: number): ViewStyle =>

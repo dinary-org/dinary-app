@@ -2,8 +2,7 @@ import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, Text, View } from "react-native";
 import { C, F } from "@/theme";
-import type { PachinkoOption } from "./Pachinko";
-import { REC } from "./ui";
+import { REC, type GameOption } from "./ui";
 
 /** 판 높이 · 위 칸(레인) 높이 · 발사 통로 폭 · 공 · 범퍼 · 플리퍼 두께. */
 const H = 380;
@@ -22,11 +21,11 @@ type Pt = { x: number; y: number };
 
 /**
  * 핀볼 — 오른쪽 통로에서 쏘아 올린 공이 범퍼에 몇 번 튕기고, 플리퍼가 쳐올려 위 칸(레인) 하나에 들어갑니다. 들어간 칸이 고른 것.
- * 결과를 먼저 뽑고 그 칸으로 가는 길을 만듭니다(파친코와 같은 방식). 칸 · 톤은 룰렛과 같습니다.
+ * 결과를 먼저 뽑고 그 칸으로 가는 길을 만듭니다. 칸 · 톤은 룰렛과 같습니다.
  */
 export function Pinball({ options, tones, busy, onStart, onDone }: {
-  options: PachinkoOption[]; tones: Tone[]; busy: boolean;
-  onStart: () => void; onDone: (o: PachinkoOption) => void;
+  options: GameOption[]; tones: Tone[]; busy: boolean;
+  onStart: () => void; onDone: (o: GameOption) => void;
 }) {
   const [w, setW] = useState(0);
   const inner = Math.max(0, w - PAD * 2);

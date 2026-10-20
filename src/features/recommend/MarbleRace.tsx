@@ -2,8 +2,7 @@ import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { C, F } from "@/theme";
-import type { PachinkoOption } from "./Pachinko";
-import { REC } from "./ui";
+import { REC, type GameOption } from "./ui";
 
 /**
  * 구슬 경주(마블 레이스) — 칸마다 색이 다른 구슬 하나. 위에서 하나씩 떨어져 핀 · 비탈 · 도는 막대에 부딪히며 내려가고,
@@ -64,7 +63,7 @@ const SPINNERS: Spinner[] = [
   { c: { x: CW * 0.28, y: 252 }, len: 72, w: 2.4 },
   { c: { x: CW * 0.72, y: 252 }, len: 72, w: -2.4 },
   // 관문지기 — 구멍 바로 위에서 돌며 막았다 열었다, 다가온 구슬을 쳐올립니다.
-  { c: { x: CW / 2, y: GATE_Y - 26 }, len: 40, w: 2.2 },
+  { c: { x: CW / 2, y: GATE_Y - 26 }, len: 56, w: 2.2 },
 ];
 const spinSeg = (s: Spinner, t: number): Seg => {
   const a = s.w * t;
@@ -141,8 +140,8 @@ function step(balls: Ball[], dt: number, t: number) {
 /* ── 화면 ─────────────────────────────── */
 
 export function MarbleRace({ options, busy, onStart, onDone }: {
-  options: PachinkoOption[]; busy: boolean;
-  onStart: () => void; onDone: (o: PachinkoOption) => void;
+  options: GameOption[]; busy: boolean;
+  onStart: () => void; onDone: (o: GameOption) => void;
 }) {
   const [w, setW] = useState(0);
   const k = Math.max(0, w - PAD * 2) / CW;

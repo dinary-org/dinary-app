@@ -323,12 +323,13 @@ export default function MapTab() {
   }, [layoutH, windowH, insets.top, placesSheetH]);
 
   /**
-   * 지도 빈 곳을 누르면 — 네이버 지도의 onTapMap(네이티브가 좌표까지 줍니다). 핀을 누른 건 핀의 onTap 이 받으므로 여기로 오지 않습니다.
-   * (길게 누르기는 네이티브 지도가 손가락을 가져가 JS 로 오지 않아서 짧은 탭으로 바꿨습니다.)
+   * 지도 빈 곳을 길게 누르면 — 네이버 지도의 onLongTapMap(네이티브 롱탭, patches/ 의 @mj-studio/react-native-naver-map 패치로 추가).
+   * RN 쪽 Pressable 로는 지도가 손가락을 먼저 가져가 JS 로 오지 않아, 네이티브 SDK 의 롱탭을 그대로 받습니다.
+   * 짧은 탭은 핀 요약 카드를 닫는 데만 씁니다.
    */
   const openPlacesAt = placesAt.open;
-  const onMapTap = useCallback((lat: number, lng: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  const onMapLongPress = useCallback((lat: number, lng: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setPlusOpen(false);
     openPlacesAt(lat, lng);
     showAboveSheet(lat, lng, Math.max(zoom, 17));
@@ -525,10 +526,13 @@ export default function MapTab() {
           // 핀 요약 카드는 지도를 밀자마자 내립니다 — 같은 값을 돌려주면 다시 그리지 않습니다.
           setFoundHit((h) => (h?.fromPin ? null : h));
         }}
-        onTapMap={(e) => {
-          // 핀 요약 카드가 떠 있으면 지도를 누른 건 닫기만 — 그 자리 가게 시트는 열지 않습니다.
-          if (foundHit?.fromPin) return setFoundHit(null);
-          onMapTap(e.latitude, e.longitude);
+        onTapMap={() => {
+          // 짧은 탭은 핀 요약 카드를 닫기만 합니다. 그 자리 가게 목록은 길게 눌러서 엽니다.
+          if (foundHit?.fromPin) setFoundHit(null);
+        }}
+        onLongTapMap={(e) => {
+          if (foundHit?.fromPin) setFoundHit(null);
+          onMapLongPress(e.latitude, e.longitude);
         }}
         onCameraIdle={(e) => {
           regionRef.current = { s: e.region.latitude, w: e.region.longitude, n: e.region.latitude + e.region.latitudeDelta, e: e.region.longitude + e.region.longitudeDelta };

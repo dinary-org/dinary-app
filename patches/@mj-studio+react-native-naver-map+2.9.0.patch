@@ -1,3 +1,93 @@
+diff --git a/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/event/NaverMapLongTapEvent.kt b/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/event/NaverMapLongTapEvent.kt
+new file mode 100644
+index 0000000..b4d9794
+--- /dev/null
++++ b/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/event/NaverMapLongTapEvent.kt
+@@ -0,0 +1,32 @@
++package com.mjstudio.reactnativenavermap.event
++
++import com.facebook.react.bridge.Arguments
++import com.facebook.react.bridge.WritableMap
++import com.facebook.react.uimanager.events.Event
++
++class NaverMapLongTapEvent(
++  surfaceId: Int,
++  viewId: Int,
++  private val latitude: Double,
++  private val longitude: Double,
++  private val x: Double,
++  private val y: Double,
++) : Event<NaverMapLongTapEvent>(surfaceId, viewId) {
++  override fun getEventName(): String = EVENT_NAME
++
++  override fun canCoalesce(): Boolean = false
++
++  override fun getCoalescingKey(): Short = 0
++
++  override fun getEventData(): WritableMap =
++    Arguments.createMap().apply {
++      putDouble("latitude", latitude)
++      putDouble("longitude", longitude)
++      putDouble("x", x)
++      putDouble("y", y)
++    }
++
++  companion object {
++    const val EVENT_NAME = "topLongTapMap"
++  }
++}
+diff --git a/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapView.kt b/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapView.kt
+index 40f7571..9c9bac8 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapView.kt
++++ b/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapView.kt
+@@ -10,6 +10,7 @@ import com.mjstudio.reactnativenavermap.event.NaverMapCameraChangeEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapCameraIdleEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapInitializeEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapOptionChangeEvent
++import com.mjstudio.reactnativenavermap.event.NaverMapLongTapEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapTapEvent
+ import com.mjstudio.reactnativenavermap.overlay.RNCNaverMapOverlay
+ import com.mjstudio.reactnativenavermap.overlay.marker.RNCNaverMapMarker
+@@ -124,6 +125,19 @@ class RNCNaverMapView(
+           )
+         }
+       }
++
++      it.setOnMapLongClickListener { pointF, latLng ->
++        reactContext.emitEvent(reactTag) { surfaceId, reactTag ->
++          NaverMapLongTapEvent(
++            surfaceId,
++            reactTag,
++            latLng.latitude,
++            latLng.longitude,
++            pointF.x.toDouble(),
++            pointF.y.toDouble(),
++          )
++        }
++      }
+     }
+ 
+     // Set up a parent view for triggering visibility in subviews that depend on it.
+diff --git a/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapViewManager.kt b/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapViewManager.kt
+index c92093f..a352b77 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapViewManager.kt
++++ b/node_modules/@mj-studio/react-native-naver-map/android/src/main/java/com/mjstudio/reactnativenavermap/mapview/RNCNaverMapViewManager.kt
+@@ -20,6 +20,7 @@ import com.mjstudio.reactnativenavermap.event.NaverMapCustomStyleLoadedEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapInitializeEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapOptionChangeEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapScreenToCoordinateEvent
++import com.mjstudio.reactnativenavermap.event.NaverMapLongTapEvent
+ import com.mjstudio.reactnativenavermap.event.NaverMapTapEvent
+ import com.mjstudio.reactnativenavermap.module.RNCNaverMapInfoWindowRegistry
+ import com.mjstudio.reactnativenavermap.overlay.marker.cluster.RNCNaverMapClusterDataHolder
+@@ -124,6 +125,7 @@ class RNCNaverMapViewManager(
+       registerDirectEvent(this, NaverMapCameraChangeEvent.EVENT_NAME)
+       registerDirectEvent(this, NaverMapCameraIdleEvent.EVENT_NAME)
+       registerDirectEvent(this, NaverMapTapEvent.EVENT_NAME)
++      registerDirectEvent(this, NaverMapLongTapEvent.EVENT_NAME)
+       registerDirectEvent(this, NaverMapScreenToCoordinateEvent.EVENT_NAME)
+       registerDirectEvent(this, NaverMapCoordinateToScreenEvent.EVENT_NAME)
+       registerDirectEvent(this, NaverMapClusterLeafTapEvent.EVENT_NAME)
 diff --git a/node_modules/@mj-studio/react-native-naver-map/ios/Overlay/Marker/RNCNaverMapMarker.mm b/node_modules/@mj-studio/react-native-naver-map/ios/Overlay/Marker/RNCNaverMapMarker.mm
 index 7f408df..a71900c 100644
 --- a/node_modules/@mj-studio/react-native-naver-map/ios/Overlay/Marker/RNCNaverMapMarker.mm
@@ -105,3 +195,131 @@ index 7f408df..a71900c 100644
    UIGraphicsImageRenderer* renderer =
        [[UIGraphicsImageRenderer alloc] initWithSize:view.bounds.size];
    auto ret =
+diff --git a/node_modules/@mj-studio/react-native-naver-map/ios/RNCNaverMapViewImpl.mm b/node_modules/@mj-studio/react-native-naver-map/ios/RNCNaverMapViewImpl.mm
+index 3083528..a72b154 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/ios/RNCNaverMapViewImpl.mm
++++ b/node_modules/@mj-studio/react-native-naver-map/ios/RNCNaverMapViewImpl.mm
+@@ -378,6 +378,17 @@
+   });
+ }
+ 
++- (void)mapView:(NMFMapView*)mapView didLongTapMap:(NMGLatLng*)latlng point:(CGPoint)point {
++  if (!_rncParent.emitter)
++    return;
++  _rncParent.emitter->onLongTapMap({
++      .latitude = latlng.lat,
++      .longitude = latlng.lng,
++      .x = point.x,
++      .y = point.y,
++  });
++}
++
+ - (void)mapView:(NMFMapView*)mapView
+     cameraWillChangeByReason:(NSInteger)reason
+                     animated:(BOOL)animated {
+diff --git a/node_modules/@mj-studio/react-native-naver-map/lib/typescript/commonjs/src/component/NaverMapView.d.ts b/node_modules/@mj-studio/react-native-naver-map/lib/typescript/commonjs/src/component/NaverMapView.d.ts
+index 83f4106..3cf7612 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/lib/typescript/commonjs/src/component/NaverMapView.d.ts
++++ b/node_modules/@mj-studio/react-native-naver-map/lib/typescript/commonjs/src/component/NaverMapView.d.ts
+@@ -531,6 +531,11 @@ export interface NaverMapViewProps extends ViewProps {
+         x: number;
+         y: number;
+     }) => void;
++    /** 맵을 길게 눌렀을 때 발생하는 이벤트입니다(네이티브 롱탭). */
++    onLongTapMap?: (params: Coord & {
++        x: number;
++        y: number;
++    }) => void;
+     /**
+      * 클러스터 Leaf 마커를 클릭했을 때 발생하는 이벤트입니다.
+      *
+diff --git a/node_modules/@mj-studio/react-native-naver-map/lib/typescript/module/src/component/NaverMapView.d.ts b/node_modules/@mj-studio/react-native-naver-map/lib/typescript/module/src/component/NaverMapView.d.ts
+index 83f4106..3cf7612 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/lib/typescript/module/src/component/NaverMapView.d.ts
++++ b/node_modules/@mj-studio/react-native-naver-map/lib/typescript/module/src/component/NaverMapView.d.ts
+@@ -531,6 +531,11 @@ export interface NaverMapViewProps extends ViewProps {
+         x: number;
+         y: number;
+     }) => void;
++    /** 맵을 길게 눌렀을 때 발생하는 이벤트입니다(네이티브 롱탭). */
++    onLongTapMap?: (params: Coord & {
++        x: number;
++        y: number;
++    }) => void;
+     /**
+      * 클러스터 Leaf 마커를 클릭했을 때 발생하는 이벤트입니다.
+      *
+diff --git a/node_modules/@mj-studio/react-native-naver-map/src/component/NaverMapView.tsx b/node_modules/@mj-studio/react-native-naver-map/src/component/NaverMapView.tsx
+index 44da42a..4303e3f 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/src/component/NaverMapView.tsx
++++ b/node_modules/@mj-studio/react-native-naver-map/src/component/NaverMapView.tsx
+@@ -573,6 +573,14 @@ export interface NaverMapViewProps extends ViewProps {
+    */
+   onTapMap?: (params: Coord & { x: number; y: number }) => void;
+ 
++  /**
++   * 맵을 길게 눌렀을 때 발생하는 이벤트입니다(네이티브 롱탭).
++   *
++   * @see {@link Coord}
++   * @event
++   */
++  onLongTapMap?: (params: Coord & { x: number; y: number }) => void;
++
+   /**
+    * 클러스터 Leaf 마커를 클릭했을 때 발생하는 이벤트입니다.
+    *
+@@ -732,6 +740,7 @@ export const NaverMapView = forwardRef(
+       onCameraChanged: onCameraChangedProp,
+       onCameraIdle: onCameraIdleProp,
+       onTapMap: onTapMapProp,
++      onLongTapMap: onLongTapMapProp,
+       onInitialized,
+       onOptionChanged: onOptionChangedProp,
+       customStyleId,
+@@ -932,6 +941,19 @@ export const NaverMapView = forwardRef(
+       }
+     );
+ 
++    const onLongTapMap = useStableCallback(
++      ({
++        nativeEvent: { longitude, latitude, x, y },
++      }: NativeSyntheticEvent<Coord & { x: number; y: number }>) => {
++        onLongTapMapProp?.({
++          longitude,
++          latitude,
++          x,
++          y,
++        });
++      }
++    );
++
+     const screenToCoordinatePromise = useRef<{
+       resolve: (params: {
+         isValid: boolean;
+@@ -1195,6 +1217,7 @@ export const NaverMapView = forwardRef(
+         onCameraChanged={onCameraChangedProp ? onCameraChanged : undefined}
+         onCameraIdle={onCameraIdleProp ? onCameraIdle : undefined}
+         onTapMap={onTapMapProp ? onTapMap : undefined}
++        onLongTapMap={onLongTapMapProp ? onLongTapMap : undefined}
+         onOptionChanged={
+           onOptionChangedProp
+             ? ({ nativeEvent: { locationTrackingMode } }) =>
+diff --git a/node_modules/@mj-studio/react-native-naver-map/src/spec/RNCNaverMapViewNativeComponent.ts b/node_modules/@mj-studio/react-native-naver-map/src/spec/RNCNaverMapViewNativeComponent.ts
+index 74c0ab9..838363d 100644
+--- a/node_modules/@mj-studio/react-native-naver-map/src/spec/RNCNaverMapViewNativeComponent.ts
++++ b/node_modules/@mj-studio/react-native-naver-map/src/spec/RNCNaverMapViewNativeComponent.ts
+@@ -193,6 +193,14 @@ interface Props extends ViewProps {
+       y: Double;
+     }>
+   >;
++  onLongTapMap?: DirectEventHandler<
++    Readonly<{
++      latitude: Double;
++      longitude: Double;
++      x: Double;
++      y: Double;
++    }>
++  >;
+   onTapClusterLeaf?: DirectEventHandler<Readonly<{ markerIdentifier: string }>>;
+ 
+   onCustomStyleLoaded?: DirectEventHandler<Readonly<{}>>;

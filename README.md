@@ -1,12 +1,13 @@
 # DINARY — Expo 앱
 
 `Restaurant app mobile design.zip` 핸드오프(1a 내비게이션 + 1d 비주얼)를 옮기는 중인 네이티브 앱입니다.
-Supabase 스키마와 엣지 함수는 `supabase/` 에 있습니다. 일부 API(geocode · weather · recommend/candidates · account/delete)는 아직 옛 `restaurant-log` 웹(Vercel)에 있습니다.
+Supabase 스키마와 엣지 함수(geocode · weather · recommend-candidates · account-delete · places-at · link-meta)는 `supabase/` 에 있습니다.
+개인정보 처리방침 · 이용약관은 `site/` 의 정적 페이지를 GitHub Pages 로 내보냅니다(`.github/workflows/pages.yml`).
 
 ## 시작
 
 ```bash
-cp .env.example .env      # Supabase 키, API 주소, NAVER_MAP_CLIENT_ID 채우기
+cp .env.example .env      # Supabase 키, NAVER_MAP_CLIENT_ID 채우기
 npm install
 npx expo install expo-dev-client
 # 먼저 아래 NAVER Map / EAS 설정을 완료하세요.
@@ -27,14 +28,14 @@ npm start
 | ⑦ 알림·지오펜스 | 완료 — 위시 50m Region Monitoring(가까운 20곳), 알림 탭 → `/capture?verifyWishId` |
 | ⑧ 스토어 제출 | 미착수 (개인정보·약관은 웹 링크를 `expo-web-browser` 로 엽니다) |
 
-## 웹에 함께 바뀐 것
+## 서버 쪽
 
-앱에는 서버가 없어서 `/api/*` 를 배포된 Next.js 로 부릅니다. 쿠키가 없으니 `Authorization: Bearer` 를 받도록
-`src/proxy.ts` 와 `src/app/api/account/delete/route.ts` 를 고쳤습니다(`/api/` 경로에서만 토큰을 검증).
+앱이 부르는 서버 코드는 모두 Supabase Edge Function 입니다(`src/lib/api.ts` 의 `apiFetch`). 각 함수는 `Authorization: Bearer` 의 Supabase 세션 토큰을 검증합니다.
+함수 비밀값: `KAKAO_REST_API_KEY` · `KMA_SERVICE_KEY` · `JUSO_API_KEY` · `VWORLD_API_KEY`.
 
 ## 시작 전에 채울 것
 
-- `.env` — Supabase URL/키, `EXPO_PUBLIC_API_BASE_URL`, `NAVER_MAP_CLIENT_ID`(NCP Maps 의 Client ID)
+- `.env` — Supabase URL/키, `NAVER_MAP_CLIENT_ID`(NCP Maps 의 Client ID). 웹 페이지 주소를 바꿀 때만 `EXPO_PUBLIC_WEB_BASE_URL`(기본 `https://dinary-org.github.io/dinary-app`)
 - Supabase 콘솔 Redirect URL 에 `dinary://auth` 추가
 - (권장) NCP 콘솔에 종이톤 커스텀 스타일을 등록하고 `EXPO_PUBLIC_NAVER_MAP_STYLE_ID` 지정 — 없으면 임시 종이색 오버레이(마커도 흐려집니다)
 - Android 백그라운드 위치는 Play 콘솔에 사용 목적 영상 제출이 필요합니다. 심사 부담이 크면 `app.json` 의 `ACCESS_BACKGROUND_LOCATION` 과

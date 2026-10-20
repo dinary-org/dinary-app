@@ -5,7 +5,7 @@
  *   GET /functions/v1/places-at?lat=&lng=&radius=25  → radius 만(앱의 반경 칩)
  *
  * 앱은 서울 리전으로 부릅니다(x-region: ap-northeast-2) — 카카오·juso·VWorld 가 가깝고, VWorld 는 국외 IP 를 막습니다.
- * DB(시드니)는 places_at_lookup 한 번으로 다녀옵니다.
+ * DB 는 places_at_lookup 한 번으로 다녀옵니다.
  *
  * 환경변수(Edge Function secrets): KAKAO_REST_API_KEY, JUSO_API_KEY, VWORLD_API_KEY
  *   (SUPABASE_URL · SUPABASE_ANON_KEY · SUPABASE_SERVICE_ROLE_KEY 는 Supabase 가 넣어 줍니다)
@@ -57,8 +57,12 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-region",
 };
 
+/** 로그에 남기기 전 API 키를 가립니다(fetch 오류 메시지에 요청 주소가 통째로 들어옵니다). */
+const safe = (e: unknown) =>
+  String(e instanceof Error ? e.stack ?? e.message : e).replace(/([?&](?:key|confmKey|serviceKey)=)[^&\s)]+/gi, "$1***");
+
 const later = (fn: () => Promise<unknown>) => {
-  const p = fn().catch((e) => console.error("[places-at] background", e));
+  const p = fn().catch((e) => console.error("[places-at] background", safe(e)));
   if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(p);
 };
 
@@ -376,9 +380,9 @@ Deno.serve(async (req) => {
       }
 
       // 2) 건물관리번호로 가게 + (없으면) 둘레 가게. 경계는 동시에 VWorld 로.
-      const resolved = await resolving.catch((e) => { console.warn("[places-at] resolve", String(e)); return null; });
+      const resolved = await resolving.catch((e) => { console.warn("[places-at] resolve", safe(e)); return null; });
       if (!resolved) return null;
-      const footprintP = fetchFootprint(lat, lng, resolved.bld).catch((e) => { console.warn("[places-at] vworld", String(e)); return null; });
+      const footprintP = fetchFootprint(lat, lng, resolved.bld).catch((e) => { console.warn("[places-at] vworld", safe(e)); return null; });
       const look = await lookup({ bld: resolved.bld, radius_m: 50 });
       if (!look.stores.length) {
         return done(await radiusResponse(lat, lng, 50, look, admin, Promise.resolve(resolved.roadAddr.replace(/^\S+\s/, ""))), "radius-empty-building");
@@ -405,12 +409,12 @@ Deno.serve(async (req) => {
     })();
 
     const res = await Promise.race([
-      building.catch((e) => { console.warn("[places-at] building", String(e)); return null; }),
+      building.catch((e) => { console.warn("[places-at] building", safe(e)); return null; }),
       new Promise<null>((r) => setTimeout(() => r(null), BUILDING_BUDGET_MS)),
     ]);
     return res ?? (await radiusFallback(50, "radius"));
   } catch (e) {
-    console.error("[places-at]", e);
+    console.error("[places-at]", safe(e));
     return json({ error: "잠시 후 다시 시도해 주세요" }, 502);
   }
 });

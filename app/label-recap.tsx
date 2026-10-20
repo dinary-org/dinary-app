@@ -17,6 +17,7 @@ import { useSeenLabels } from "@/lib/labelSeen";
 import { stampTilt, type LabelDef } from "@/lib/labels";
 import { SignedImage } from "@/lib/signedPhoto";
 import { dottedDate, type Restaurant } from "@/lib/types";
+import { WEB_BASE } from "@/lib/web";
 import { C, F } from "@/theme";
 
 const INK = "#1c1a17";
@@ -25,7 +26,6 @@ const MUTED = "#8a8377";
 const LINE = "#e2dccf";
 const LINE2 = "#d6cfc1";
 const NEEDS_BUILD = "새 개발 빌드가 필요해요";
-const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
 
 /** 공유 카드에만 쓰는 네이티브 모듈은 누를 때 불러옵니다(분기 리캡과 같은 이유 — 예전 빌드에서 시작하자마자 멈추지 않게). */
 function shareModules() {
@@ -367,7 +367,7 @@ function ShareView({ recap, onBack }: { recap: LabelRecap; onBack: () => void })
   }
 
   async function copyLink() {
-    await Clipboard.setStringAsync(`DINARY · ${recap.def.name}${BASE ? ` ${BASE}` : ""}`);
+    await Clipboard.setStringAsync(`DINARY · ${recap.def.name} ${WEB_BASE}`);
     setToast("복사했어요");
   }
 

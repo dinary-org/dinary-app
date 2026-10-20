@@ -24,9 +24,9 @@ import { supabase } from "@/lib/supabase";
 import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 import { SignedImage } from "@/lib/signedPhoto";
+import { PRIVACY_URL, TERMS_URL } from "@/lib/web";
 
 const PROVIDER_LABEL: Record<string, string> = { apple: "애플", google: "구글" };
-const BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? "";
 const placeKeyOf = (r: Restaurant) => r.place_key ?? `${r.name}|${r.address ?? ""}`.toLowerCase();
 
 /**
@@ -286,8 +286,8 @@ export function MyAccount() {
         <Row label="라벨첩" onPress={() => router.push("/labels")} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         {isAdmin && <Row label="운영" onPress={() => router.push("/admin")} right={<Text style={{ fontFamily: F.mono, fontSize: 11, color: C.brick }}>공지 · 신고함 · 주제 · 랭킹 ›</Text>} />}
         <Row label="기록 내려받기" onPress={exportRecords} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
-        <Row label="개인정보 처리방침" onPress={() => WebBrowser.openBrowserAsync(`${BASE}/privacy`)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
-        <Row label="이용약관" onPress={() => WebBrowser.openBrowserAsync(`${BASE}/terms`)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
+        <Row label="개인정보 처리방침" onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
+        <Row label="이용약관" onPress={() => WebBrowser.openBrowserAsync(TERMS_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="로그아웃" onPress={() => supabase.auth.signOut()} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="회원 탈퇴" onPress={withdraw} danger right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
       </View>

@@ -161,8 +161,8 @@ export default function MapTab() {
   const wishItems = useWishItems(wishes, shownWishes);
   /** 실제 줌 — 카메라가 멈출 때마다 바뀌지만 화면을 다시 그릴 일은 아니라 ref 에 둡니다. */
   const zoomRef = useRef(12);
-  /** 이름표를 정하는 줌 — 어느 마커의 이름표 기준을 넘었을 때만 바꿔, 줌이 끝날 때마다 화면·마커를 통째로 다시 그리지 않습니다. */
-  const [labelZoom, setLabelZoom] = useState(12);
+  /** 이름표가 켜진 마커 id — 카메라가 멈출 때 보이는 범위 둘레만 다시 정합니다(refreshLabels). */
+  const [labelOn, setLabelOn] = useState<ReadonlySet<string>>(() => new Set());
   const [regionView, setRegionView] = useState<{ name: string; count: number } | null>(null);
   const [foundHit, setFoundHit] = useState<{ restaurant: Restaurant; place: Place; fromPin?: boolean } | null>(null);
   const [plusOpen, setPlusOpen] = useState(false);
@@ -422,20 +422,36 @@ export default function MapTab() {
     return wishes.filter((w) => w.lat != null && w.lng != null && inBounds(viewBounds, w.lat, w.lng) && !names.has(norm(w.name)));
   }, [wishes, filtered, viewBounds]);
   /** 마커마다 이름표가 나타나는 줌 — 이웃 이름표·핀과 안 겹치는 줌부터(labelZoom). */
-  const reveal = useMemo(() => revealZooms([
+  const labelItems = useMemo(() => [
     ...recordMarkers.map((p) => ({ id: `r:${p.key}`, lat: p.lat as number, lng: p.lng as number, name: p.name, kind: "record" as const, planned: !!matchWish(wishes, p.name) })),
     ...wishMarkers.map((w) => ({ id: `w:${w.id}`, lat: w.lat as number, lng: w.lng as number, name: w.name, kind: "wish" as const })),
-  ]), [recordMarkers, wishMarkers, wishes]);
-  const showLabel = (id: string) => labelZoom >= (reveal.get(id) ?? Infinity);
-  /** 두 줌 사이에서 이름표가 켜지거나 꺼지는 마커가 있는지 — 없으면 마커를 다시 찍을 일도 없습니다. */
-  const labelsDiffer = useCallback((a: number, b: number) => {
-    for (const t of reveal.values()) if ((a >= t) !== (b >= t)) return true;
-    return false;
-  }, [reveal]);
-  // 마커가 바뀌어 기준이 달라졌으면 지금 줌에 맞춥니다.
-  useEffect(() => {
-    if (labelsDiffer(labelZoom, zoomRef.current)) setLabelZoom(zoomRef.current);
-  }, [labelsDiffer]); // eslint-disable-line react-hooks/exhaustive-deps
+  ], [recordMarkers, wishMarkers, wishes]);
+  const reveal = useMemo(() => revealZooms(labelItems), [labelItems]);
+  const showLabel = (id: string) => labelOn.has(id);
+  /**
+   * 보이는 범위(둘레로 반 화면씩 여유)의 마커만 이름표를 지금 줌에 맞춥니다. 밖의 마커는 그대로 둬서
+   * 이름표가 바뀌는 순간 지도 전체 마커를 메인 스레드에서 다시 찍지 않게 합니다. 바뀐 게 없으면 다시 그리지 않습니다.
+   */
+  const refreshLabels = useCallback(() => {
+    const r = regionRef.current;
+    if (!r) return;
+    const z = zoomRef.current;
+    const padLat = (r.n - r.s) / 2, padLng = (r.e - r.w) / 2;
+    setLabelOn((prev) => {
+      let next: Set<string> | null = null;
+      for (const it of labelItems) {
+        if (it.lat < r.s - padLat || it.lat > r.n + padLat || it.lng < r.w - padLng || it.lng > r.e + padLng) continue;
+        const want = z >= (reveal.get(it.id) ?? Infinity);
+        if (want === prev.has(it.id)) continue;
+        next ??= new Set(prev);
+        if (want) next.add(it.id);
+        else next.delete(it.id);
+      }
+      return next ?? prev;
+    });
+  }, [labelItems, reveal]);
+  // 마커가 바뀌면(검색·필터·새 기록) 기준도 바뀌니 다시 맞춥니다.
+  useEffect(refreshLabels, [refreshLabels]);
   // 마커 onTap 을 마커마다 한 번만 만들어 memo 가 먹게 합니다 — 화면이 다시 그려져도 마커는 그대로.
   const recordTaps = useMemo(() => new Map(recordMarkers.map((p) => [p.key, () => {
     Haptics.selectionAsync();
@@ -555,10 +571,8 @@ export default function MapTab() {
         }}
         onCameraIdle={(e) => {
           regionRef.current = { s: e.region.latitude, w: e.region.longitude, n: e.region.latitude + e.region.latitudeDelta, e: e.region.longitude + e.region.longitudeDelta };
-          if (e.zoom != null) {
-            zoomRef.current = e.zoom;
-            if (labelsDiffer(labelZoom, e.zoom)) setLabelZoom(e.zoom);
-          }
+          if (e.zoom != null) zoomRef.current = e.zoom;
+          refreshLabels();
         }}
       >
         {recordMarkers.map((p) => (

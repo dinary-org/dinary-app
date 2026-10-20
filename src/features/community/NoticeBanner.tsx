@@ -9,13 +9,13 @@ const KEY = "notice.dismissed";
 
 /**
  * 앱 전체 공지(app_notices) — 앱을 열 때 기간 안의 최신 공지 하나를 상단 배너로. 닫으면 그 id 를 기기에 기억합니다.
- * 누르면 내용을 펼칩니다. TODO(푸시): 공지 푸시 알림은 이번 범위 밖입니다.
+ * 처음엔 펼쳐 내용까지 보여 주고, 누르면 접습니다(다시 누르면 펼침). TODO(푸시): 공지 푸시 알림은 이번 범위 밖입니다.
  */
 export function NoticeBanner({ enabled }: { enabled: boolean }) {
   const insets = useSafeAreaInsets();
   const { data: notice } = useAppNotice(enabled);
   const [dismissed, setDismissed] = useState<number | null | undefined>(undefined);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     AsyncStorage.getItem(KEY).then((v) => setDismissed(v ? Number(v) : null)).catch(() => setDismissed(null));
@@ -42,7 +42,7 @@ export function NoticeBanner({ enabled }: { enabled: boolean }) {
           </Pressable>
         </View>
         {open && !!notice.body && <Text style={{ fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: "#d8d2c6", paddingRight: 8 }}>{notice.body}</Text>}
-        {!open && !!notice.body && <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: "#8a8377" }}>눌러서 펼치기 · DINARY 운영</Text>}
+        {!!notice.body && <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: "#8a8377" }}>{open ? "눌러서 접기" : "눌러서 펼치기"} · DINARY 운영</Text>}
       </Pressable>
     </View>
   );

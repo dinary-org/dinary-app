@@ -765,6 +765,38 @@ export const useAppNotice = (enabled: boolean) =>
     },
   });
 
+
+/** 운영 화면의 앱 전체 공지 목록 — 지난 것까지 최근 순. 관리자만 고치고 지웁니다(RLS notices admin write). */
+export const useAdminNotices = (enabled: boolean) =>
+  useQuery({
+    queryKey: ["community", "admin", "notices"],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("app_notices").select("id, title, body, starts_at, ends_at")
+        .order("created_at", { ascending: false }).limit(50);
+      return soft("app_notices 조회", error, (data ?? []) as AppNotice[]);
+    },
+  });
+
+/** RLS 에 막히면 오류 없이 0줄이 바뀌므로, 바뀐 줄이 없으면 실패로 봅니다. */
+async function noticeWrite(qc: QueryClient, run: () => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>) {
+  const { data, error } = await run();
+  if (error) throw new Error(boardError(error.message));
+  if (!data?.length) throw new Error("운영자만 할 수 있습니다");
+  await Promise.all([qc.invalidateQueries({ queryKey: ["community"] }), qc.invalidateQueries({ queryKey: ["app-notice"] })]);
+}
+
+/** days 를 넘기면 기간을 지금부터 다시 잡습니다(null 은 끝 없음). 넘기지 않으면 기간은 그대로. */
+export const adminUpdateNotice = (qc: QueryClient, id: number, t: { title: string; body: string; days?: number | null }) =>
+  noticeWrite(qc, () => supabase.from("app_notices").update({
+    title: t.title.trim(),
+    body: t.body.trim() || null,
+    ...(t.days === undefined ? {} : { ends_at: t.days == null ? null : new Date(Date.now() + t.days * 86400000).toISOString() }),
+  }).eq("id", id).select("id"));
+
+export const adminDeleteNotice = (qc: QueryClient, id: number) =>
+  noticeWrite(qc, () => supabase.from("app_notices").delete().eq("id", id).select("id"));
+
 /* ───────────── 갤러리(HANDOFF-gallery) ───────────── */
 
 /** gallery_feed 한 줄 — 사진 한 장 + 올린 사람 + 가게. 기록의 메모 · 다른 사진은 오지 않습니다. */

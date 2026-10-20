@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  adminCreateNotice, adminHideComment, adminHideGalleryComment, adminHideGalleryPhoto, adminHidePost, adminRankUnban, adminResolveReport, adminSanction, adminSaveTheme, createPost,
-  useCurrentTheme, useIsAdmin, useRankBans, useReports, type RankBan, type ReportRow,
+  adminCreateNotice, adminDeleteNotice, adminHideComment, adminHideGalleryComment, adminHideGalleryPhoto, adminHidePost, adminRankUnban, adminResolveReport, adminSanction, adminSaveTheme, adminUpdateNotice, createPost,
+  useAdminNotices, useCurrentTheme, useIsAdmin, useRankBans, useReports, type AppNotice, type RankBan, type ReportRow,
 } from "@/features/community/api";
 import { Avatar, K, Segmented, timeAgo } from "@/features/community/ui";
 import { supabase } from "@/lib/supabase";
@@ -68,38 +68,72 @@ function NoticeForm() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [days, setDays] = useState<number | null>(7);
+  /** 고치는 앱 공지 — 기간 단추를 누르지 않으면(daysTouched) 기간은 그대로 둡니다. */
+  const [edit, setEdit] = useState<AppNotice | null>(null);
+  const [daysTouched, setDaysTouched] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { data: notices = [] } = useAdminNotices(kind === "app");
+
+  const reset = () => { setEdit(null); setTitle(""); setBody(""); setDays(7); setDaysTouched(false); };
+
+  function startEdit(n: AppNotice) {
+    setEdit(n);
+    setTitle(n.title);
+    setBody(n.body ?? "");
+    setDaysTouched(false);
+  }
 
   async function send() {
     setBusy(true);
     try {
-      if (kind === "board") await createPost(qc, { type: "free", title, body, pinned: true });
+      if (edit) await adminUpdateNotice(qc, edit.id, { title, body, ...(daysTouched ? { days } : {}) });
+      else if (kind === "board") await createPost(qc, { type: "free", title, body, pinned: true });
       else await adminCreateNotice(qc, title, body, days);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert(kind === "board" ? "게시판에 공지를 올렸습니다" : "앱 공지를 걸었습니다");
-      setTitle("");
-      setBody("");
+      Alert.alert(edit ? "공지를 고쳤습니다" : kind === "board" ? "게시판에 공지를 올렸습니다" : "앱 공지를 걸었습니다");
+      reset();
     } catch (e) {
-      Alert.alert("올리지 못했습니다", e instanceof Error ? e.message : "");
+      Alert.alert(edit ? "고치지 못했습니다" : "올리지 못했습니다", e instanceof Error ? e.message : "");
     }
     setBusy(false);
   }
 
+  function remove(n: AppNotice) {
+    Alert.alert("이 공지를 지울까요?", n.title, [
+      { text: "취소", style: "cancel" },
+      {
+        text: "지우기", style: "destructive",
+        onPress: () => adminDeleteNotice(qc, n.id)
+          .then(() => { if (edit?.id === n.id) reset(); })
+          .catch((e) => Alert.alert("지우지 못했습니다", e instanceof Error ? e.message : "")),
+      },
+    ]);
+  }
+
+  const now = new Date().toISOString();
+  const live = (n: AppNotice) => n.starts_at <= now && (n.ends_at == null || n.ends_at > now);
+
   return (
     <>
-      <Segmented<"board" | "app"> value={kind} onChange={setKind} options={[{ id: "board", label: "게시판 고정 공지" }, { id: "app", label: "앱 전체 공지" }]} />
+      <Segmented<"board" | "app"> value={kind} onChange={(k) => { reset(); setKind(k); }} options={[{ id: "board", label: "게시판 고정 공지" }, { id: "app", label: "앱 전체 공지" }]} />
+      {edit && (
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={[label, { color: C.brick }]}>앱 공지 고치는 중</Text>
+          <Pressable onPress={reset} hitSlop={8}><Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>취소</Text></Pressable>
+        </View>
+      )}
       <Text style={label}>제목 · 60자</Text>
       <TextInput value={title} onChangeText={(t) => setTitle(t.slice(0, 60))} style={input} placeholder="제목" placeholderTextColor={K.inactive} />
       <Text style={label}>내용{kind === "app" ? " · 500자" : ""}</Text>
       <TextInput value={body} onChangeText={(t) => setBody(t.slice(0, kind === "app" ? 500 : 2000))} multiline style={[input, { minHeight: 110, paddingTop: 12, textAlignVertical: "top" }]} placeholder="내용(선택)" placeholderTextColor={K.inactive} />
       {kind === "app" && (
         <>
-          <Text style={label}>기간 — 앱을 열 때 상단 배너로, 닫으면 다시 안 보입니다</Text>
+          <Text style={label}>{edit ? "기간 — 누르면 지금부터 다시 잡고, 안 누르면 그대로" : "기간 — 앱을 열 때 상단 배너로, 닫으면 다시 안 보입니다"}</Text>
           <View style={{ flexDirection: "row", gap: 6 }}>
             {[1, 3, 7, null].map((d) => {
-              const on = d === days;
+              const on = (!edit || daysTouched) && d === days;
               return (
-                <Pressable key={String(d)} onPress={() => setDays(d)} style={{ height: 32, borderRadius: 16, paddingHorizontal: 13, justifyContent: "center", backgroundColor: on ? C.ink : C.card, borderWidth: on ? 0 : 1, borderColor: C.line }}>
+                <Pressable key={String(d)} onPress={() => { setDays(d); setDaysTouched(true); }} style={{ height: 32, borderRadius: 16, paddingHorizontal: 13, justifyContent: "center", backgroundColor: on ? C.ink : C.card, borderWidth: on ? 0 : 1, borderColor: C.line }}>
                   <Text style={{ fontFamily: F.sans, fontSize: 12, color: on ? C.card : K.text2 }}>{d == null ? "끝 없음" : `${d}일`}</Text>
                 </Pressable>
               );
@@ -108,7 +142,30 @@ function NoticeForm() {
           {/* TODO(푸시): 앱 전체 공지 푸시 알림 발송은 이번 범위 밖입니다. */}
         </>
       )}
-      <Submit text={busy ? "올리는 중…" : "올리기"} onPress={send} disabled={!title.trim() || busy} />
+      <Submit text={busy ? (edit ? "고치는 중…" : "올리는 중…") : edit ? "고치기" : "올리기"} onPress={send} disabled={!title.trim() || busy} />
+
+      {kind === "app" && (
+        <View style={{ marginTop: 18, gap: 10 }}>
+          <Text style={label}>올린 앱 공지 {notices.length}</Text>
+          {notices.length === 0 && <Text style={{ paddingVertical: 20, textAlign: "center", fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>올린 앱 공지가 없습니다.</Text>}
+          {notices.map((n) => (
+            <View key={n.id} style={{ borderRadius: 14, borderWidth: 1, borderColor: edit?.id === n.id ? C.brick : C.line, backgroundColor: C.card, padding: 13, gap: 6 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Text style={{ fontFamily: F.mono, fontSize: 10, color: live(n) ? C.brick : C.faint }}>{live(n) ? "게시 중" : "끝남"}</Text>
+                <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sansMd, fontSize: 13, color: C.ink }}>{n.title}</Text>
+              </View>
+              {!!n.body && <Text numberOfLines={3} style={{ fontFamily: F.sans, fontSize: 12, lineHeight: 18, color: K.text2 }}>{n.body}</Text>}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+                <Text style={{ flex: 1, fontFamily: F.mono, fontSize: 10, color: C.faint }}>
+                  {n.starts_at.slice(0, 10)} ~ {n.ends_at ? n.ends_at.slice(0, 10) : "끝 없음"}
+                </Text>
+                <Pressable onPress={() => startEdit(n)} hitSlop={8}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>고치기</Text></Pressable>
+                <Pressable onPress={() => remove(n)} hitSlop={8}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>지우기</Text></Pressable>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
     </>
   );
 }

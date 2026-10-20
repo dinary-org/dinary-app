@@ -1,6 +1,6 @@
 import { restoreShown } from "@/features/recommend/log";
 import { GowunBatang_700Bold } from "@expo-google-fonts/gowun-batang";
-import { Hahmlet_600SemiBold } from "@expo-google-fonts/hahmlet";
+import { Hahmlet_600SemiBold } from "@expo-google-fonts/hahmlet/600SemiBold";
 import { NotoSansKR_400Regular, NotoSansKR_500Medium, NotoSansKR_700Bold } from "@expo-google-fonts/noto-sans-kr";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";

@@ -579,30 +579,43 @@ export function Next({ data, season, L }: SlideProps) {
 }
 
 /* 1n · 공유 카드 — 바깥 단추는 재생기가 그립니다(캡처 대상은 카드만). */
-export function ShareCard({ data, season, nick, height }: SlideProps & { height: number }) {
+export type ShareTheme = { name: string; bg: string; ink: string; sub: string; line: string };
+
+/** 공유 카드 바탕색 네 가지 — 0번은 그 분기의 계절색입니다. */
+export function shareThemes(season: Season): ShareTheme[] {
+  const light = "rgba(251,250,246,.35)";
+  return [
+    { name: "계절색", bg: season.accent, ink: CARD, sub: "#f2e0d5", line: light },
+    { name: "먹색", bg: INK, ink: CARD, sub: "#cdc6b8", line: light },
+    { name: "쪽빛", bg: "#4f6b7a", ink: CARD, sub: "#e6ebec", line: light },
+    { name: "종이", bg: PAPER, ink: INK, sub: "#6b665e", line: "rgba(28,26,23,.2)" },
+  ];
+}
+
+export function ShareCard({ data, season, nick, height, theme }: SlideProps & { height: number; theme: ShareTheme }) {
   const q = parseQuarter(data.quarter)!;
   const facts = [
     { k: "단골집", v: data.top.name },
-    { k: "동네", v: data.districts?.top ?? "—" },
+    { k: "자주 찾은 동네", v: data.districts?.top ?? "—" },
     { k: "입맛", v: data.taste.word },
     { k: "성향", v: personaWord(data.persona) },
   ];
   return (
-    <View collapsable={false} style={{ height, borderRadius: 26, overflow: "hidden", backgroundColor: season.accent, paddingTop: 24, paddingHorizontal: 22, paddingBottom: 22 }}>
+    <View collapsable={false} style={{ height, borderRadius: 26, overflow: "hidden", backgroundColor: theme.bg, paddingTop: 24, paddingHorizontal: 22, paddingBottom: 22 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={mono(10, "#f2e0d5", 2)}>DINARY</Text>
-        <Text style={mono(10, "#f2e0d5", 2)}>{q.year} · {q.q}분기</Text>
+        <Text style={mono(10, theme.sub, 2)}>DINARY</Text>
+        <Text style={mono(10, theme.sub, 2)}>{q.year} · {q.q}분기</Text>
       </View>
-      <Text style={[serif(32, CARD, 1.25), { marginTop: 22 }]}>{`${nick}의\n${season.name} 식탁`}</Text>
+      <Text style={[serif(32, theme.ink, 1.25), { marginTop: 22 }]}>{`${nick}의\n${season.name} 식탁`}</Text>
       <View style={{ marginTop: 18, flexDirection: "row", alignItems: "baseline", gap: 4 }}>
-        <Text style={[serif(80, CARD), { lineHeight: 86, letterSpacing: -2 }]}>{data.count}</Text>
-        <Text style={serif(20, CARD)}>끼</Text>
+        <Text style={[serif(80, theme.ink), { lineHeight: 86, letterSpacing: -2 }]}>{data.count}</Text>
+        <Text style={serif(20, theme.ink)}>끼</Text>
       </View>
-      <View style={{ marginTop: "auto", flexDirection: "row", flexWrap: "wrap", rowGap: 16, columnGap: 14, borderTopWidth: 1, borderTopColor: "rgba(251,250,246,.35)", paddingTop: 16 }}>
+      <View style={{ marginTop: "auto", flexDirection: "row", flexWrap: "wrap", rowGap: 16, columnGap: 14, borderTopWidth: 1, borderTopColor: theme.line, paddingTop: 16 }}>
         {facts.map((f) => (
           <View key={f.k} style={{ width: "46%", gap: 3 }}>
-            <Text style={sans(10.5, "#f2e0d5")}>{f.k}</Text>
-            <Text style={serif(15, CARD)} numberOfLines={1}>{f.v}</Text>
+            <Text style={sans(10.5, theme.sub)}>{f.k}</Text>
+            <Text style={serif(15, theme.ink)} numberOfLines={1}>{f.v}</Text>
           </View>
         ))}
       </View>

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, View, useWindowDimensions, type GestureResponderEvent } from "react-native";
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withTiming, type SharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAccount } from "@/data/profile";
 import { usePersonalRows, usePersonalWishes } from "@/data/queries";
@@ -14,7 +15,7 @@ import { A, CLOCK_END, ClockProvider } from "@/features/recap/anim";
 import { computeRecap } from "@/features/recap/compute";
 import { currentQuarter, parseQuarter, quarterLabel, seasonOf } from "@/features/recap/seasons";
 import {
-  Cover, Districts, Labels, Memo, Next, Numbers, Odd, Persona, ShareCard, Taste, Time, Top5, TopPlaceSlide, WishSlide,
+  Cover, Districts, Labels, Memo, Next, Numbers, Odd, Persona, ShareCard, shareThemes, Taste, Time, Top5, TopPlaceSlide, WishSlide,
   type Layout, type SlideProps,
 } from "@/features/recap/slides";
 import { useRecapState } from "@/features/recap/useRecapState";
@@ -25,6 +26,8 @@ const SECONDS = 6;
 /** 이보다 짧게 눌렀다 떼면 탭, 길면 멈춤 */
 const TAP_MS = 250;
 const NEEDS_BUILD = "새 개발 빌드가 필요해요";
+/** 장마다 아래에 깔리는 저장·공유 줄이 차지하는 높이 — 장 내용은 이만큼 위로 줄여 그립니다. */
+const BAR = 64;
 
 /**
  * 공유 카드에만 쓰는 네이티브 모듈은 누를 때 불러옵니다 — expo-sharing 은 불러오는 순간 네이티브 모듈을 찾아서,
@@ -68,13 +71,15 @@ export default function RecapPlayer() {
 
   const season = valid ? seasonOf(quarter) : null;
   const nick = account?.nickname?.trim() || "나";
-  const scale = Math.min(1, H / 844);
+  const scale = Math.min(1, (H - BAR) / 844);
   const L: Layout = useMemo(
-    () => ({ y: (mt: number) => Math.round(insets.top + Math.max(0, mt - 44) * scale), bottom: insets.bottom, scale }),
+    () => ({ y: (mt: number) => Math.round(insets.top + Math.max(0, mt - 44) * scale), bottom: insets.bottom + BAR, scale }),
     [insets.top, insets.bottom, scale]
   );
 
   const cardRef = useRef<View>(null);
+  const slideRef = useRef<View>(null);
+  const [themeIdx, setThemeIdx] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => {
     if (!toast) return;
@@ -166,27 +171,42 @@ export default function RecapPlayer() {
     else resume();
   };
 
-  /* ── 공유 카드 ─────────────────────────────── */
+  /* ── 저장 · 공유 ─────────────────────────────── */
 
-  async function shareCard() {
+  /**
+   * 지금 장을 PNG 로 — 마지막 장은 공유 카드만, 나머지는 장 전체. 찍는 동안 멈추고 등장 애니메이션을
+   * 끝까지 돌려 둔 채로 찍은 뒤 다시 흘려 보냅니다.
+   */
+  async function withCapture(mods: NonNullable<ReturnType<typeof shareModules>>, then: (uri: string) => Promise<void>) {
+    const target = slides[cur]?.id === "share" ? cardRef : slideRef;
+    pause();
+    clock.value = CLOCK_END;
+    try {
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await then(await mods.captureRef(target, { format: "png", quality: 1, result: "tmpfile" }));
+    } finally {
+      resume();
+    }
+  }
+
+  async function shareSlide() {
     const mods = shareModules();
     if (!mods) return setToast(NEEDS_BUILD);
     try {
-      const uri = await mods.captureRef(cardRef, { format: "png", quality: 1, result: "tmpfile" });
       if (!(await mods.Sharing.isAvailableAsync())) return setToast("이 기기에서는 공유할 수 없어요");
-      await mods.Sharing.shareAsync(uri, { mimeType: "image/png", UTI: "public.png", dialogTitle: "리캡 공유" });
+      await withCapture(mods, (uri) => mods.Sharing.shareAsync(uri, { mimeType: "image/png", UTI: "public.png", dialogTitle: "리캡 공유" }));
     } catch (e) {
       setToast(missingNative(e) ? NEEDS_BUILD : "이미지를 만들지 못했어요");
     }
   }
 
-  async function saveCard() {
+  async function saveSlide() {
     const mods = shareModules();
     if (!mods) return setToast(NEEDS_BUILD);
     try {
       const perm = await MediaLibrary.requestPermissionsAsync(true);
       if (!perm.granted) return setToast("사진 접근을 허용하면 저장할 수 있어요");
-      await MediaLibrary.saveToLibraryAsync(await mods.captureRef(cardRef, { format: "png", quality: 1, result: "tmpfile" }));
+      await withCapture(mods, (uri) => MediaLibrary.saveToLibraryAsync(uri));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setToast("사진 앱에 저장했어요");
     } catch (e) {
@@ -217,36 +237,67 @@ export default function RecapPlayer() {
 
   const slide = slides[cur];
   const chrome = slide.dark ? C.card : C.ink;
-  const shareH = Math.max(380, Math.min(540, H - L.y(112) - (insets.bottom + 10) - 110 - 24));
+  const shareH = Math.max(340, Math.min(470, H - L.y(112) - (insets.bottom + 10) - 110 - 24 - 60));
+  const themes = shareThemes(season);
+  const isShare = slide.id === "share";
 
   return (
     <ClockProvider value={clock}>
       <StatusBar style={slide.dark ? "light" : "dark"} />
       <Pressable style={s.root} onPressIn={onPressIn} onPressOut={onPressOut} accessible={false}>
-        <View key={`${slide.id}-${play.n}`} style={StyleSheet.absoluteFill}>
-          {slide.id === "share" ? (
+        <View key={`${slide.id}-${play.n}`} ref={slideRef} collapsable={false} style={StyleSheet.absoluteFill}>
+          {isShare ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: "#e9e5da" }]}>
               <A k="card" d={100} style={[{ position: "absolute", top: L.y(112), left: 30, right: 30 }, s.cardShadow]}>
                 <View ref={cardRef} collapsable={false}>
-                  <ShareCard data={recap} season={season} nick={nick} L={L} height={shareH} />
+                  <ShareCard data={recap} season={season} nick={nick} L={L} height={shareH} theme={themes[themeIdx]} />
                 </View>
               </A>
-              <A k="up" d={600} style={{ position: "absolute", left: 30, right: 30, bottom: insets.bottom + 10, gap: 10 }}>
-                <Pressable onPress={shareCard} style={({ pressed }) => [s.shareMain, pressed && { opacity: 0.85 }]}>
-                  <Text style={{ fontFamily: F.sansMd, fontSize: 14, color: C.card }}>스토리에 공유</Text>
-                </Pressable>
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  <Pressable onPress={saveCard} style={({ pressed }) => [s.shareSub, pressed && { backgroundColor: "#f1ede4" }]}>
-                    <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink }}>이미지 저장</Text>
-                  </Pressable>
-                  <Pressable onPress={() => go(0)} style={({ pressed }) => [s.shareSub, pressed && { backgroundColor: "#f1ede4" }]}>
-                    <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink }}>처음부터 보기</Text>
-                  </Pressable>
-                </View>
+              <A k="up" d={400} style={{ position: "absolute", top: L.y(112) + shareH + 10, left: 0, right: 0, flexDirection: "row", justifyContent: "center", gap: 4 }}>
+                {themes.map((t, i) => {
+                  const selected = i === themeIdx;
+                  return (
+                    <Pressable
+                      key={t.name}
+                      onPress={() => { Haptics.selectionAsync(); setThemeIdx(i); }}
+                      accessibilityLabel={i === 0 ? `카드 색 · ${t.name}` : t.name}
+                      accessibilityState={{ selected }}
+                      style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}
+                    >
+                      <View style={selected ? s.swatchRing : undefined}>
+                        <View style={[s.swatch, { backgroundColor: t.bg }, !selected && { borderWidth: 1, borderColor: "rgba(28,26,23,.15)" }]} />
+                      </View>
+                    </Pressable>
+                  );
+                })}
               </A>
             </View>
           ) : (
             slide.render()
+          )}
+        </View>
+
+        {/* 저장(작게) · 공유(길게) — 모든 장. 마지막 장에는 「처음부터 보기」가 한 줄 더 붙습니다. */}
+        <View style={{ position: "absolute", left: isShare ? 30 : 24, right: isShare ? 30 : 24, bottom: insets.bottom + 10, gap: 10 }}>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Pressable
+              onPress={saveSlide}
+              accessibilityLabel="이미지 저장"
+              style={({ pressed }) => [s.saveBtn, slide.dark ? s.saveDark : s.saveLight, pressed && { opacity: 0.7 }]}
+            >
+              <DownloadIcon color={chrome} />
+            </Pressable>
+            <Pressable
+              onPress={shareSlide}
+              style={({ pressed }) => [s.shareMain, { flex: 1, backgroundColor: slide.dark ? C.card : C.ink }, pressed && { opacity: 0.85 }]}
+            >
+              <Text style={{ fontFamily: F.sansMd, fontSize: 14, color: slide.dark ? C.ink : C.card }}>{isShare ? "스토리에 공유" : "공유하기"}</Text>
+            </Pressable>
+          </View>
+          {isShare && (
+            <Pressable onPress={() => go(0)} style={({ pressed }) => [s.shareSub, pressed && { backgroundColor: "#f1ede4" }]}>
+              <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink }}>처음부터 보기</Text>
+            </Pressable>
           )}
         </View>
 
@@ -275,6 +326,14 @@ export default function RecapPlayer() {
   );
 }
 
+function DownloadIcon({ color }: { color: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14" />
+    </Svg>
+  );
+}
+
 function Segment({ state, prog, color }: { state: "past" | "current" | "future"; prog: SharedValue<number>; color: string }) {
   const fill = useAnimatedStyle(() => ({
     width: `${(state === "past" ? 1 : state === "current" ? prog.value : 0) * 100}%`,
@@ -291,9 +350,14 @@ const s = StyleSheet.create({
   root: { flex: 1 },
   cardShadow: { shadowColor: "#1c1a17", shadowOpacity: 0.2, shadowRadius: 40, shadowOffset: { width: 0, height: 18 }, elevation: 12, borderRadius: 26 },
   shareMain: { height: 52, borderRadius: 26, backgroundColor: C.ink, alignItems: "center", justifyContent: "center" },
+  saveBtn: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  saveLight: { borderColor: "#cdc6b8", backgroundColor: C.card },
+  saveDark: { borderColor: "rgba(251,250,246,.35)", backgroundColor: "rgba(251,250,246,.08)" },
   shareSub: {
-    flex: 1, height: 48, borderRadius: 24, borderWidth: 1, borderColor: "#cdc6b8", backgroundColor: C.card, alignItems: "center", justifyContent: "center",
+    height: 48, borderRadius: 24, borderWidth: 1, borderColor: "#cdc6b8", backgroundColor: C.card, alignItems: "center", justifyContent: "center",
   },
+  swatch: { width: 30, height: 30, borderRadius: 15 },
+  swatchRing: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: "#1c1a17", alignItems: "center", justifyContent: "center" },
   toast: {
     position: "absolute", alignSelf: "center", borderRadius: 16, backgroundColor: "rgba(23,22,20,.85)", paddingVertical: 10, paddingHorizontal: 16,
   },

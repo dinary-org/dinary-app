@@ -41,7 +41,6 @@ function stagger(y0: number, rows: number, gap: number, dy: number): Pt[] {
   }
   return out;
 }
-const PEGS: Pt[] = [...stagger(52, 5, 30, 24), ...stagger(300, 4, 34, 24)];
 const SEGS: Seg[] = [
   // 첫 깔때기
   { a: { x: 0, y: 176 }, b: { x: 118, y: 206 } },
@@ -60,11 +59,15 @@ const GATE: Seg[] = [
   { a: { x: CW, y: 466 }, b: { x: CW / 2 + GATE_GAP, y: GATE_Y } },
 ];
 const SPINNERS: Spinner[] = [
-  { c: { x: CW * 0.28, y: 252 }, len: 72, w: 2.4 },
-  { c: { x: CW * 0.72, y: 252 }, len: 72, w: -2.4 },
+  // 가운데 두 막대 — 누우면 끝끼리 구슬 하나 폭도 안 남아 깔때기에서 떨어진 구슬을 정말로 막습니다. 첫 깔때기에 닿지 않을 만큼만 깁니다.
+  { c: { x: CW * 0.28, y: 264 }, len: 116, w: 2.4 },
+  { c: { x: CW * 0.72, y: 264 }, len: 116, w: -2.4 },
   // 관문지기 — 구멍 바로 위에서 돌며 막았다 열었다, 다가온 구슬을 쳐올립니다.
   { c: { x: CW / 2, y: GATE_Y - 26 }, len: 56, w: 2.2 },
 ];
+/** 막대가 도는 자리에 걸치는 핀은 뺍니다. */
+const PEGS: Pt[] = [...stagger(52, 5, 30, 24), ...stagger(300, 4, 34, 24)]
+  .filter((p) => SPINNERS.every((s) => Math.hypot(p.x - s.c.x, p.y - s.c.y) > s.len / 2 + BALL_R + PEG_R + 2));
 const spinSeg = (s: Spinner, t: number): Seg => {
   const a = s.w * t;
   const dx = (Math.cos(a) * s.len) / 2, dy = (Math.sin(a) * s.len) / 2;

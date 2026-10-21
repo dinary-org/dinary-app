@@ -7,6 +7,7 @@ import { REC_CATEGORIES, type RecCategory } from "@/lib/recommend";
 import type { Scored } from "@/lib/rec/score";
 import { C, F } from "@/theme";
 import { MarbleRace } from "./MarbleRace";
+import { TugOfWar } from "./TugOfWar";
 import { REC, SectionHead } from "./ui";
 import { WinPopup } from "./WinPopup";
 
@@ -39,10 +40,11 @@ const CUSTOM_KEY = "rec.roulette.custom";
 type Tab = "place" | "category" | "custom";
 type Option = { key: string; label: string };
 
-type Mode = "wheel" | "marble";
+type Mode = "wheel" | "marble" | "tug";
 const MODES: { id: Mode; label: string }[] = [
   { id: "wheel", label: "룰렛" },
   { id: "marble", label: "구슬 경주" },
+  { id: "tug", label: "줄다리기" },
 ];
 
 const TABS: { id: Tab; label: string }[] = [
@@ -72,7 +74,7 @@ function slicePath(a0: number, a1: number, r: number) {
 }
 
 /**
- * 「결정을 하지 못하시겠다면?」 — 돌려서 정하는 룰렛, 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
+ * 「랜덤 게임」 모드 — 돌려서 정하는 룰렛, 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx), 둘이 겨루는 줄다리기(TugOfWar.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
  * 칸 옆 − 로 빼고, + 로 원하는 가게 · 카테고리 · 메뉴를 적어 넣습니다. 카테고리가 나오면 그 종류로 다시 추천받을 수 있습니다. 직접 입력한 것은 기기에 남깁니다.
  */
 export function Roulette({ picks, exclude, onPlace, onCategory }: {
@@ -81,6 +83,9 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
 }) {
   const [mode, setMode] = useState<Mode>("wheel");
   const [tab, setTab] = useState<Tab>(picks.length >= 2 ? "place" : "category");
+  // 추천이 늦게 들어오면(이 화면을 먼저 연 경우) 손대기 전까지는 추천된 가게로 옮깁니다.
+  const tabTouched = useRef(false);
+  useEffect(() => { if (!tabTouched.current && picks.length >= 2) setTab("place"); }, [picks.length]);
   // 탭마다 뺀 칸(removed: 기본 칸의 key)과 더한 칸(added: 적어 넣은 이름). 직접 선택은 더한 칸만 있고 기기에 남깁니다.
   const [removed, setRemoved] = useState<Record<Tab, string[]>>({ place: [], category: [], custom: [] });
   const [added, setAdded] = useState<Record<Tab, string[]>>({ place: [], category: [], custom: [] });
@@ -188,11 +193,11 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
     : null;
 
   return (
-    <View style={{ marginTop: 34 }}>
+    <View>
       <View>
         <SectionHead title="결정을 하지 못하시겠다면?" />
-        {/* 룰렛 · 구슬 경주 */}
-        <View style={{ marginTop: 10, flexDirection: "row", gap: 6 }}>
+        {/* 룰렛 · 구슬 경주 · 줄다리기 */}
+        <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {MODES.map((m) => {
             const on = mode === m.id;
             return (
@@ -220,7 +225,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
               <Pressable
                 key={t.id}
                 disabled={spinning}
-                onPress={() => { if (!on) { Haptics.selectionAsync(); setTab(t.id); } }}
+                onPress={() => { if (!on) { Haptics.selectionAsync(); tabTouched.current = true; setTab(t.id); } }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: on }}
                 style={{ flex: 1, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: on ? C.ink : "transparent" }}
@@ -280,7 +285,16 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
           </View>
         )}
 
-        {mode === "marble" ? (
+        {mode === "tug" ? (
+          <View style={{ marginTop: 22 }}>
+            <TugOfWar
+              options={live}
+              busy={spinning}
+              onStart={() => { setWon(null); setSpinning(true); }}
+              onDone={(o) => { setSpinning(false); setWon(o); }}
+            />
+          </View>
+        ) : mode === "marble" ? (
           <View style={{ marginTop: 22 }}>
             <MarbleRace
               options={live}
@@ -359,7 +373,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
               )}
             </View>
           ) : (
-            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{mode === "wheel" ? "가운데를 눌러 돌려 보세요" : "먼저 들어온 구슬이 이겨요"}</Text>
+            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{mode === "wheel" ? "가운데를 눌러 돌려 보세요" : mode === "marble" ? "먼저 들어온 구슬이 이겨요" : "둘이 하나씩 고르고, 내 칸을 빨리 두드려 끌어오세요"}</Text>
           )}
         </View>
       </View>

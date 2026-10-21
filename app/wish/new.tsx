@@ -9,7 +9,7 @@ import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinkIcon, PhotoIcon } from "@/components/icons";
 import { SourceIcon } from "@/components/SourceIcon";
-import { Button, Chip, Eyebrow, fieldStyle } from "@/components/ui";
+import { Button, Chip, Eyebrow, fieldStyle, SearchResults } from "@/components/ui";
 import { refreshAll } from "@/data/invalidate";
 import { useActiveBook } from "@/data/books";
 import { useWishes } from "@/data/queries";
@@ -21,7 +21,7 @@ import { SignedImage } from "@/lib/signedPhoto";
 import { isAcceptedKind, isSourceKind, parseSourceLink, sourceStrip, type SourceKind } from "@/lib/sourceLink";
 import { supabase } from "@/lib/supabase";
 import { ALL_CATEGORIES, matchWish } from "@/lib/types";
-import { C, F, SHADOW } from "@/theme";
+import { C, F } from "@/theme";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -314,17 +314,13 @@ export default function WishForm() {
               placeholder="가게 이름" placeholderTextColor="#b3ada1" style={[fieldStyle, { borderRadius: 14, minHeight: 46 }]}
             />
             {suggestOpen && hits.length > 0 && (
-              <View style={[{ marginTop: 6, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }, SHADOW.card]}>
-                {hits.map((r, i) => (
-                  <Pressable key={`${r.lat}-${r.lng}-${i}`} onPress={() => pickPlace(r)}
-                    style={{ paddingHorizontal: 14, paddingVertical: 10, gap: 2, borderBottomWidth: i === hits.length - 1 ? 0 : 1, borderBottomColor: C.line }}>
-                    <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{r.name}</Text>
-                    <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>
-                      {[r.category ?? (r.kind === "cafe" ? "카페" : "맛집"), r.address].filter(Boolean).join(" · ")}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <SearchResults
+              items={hits}
+                keyOf={(r, i) => `${r.lat}-${r.lng}-${i}`}
+                title={(r) => r.name}
+                sub={(r) => [r.category ?? (r.kind === "cafe" ? "카페" : "맛집"), r.address].filter(Boolean).join(" · ")}
+                onPick={pickPlace}
+              />
             )}
           </View>
 

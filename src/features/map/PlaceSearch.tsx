@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-native";
 import { SearchIcon } from "@/components/icons";
+import { SearchResults } from "@/components/ui";
 import { forwardGeocode, type Place } from "@/lib/geocode";
 import { C, F, SHADOW } from "@/theme";
 
@@ -51,18 +52,14 @@ export default function PlaceSearch({
       {/* 목록은 absolute 로 띄우지 않고 이 View 안에 쌓습니다. 부모 상자 밖으로 삐져나오면 RN 은 항목 탭을 받지만
           네이티브 지도도 같은 탭을 받아, 그 자리의 기록 마커가 함께 눌려 기록 화면이 열려버립니다. */}
       {open && results.length > 0 && (
-        <View style={[{ marginTop: 6, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }, SHADOW.card]}>
-          {results.map((p, i) => (
-            <Pressable
-              key={`${p.lat}-${p.lng}-${i}`}
-              onPress={() => { skip.current = true; onChange(p.name || p.address); setOpen(false); setResults([]); onChoose(p); }}
-              style={{ paddingHorizontal: 16, paddingVertical: 12, gap: 2, borderBottomWidth: i === results.length - 1 ? 0 : 1, borderBottomColor: C.line }}
-            >
-              <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{p.name || p.address}</Text>
-              <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>{p.address}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <SearchResults
+          items={results}
+          keyOf={(p, i) => `${p.lat}-${p.lng}-${i}`}
+          title={(p) => p.name || p.address}
+          sub={(p) => p.address}
+          onPick={(p) => { skip.current = true; onChange(p.name || p.address); setOpen(false); setResults([]); onChoose(p); }}
+          style={{ borderRadius: 16 }}
+        />
       )}
     </View>
   );

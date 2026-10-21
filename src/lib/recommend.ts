@@ -12,7 +12,7 @@ export const verifiedOnly = (rows: Restaurant[]) => rows.filter((r) => r.verifie
 /* ───────────── 이름 · 종류 · 거리 ───────────── */
 
 /** 두 모드 이름 — 아직 확정 전이라(§4-1-1) 여기 한 곳에만 둡니다. */
-export const REC_MODE_LABEL = { now: "지금 뭐 먹지", browse: "둘러보기" } as const;
+export const REC_MODE_LABEL = { now: "지금 뭐 먹지", browse: "둘러보기", games: "랜덤 게임" } as const;
 export type RecMode = keyof typeof REC_MODE_LABEL;
 
 /** 필터 종류 9개(§5-2). 먹고 싶은 것 · 빼고 싶은 것이 함께 씁니다. */

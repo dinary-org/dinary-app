@@ -14,13 +14,14 @@ import { FilterSheet } from "@/features/recommend/FilterSheet";
 import { uuid, type RecSession } from "@/features/recommend/log";
 import { NowMode } from "@/features/recommend/NowMode";
 import { PointSheet } from "@/features/recommend/PointSheet";
+import { Roulette } from "@/features/recommend/Roulette";
 import { REC } from "@/features/recommend/ui";
 import { todayIso } from "@/lib/anniversary";
 import { REC_CONFIG } from "@/lib/rec/config";
 import { recommend } from "@/lib/rec/pipeline";
 import { resultSignature } from "@/lib/rec/snapshot";
 import { mealSlotOf, seoulClock } from "@/lib/rec/time";
-import { defaultFilter, FETCH_MAX_M, REC_MODE_LABEL, type RecFilter, type RecMode } from "@/lib/recommend";
+import { defaultFilter, FETCH_MAX_M, REC_MODE_LABEL, type RecCategory, type RecFilter, type RecMode } from "@/lib/recommend";
 import type { Restaurant, Wish } from "@/lib/types";
 import { C, F, TAB_BAR_H } from "@/theme";
 
@@ -39,7 +40,8 @@ const NOW_FETCH_M = FETCH_MAX_M;
 const BROWSE_M = 3000;
 
 /**
- * 추천 탭(HANDOFF-recommend-all §4, 시안 v2 5a–5b) — 한 화면 안에서 「지금 뭐 먹지 / 둘러보기」를 오갑니다.
+ * 추천 탭(HANDOFF-recommend-all §4, 시안 v2 5a–5b) — 한 화면 안에서 「지금 뭐 먹지 / 둘러보기 / 랜덤 게임」을 오갑니다.
+ * 랜덤 게임의 「추천된 가게」는 지금 뭐 먹지와 같은 5곳이라, 카카오 후보 · 날씨는 둘러보기에서만 쉽니다.
  * 남의 기록은 서버가 숫자로만 돌려주고(사진 · 사람 없음), 셈에는 인증된 기록만 씁니다.
  */
 export default function RecommendTab() {
@@ -86,16 +88,19 @@ export default function RecommendTab() {
 
   // 카카오 후보 1.5km, 모자라다고 하면 3km. 날씨는 없으면 중립.
   const [near, wide] = REC_CONFIG.radii;
-  const kakaoNear = useRecCandidates(mode === "now" ? here : null, near);
+  const picksOn = mode !== "browse";
+  const kakaoNear = useRecCandidates(picksOn ? here : null, near);
   const [wantWide, setWantWide] = useState(false);
-  const kakaoWide = useRecCandidates(mode === "now" ? here : null, wide, wantWide);
-  const { data: weather = null } = useRecWeather(mode === "now" ? here : null);
+  const kakaoWide = useRecCandidates(picksOn ? here : null, wide, wantWide);
+  const { data: weather = null } = useRecWeather(picksOn ? here : null);
 
   // 「다시 추천」 — 앞서 보여 준 5곳들. 기준(자리 · 시각 · 필터 · 기록장)이 바뀌면 처음부터.
   const [shown, setShown] = useState<string[][]>([]);
   const [explorationSeed] = useState(uuid);
   const basis = `${here?.lat.toFixed(3)},${here?.lng.toFixed(3)}|${at ?? "now"}|${JSON.stringify(filter)}|${bookId}`;
   useEffect(() => { setShown([]); setWantWide(false); }, [basis]);
+  // 보고 있는 카드 — 새 5곳이 오면 첫 장부터.
+  const [pickIndex, setPickIndex] = useState(0);
 
   const when = useMemo(() => (at ? new Date(at) : clock), [at, clock]);
   const seoul = seoulClock(when);
@@ -130,6 +135,12 @@ export default function RecommendTab() {
     } : null),
     [pickSig, ownerId] // eslint-disable-line react-hooks/exhaustive-deps
   );
+  useEffect(() => { setPickIndex(0); }, [session?.id]);
+
+  /** 랜덤 게임에서 고른 가게 · 카테고리 — 지금 뭐 먹지로 넘어가 맨 위(카드)를 보여 줍니다. */
+  const showNow = () => { setMode("now"); scrollRef.current?.scrollTo({ y: 0, animated: false }); };
+  const playPlace = (i: number) => { if (i >= 0) setPickIndex(i); showNow(); };
+  const playCategory = (cat: RecCategory) => { setState({ recFilter: { inc: [cat], exc: filter.exc.filter((x) => x !== cat), date: today } }); showNow(); };
 
   // 점심 · 저녁 — 오늘 그 끼니 시각(12:00 · 18:30)으로 기준 시각을 옮깁니다. 지금이 그 끼니면 지금으로.
   const slotNow = mealSlotOf(seoulClock(clock).minutes);
@@ -162,7 +173,7 @@ export default function RecommendTab() {
             </Svg>
           </Pressable>
         </View>
-        <View style={{ marginTop: 6, flexDirection: "row", alignItems: "baseline", gap: 14 }}>
+        <View style={{ marginTop: 6, flexDirection: "row", alignItems: "baseline", gap: 12 }}>
           {(Object.keys(REC_MODE_LABEL) as RecMode[]).map((m) => (
             <ModeTitle key={m} label={REC_MODE_LABEL[m]} on={mode === m} onPress={() => { Haptics.selectionAsync(); setMode(m); }} />
           ))}
@@ -201,14 +212,17 @@ export default function RecommendTab() {
             filter={filter}
             slot={result?.ctx.slot ?? slotNow}
             pointLabel={recPlace ? "고른 위치" : "내 위치"}
+            index={pickIndex}
+            onIndex={setPickIndex}
             onMapTouch={setMapTouch}
             onOpenFilter={() => setSheet(true)}
             onChangeFilter={(f) => setState({ recFilter: { ...f, date: today } })}
             onRefresh={() => result && setShown((s) => [...s, result.picks.map((p) => p.c.key)])}
             onMeal={setMeal}
             onRetry={() => { void nowQ.refetch(); void kakaoNear.refetch(); }}
-            onReveal={() => scrollRef.current?.scrollTo({ y: 0, animated: true })}
           />
+        ) : mode === "games" ? (
+          <Roulette picks={result?.picks ?? []} exclude={filter.exc} onPlace={playPlace} onCategory={playCategory} />
         ) : (
           <BrowseMode courses={courses} tours={tours} revisits={revisits} />
         )}
@@ -227,20 +241,30 @@ export default function RecommendTab() {
   );
 }
 
-/** 모드 이름 — 고른 쪽은 Gowun Batang 28 진하게, 아닌 쪽은 16 연하게. 제자리에서 0.3s 로 커지고 작아집니다(§4-1-1). */
+/**
+ * 모드 이름 — 고른 쪽은 28 진하게, 아닌 쪽은 16 연하게. 제자리에서 0.3s 로 커지고 작아집니다(§4-1-1).
+ * 고운돋움은 Regular 하나뿐이라 같은 글자를 THICK 만큼 옆으로 밀어 한 번 더 겹쳐 조금 굵게 보이게 합니다(fontWeight 는 iOS 에서 듣지 않음).
+ */
+const THICK = 0.7;
+
 function ModeTitle({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
   const t = useRef(new Animated.Value(on ? 1 : 0)).current;
   useEffect(() => {
     Animated.timing(t, { toValue: on ? 1 : 0, duration: 300, easing: Easing.inOut(Easing.ease), useNativeDriver: false }).start();
   }, [on, t]);
+  const style = {
+    fontFamily: F.serif,
+    fontSize: t.interpolate({ inputRange: [0, 1], outputRange: [16, 28] }),
+    color: t.interpolate({ inputRange: [0, 1], outputRange: [REC.quiet, REC.ink] }),
+  };
   return (
-    <Pressable onPress={onPress} disabled={on} accessibilityRole="tab" accessibilityState={{ selected: on }} hitSlop={8}>
+    <Pressable onPress={onPress} disabled={on} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={label} hitSlop={8}>
+      <Animated.Text style={style}>{label}</Animated.Text>
       <Animated.Text
-        style={{
-          fontFamily: F.serif,
-          fontSize: t.interpolate({ inputRange: [0, 1], outputRange: [16, 28] }),
-          color: t.interpolate({ inputRange: [0, 1], outputRange: [REC.quiet, REC.ink] }),
-        }}
+        aria-hidden
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
+        style={[style, { position: "absolute", left: THICK, top: 0 }]}
       >
         {label}
       </Animated.Text>

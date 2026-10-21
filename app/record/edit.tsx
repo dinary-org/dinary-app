@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThumbIcon, VerifiedMark } from "@/components/icons";
-import { Chip, Eyebrow, fieldStyle } from "@/components/ui";
+import { Chip, Eyebrow, fieldStyle, SearchResults } from "@/components/ui";
 import { enqueue, persistPhoto, removePhoto } from "@/features/queue/db";
 import { drainQueue } from "@/features/queue/process";
 import { captureBookId, useActiveBook, useSaveNote } from "@/data/books";
@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase";
 import {
   CATEGORIES, findMatchingWish, KEYWORDS, verifiedDateTime, wishMetInfo, WISH_AUTO_M, type Kind, type MenuItem,
 } from "@/lib/types";
-import { C, F, SHADOW } from "@/theme";
+import { C, F } from "@/theme";
 import { linkVisit, visitAttribution } from "@/features/recommend/log";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -362,16 +362,13 @@ export default function EditRoute() {
             placeholder="가게 이름" placeholderTextColor="#b3ada1" style={fieldStyle}
           />
           {suggestOpen && hits.length > 0 && (
-            <View style={[s.suggest, SHADOW.card]}>
-              {hits.map((r, i) => (
-                <Pressable key={`${r.lat}-${r.lng}-${i}`} onPress={() => pickPlace(r)} style={[s.suggestRow, i === hits.length - 1 && { borderBottomWidth: 0 }]}>
-                  <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{r.name}</Text>
-                  <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>
-                    {[r.category ?? (r.kind === "cafe" ? "카페" : "맛집"), r.address].filter(Boolean).join(" · ")}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            <SearchResults
+            items={hits}
+              keyOf={(r, i) => `${r.lat}-${r.lng}-${i}`}
+              title={(r) => r.name}
+              sub={(r) => [r.category ?? (r.kind === "cafe" ? "카페" : "맛집"), r.address].filter(Boolean).join(" · ")}
+              onPick={pickPlace}
+            />
           )}
         </View>
         <View style={{ marginTop: 14 }}>
@@ -542,8 +539,6 @@ const s = StyleSheet.create({
     marginTop: 7, minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1,
     borderColor: "#e0c3b1", backgroundColor: "#f9efe8", paddingHorizontal: 15,
   },
-  suggest: { marginTop: 6, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" },
-  suggestRow: { paddingHorizontal: 14, paddingVertical: 10, gap: 2, borderBottomWidth: 1, borderBottomColor: C.line },
   // 메뉴 이름·가격 칸은 글꼴이 달라 제 키가 어긋납니다 — 줄을 stretch 로 두어 가격 칸을 이름 칸 키에 맞춥니다.
   menuField: { marginTop: 0, minHeight: 46, height: 46, paddingVertical: 0, borderRadius: 14, textAlignVertical: "center" },
   vote: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card, alignItems: "center", justifyContent: "center" },

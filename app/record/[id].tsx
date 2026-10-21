@@ -18,7 +18,7 @@ import { photosOf, verifiedShotOf } from "@/lib/record";
 import { supabase } from "@/lib/supabase";
 import { SOURCE_LABEL } from "@/lib/sourceLink";
 import { dottedDate, verifiedDateTime, verifiedTime, type Restaurant } from "@/lib/types";
-import { C, F } from "@/theme";
+import { C, F, FAINT_BOLD } from "@/theme";
 import { SignedImage } from "@/lib/signedPhoto";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -315,7 +315,7 @@ export default function RecordRoute() {
         )}
 
         <View style={{ paddingHorizontal: 22, paddingTop: 20 }}>
-          <Text style={{ fontFamily: F.serif, fontSize: 25, color: C.ink }}>{record.name}</Text>
+          <Text style={[FAINT_BOLD, { fontFamily: F.serif, fontSize: 25, color: C.ink }]}>{record.name}</Text>
           <Text style={{ marginTop: 7, fontFamily: F.sans, fontSize: 12, color: C.faint }}>
             {[record.category, record.region].filter(Boolean).join(" · ")}
           </Text>

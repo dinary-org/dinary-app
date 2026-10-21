@@ -10,7 +10,7 @@ import { photoCount } from "@/lib/record";
 import { feltLabel, feltLevel } from "@/lib/price";
 import { groupPlaces } from "@/lib/places";
 import { dottedDate, verifiedDateTime, type Restaurant } from "@/lib/types";
-import { C, F } from "@/theme";
+import { C, F, FAINT_BOLD } from "@/theme";
 
 /** 가게 화면 — 같은 가게의 방문 기록들을 묶어 보여줍니다. */
 export default function PlaceRoute() {
@@ -61,7 +61,7 @@ export default function PlaceRoute() {
         </PhotoBox>
 
         <View style={{ paddingHorizontal: 22, paddingTop: 22 }}>
-          <Text style={{ fontFamily: F.serif, fontSize: 27, color: C.ink }}>{place.name}</Text>
+          <Text style={[FAINT_BOLD, { fontFamily: F.serif, fontSize: 27, color: C.ink }]}>{place.name}</Text>
           <Text style={{ marginTop: 8, fontFamily: F.sans, fontSize: 12, color: C.faint }}>
             {[place.category, place.region].filter(Boolean).join(" · ")}
           </Text>

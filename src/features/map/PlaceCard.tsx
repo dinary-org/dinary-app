@@ -5,7 +5,7 @@ import { MobileStars, PhotoBox, Pigs } from "@/components/ui";
 import type { BookMember } from "@/data/books";
 import { Pair } from "@/features/couple/Avatars";
 import type { Place } from "@/lib/places";
-import { C, F, SHADOW } from "@/theme";
+import { C, F, FAINT_BOLD, SHADOW } from "@/theme";
 
 /** 연인 기록일 때 카드에 붙는 것 — 두 사람 아바타·한 줄 상태·기념일 라벨(HANDOFF-couple §3-5). */
 export type CoupleCardInfo = { me: BookMember | null; partner: BookMember | null; meWrote: boolean; partnerWrote: boolean; tag?: string };
@@ -22,8 +22,6 @@ const badge: ViewStyle = { height: 18, paddingHorizontal: 7, paddingVertical: 0,
 const badgeText: TextStyle = { lineHeight: 13, ...(Platform.OS === "android" ? { includeFontPadding: false, textAlignVertical: "center" } : null) };
 /** Android 는 lineHeight 가 없으면 Noto Sans KR 의 큰 글꼴 여백(약 2.9배)을 줄마다 더해 줄 사이가 벌어집니다 — 줄 높이를 고정하고 여백을 끕니다. */
 const tight: TextStyle | null = Platform.OS === "android" ? { includeFontPadding: false } : null;
-/** 고운돋움은 굵기가 하나뿐이라, 같은 색 그림자를 살짝 둘러 조금 굵어 보이게 합니다. */
-const faintBold: TextStyle = { textShadowColor: C.ink, textShadowRadius: 0.6, textShadowOffset: { width: 0, height: 0 } };
 
 /** 같은 이름의 방문 기록을 하나로 묶은 카드. onShare 를 주면 오른쪽 아래에 공유 단추(그날 화면). */
 export default function PlaceCard({ place, onOpen, couple, onShare }: { place: Place; onOpen: () => void; couple?: CoupleCardInfo; onShare?: () => void }) {
@@ -43,7 +41,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare }: { place: P
 
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Text numberOfLines={1} style={[tight, faintBold, { flexShrink: 1, fontFamily: F.serif, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
+          <Text numberOfLines={1} style={[tight, FAINT_BOLD, { flexShrink: 1, fontFamily: F.serif, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
           {place.visits.length > 1 && (
             <View style={[badge, { backgroundColor: "#efe9dc" }]}>
               <Text style={[badgeText, { fontFamily: F.mono, fontSize: 9, color: C.muted }]}>기록 {place.visits.length}</Text>

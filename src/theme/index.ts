@@ -20,7 +20,8 @@ export const C = {
 } as const;
 
 export const F = {
-  serif: "GowunBatang_700Bold",
+  /** 제목 글씨체 — 고운돋움 */
+  serif: "GowunDodum_400Regular",
   sans: "NotoSansKR_400Regular",
   sansMd: "NotoSansKR_500Medium",
   sansBd: "NotoSansKR_700Bold",

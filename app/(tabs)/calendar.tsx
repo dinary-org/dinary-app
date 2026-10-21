@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ViewToken } from "react-native";
+import { Animated, Easing, FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ViewToken } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Eyebrow } from "@/components/ui";
 import { useActiveBook, useAnniversaryPicks } from "@/data/books";
@@ -186,6 +186,21 @@ export default function CalendarTab() {
   const maxVisitedAt = useMemo(() => rows.reduce<string | null>((m, r) => (r.visited_at && (!m || r.visited_at > m) ? r.visited_at : m), null), [rows]);
   const cursor = cursorState ?? monthOfKey(maxVisitedAt ?? keyOf(new Date()));
 
+  // 보이는 달이 바뀌면 머리의 「N년 N월」 · 「이 달 기록」이 넘기는 쪽에서 살짝 밀려 들어옵니다(다음 달은 아래에서, 지난달은 위에서).
+  const flip = useRef(new Animated.Value(0)).current;
+  const lastMonth = useRef(cursor.year * 12 + cursor.month);
+  useEffect(() => {
+    const now = cursor.year * 12 + cursor.month;
+    if (now === lastMonth.current) return;
+    flip.setValue(now > lastMonth.current ? 1 : -1);
+    lastMonth.current = now;
+    Animated.timing(flip, { toValue: 0, duration: 260, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [cursor.year, cursor.month, flip]);
+  const flipStyle = {
+    opacity: flip.interpolate({ inputRange: [-1, 0, 1], outputRange: [0, 1, 0] }),
+    transform: [{ translateY: flip.interpolate({ inputRange: [-1, 0, 1], outputRange: [-12, 0, 12] }) }],
+  };
+
   // 달 목록 — 맨 위에 보이는 달이 머리의 「N년 N월」이 됩니다. 연·월 다이얼에서 고르면 그 달로 바로 넘어갑니다.
   const listRef = useRef<FlatList<{ year: number; month: number }>>(null);
   const moved = useRef(false);
@@ -227,16 +242,16 @@ export default function CalendarTab() {
           <Eyebrow wide>{isCouple ? "CALENDAR · 우리" : "CALENDAR"}</Eyebrow>
           {startedOn && <Text style={{ fontFamily: F.mono, fontSize: 11.5, color: C.brick }}>D+{dayCount(startedOn)}</Text>}
         </View>
-        <View style={s.titleRow}>
+        <Animated.View style={[s.titleRow, flipStyle]}>
           <Pressable ref={yearRef} onPress={() => openPicker("year")} hitSlop={8} accessibilityHint="연도를 고르는 다이얼이 열립니다">
             <Text style={s.title}>{cursor.year}년</Text>
           </Pressable>
           <Pressable ref={monthRef} onPress={() => openPicker("month")} hitSlop={8} accessibilityHint="월을 고르는 다이얼이 열립니다">
             <Text style={s.title}>{cursor.month + 1}월</Text>
           </Pressable>
-        </View>
+        </Animated.View>
         <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>이 달 기록 {countThisMonth}건</Text>
+          <Animated.Text style={[{ fontFamily: F.sans, fontSize: 12, color: C.faint }, flipStyle]}>이 달 기록 {countThisMonth}건</Animated.Text>
           <Pressable
             onPress={() => setShowWishes((v) => !v)}
             style={[s.toggle, showWishes && { borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: C.brickSoft }]}

@@ -79,7 +79,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare }: { place: P
             <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 11, color: couple.meWrote && couple.partnerWrote ? C.muted : C.faint }}>{coupleStatus(couple)}</Text>
           </View>
         ) : (
-          <Text numberOfLines={2} style={{ marginTop: 3, fontFamily: F.sans, fontSize: 11.5, lineHeight: 17, color: "#4d4842" }}>{comment}</Text>
+          <Text numberOfLines={2} style={{ marginTop: 3, fontFamily: F.serif, fontSize: 11.5, lineHeight: 17, color: "#4d4842" }}>{comment}</Text>
         )}
       </View>
       {onShare && <View style={{ alignSelf: "flex-end" }}><ShareButton onPress={onShare} /></View>}

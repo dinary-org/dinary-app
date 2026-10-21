@@ -9,7 +9,7 @@ import { C, F } from "@/theme";
  * 추천 탭 v2 의 작은 조각들 — 알약 뒤로가기 · 지도 번호 마커 · 내 위치 · 투어 도장.
  */
 
-/** 핀볼 · 구슬 경주가 받는 칸 하나. */
+/** 구슬 경주가 받는 칸 하나. */
 export type GameOption = { key: string; label: string };
 
 export const REC = {

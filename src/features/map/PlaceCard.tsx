@@ -5,7 +5,7 @@ import { MobileStars, PhotoBox, Pigs } from "@/components/ui";
 import type { BookMember } from "@/data/books";
 import { Pair } from "@/features/couple/Avatars";
 import type { Place } from "@/lib/places";
-import { C, F, SHADOW } from "@/theme";
+import { C, F, FAINT_BOLD, SHADOW } from "@/theme";
 
 /** 연인 기록일 때 카드에 붙는 것 — 두 사람 아바타·한 줄 상태·기념일 라벨(HANDOFF-couple §3-5). */
 export type CoupleCardInfo = { me: BookMember | null; partner: BookMember | null; meWrote: boolean; partnerWrote: boolean; tag?: string };
@@ -41,7 +41,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare }: { place: P
 
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Text numberOfLines={1} style={[tight, { flexShrink: 1, fontFamily: F.serif, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
+          <Text numberOfLines={1} style={[tight, FAINT_BOLD, { flexShrink: 1, fontFamily: F.serif, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
           {place.visits.length > 1 && (
             <View style={[badge, { backgroundColor: "#efe9dc" }]}>
               <Text style={[badgeText, { fontFamily: F.mono, fontSize: 9, color: C.muted }]}>기록 {place.visits.length}</Text>
@@ -79,7 +79,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare }: { place: P
             <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 11, color: couple.meWrote && couple.partnerWrote ? C.muted : C.faint }}>{coupleStatus(couple)}</Text>
           </View>
         ) : (
-          <Text numberOfLines={2} style={{ marginTop: 3, fontFamily: F.sans, fontSize: 11.5, lineHeight: 17, color: "#4d4842" }}>{comment}</Text>
+          <Text numberOfLines={2} style={{ marginTop: 3, fontFamily: F.serif, fontSize: 11.5, lineHeight: 17, color: "#4d4842" }}>{comment}</Text>
         )}
       </View>
       {onShare && <View style={{ alignSelf: "flex-end" }}><ShareButton onPress={onShare} /></View>}

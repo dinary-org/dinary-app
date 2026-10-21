@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { SOURCE_LABEL, sourceShort } from "@/lib/sourceLink";
 import { dottedDate, wishKind } from "@/lib/types";
 import { firstUrl, noteWithoutUrl } from "@/lib/wishes";
-import { C, F, SHADOW } from "@/theme";
+import { C, F, FAINT_BOLD, SHADOW } from "@/theme";
 
 /** 책갈피 마커·검색·월력에서 연 그 가게 하나짜리 시트(transparentModal). */
 export default function WishSheetRoute() {
@@ -73,7 +73,7 @@ export default function WishSheetRoute() {
           <Text style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: 1.8, color: C.brick }}>위시리스트</Text>
         </View>
         {groupLine && <Text numberOfLines={1} style={{ marginTop: 8, fontFamily: F.mono, fontSize: 10, letterSpacing: 0.6, color: C.faint }}>{groupLine}</Text>}
-        <Text style={{ marginTop: groupLine ? 3 : 6, fontFamily: F.serif, fontSize: 22, color: C.ink }}>{wish.name}</Text>
+        <Text style={[FAINT_BOLD, { marginTop: groupLine ? 3 : 6, fontFamily: F.serif, fontSize: 22, color: C.ink }]}>{wish.name}</Text>
         <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{[wish.category, wish.where_text].filter(Boolean).join(" · ")}</Text>
         {sourceLabel && (
           <Text style={{ marginTop: 10, alignSelf: "flex-start", borderRadius: 9, backgroundColor: "#efebe2", paddingHorizontal: 10, paddingVertical: 4, fontFamily: F.mono, fontSize: 10.5, color: "#4d4842", overflow: "hidden" }}>

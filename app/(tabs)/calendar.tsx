@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
-import { Animated, Easing, Modal, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, type FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Eyebrow } from "@/components/ui";
 import { useActiveBook, useAnniversaryPicks } from "@/data/books";
@@ -11,15 +11,12 @@ import RecapCard from "@/features/recap/RecapCard";
 import RecapListSheet from "@/features/recap/RecapListSheet";
 import { useRecapState, useRecaps } from "@/features/recap/useRecapState";
 import { dayCount, milestoneOn } from "@/lib/anniversary";
-import type { Restaurant, Wish } from "@/lib/types";
+import { pinColor, type Restaurant, type Wish } from "@/lib/types";
 import { C, F } from "@/theme";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const pad = (n: number) => String(n).padStart(2, "0");
 const keyOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-/** 칸 안 이름 칩 최대 글자 수 — 390px 폭·7열 격자에서 들어가는 값(웹 HANDOFF-calendar 실측). */
-const MAX_CHIP_CHARS = 3;
-const clipName = (name: string, max: number) => (name.length > max ? `${name.slice(0, max)}…` : name);
 /** 연도 다이얼 범위(HANDOFF-calendar-nav §3) */
 const YEARS = Array.from({ length: 16 }, (_, i) => 2020 + i);
 const MONTHS = Array.from({ length: 12 }, (_, i) => i);
@@ -29,12 +26,23 @@ const monthOfKey = (k: string) => {
   return { year: y, month: m - 1 };
 };
 
-/** 달력 칸 — 달마다 칸 크기가 같도록 언제나 6주(42칸)를 채웁니다. 남는 앞뒤 칸은 이웃 달 날짜(흐리게). */
-function monthCells(year: number, month: number) {
-  const first = new Date(year, month, 1);
-  const cells: Date[] = [];
-  for (let i = 0; i < 42; i++) cells.push(new Date(year, month, 1 - first.getDay() + i));
-  return cells;
+/** 위아래로 넘기는 달 목록 — 다이얼과 같은 범위(2020.1 ~ 2035.12). */
+const ALL_MONTHS = YEARS.flatMap((year) => MONTHS.map((month) => ({ year, month })));
+const monthIndex = (c: { year: number; month: number }) =>
+  Math.max(0, Math.min(ALL_MONTHS.length - 1, (c.year - YEARS[0]) * 12 + c.month));
+/** 달 카드 머리(「10월」) 높이 · 이름 한 줄 높이(간격 포함) · 날짜 동그라미까지의 높이. */
+const MONTH_HEAD = 42;
+const ITEM_H = 14.5;
+const DATE_H = 31;
+/** 그 달의 주 — 앞뒤 빈칸은 null. 달마다 필요한 만큼(4~6주)만. */
+function monthWeeks(year: number, month: number) {
+  const lead = new Date(year, month, 1).getDay();
+  const days = new Date(year, month + 1, 0).getDate();
+  const cells: (Date | null)[] = Array.from({ length: Math.ceil((lead + days) / 7) * 7 }, (_, i) =>
+    i < lead || i >= lead + days ? null : new Date(year, month, i - lead + 1));
+  const out: (Date | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
+  return out;
 }
 
 function groupBy<T extends { name: string }>(list: T[], key: (t: T) => string | null) {
@@ -78,7 +86,94 @@ function Dial({ labels, index, onPick }: { labels: string[]; index: number; onPi
   );
 }
 
-/** 월력 — 기록의 visited_at 을 날짜별로 모아 칸 안에 가게 이름 미리보기로 보여줍니다. */
+/** 이름 한 줄 — 앞에 카테고리 핀 색 막대. 예정(위시)은 막대를 옅게, 글자를 흐리게. */
+function Item({ name, category, wish, onMilestone }: { name: string; category: string | null; wish?: boolean; onMilestone?: boolean }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 3, height: 13 }}>
+      <View style={{ width: 2.5, height: 11, borderRadius: 1.25, backgroundColor: pinColor(category), opacity: wish ? 0.45 : 1 }} />
+      <Text numberOfLines={1} ellipsizeMode="clip" style={{ flex: 1, fontFamily: F.sans, fontSize: 9.5, lineHeight: 13, color: wish ? C.faint : onMilestone ? "#a34d27" : C.ink }}>{name}</Text>
+    </View>
+  );
+}
+
+type MonthProps = {
+  year: number; month: number; index: number; page: number; bottom: number; scrollY: Animated.Value;
+  todayKey: string; startedOn: string | null; showWishes: boolean;
+  byDate: Map<string, Restaurant[]>; byDateWish: Map<string, Wish[]>; onOpenDay: (key: string) => void;
+};
+
+/**
+ * 한 달 = 한 장. 카드 안은 칸을 나누지 않고 주마다 가는 줄만 긋습니다(애플 캘린더처럼). 「N월」은 카드 왼쪽 위에 고정.
+ * 넘길 때 다음 달은 작고 옅게 있다가 가운데로 오며 커지고, 지나간 달은 작아지며 흐려집니다.
+ * 오늘은 벽돌 동그라미, 기념일은 옅은 벽돌 동그라미 + 이름.
+ */
+const MonthBlock = memo(function MonthBlock({ year, month, index, page, bottom, scrollY, todayKey, startedOn, showWishes, byDate, byDateWish, onOpenDay }: MonthProps) {
+  const weeks = monthWeeks(year, month);
+  const thisMonth = todayKey.startsWith(`${year}-${pad(month + 1)}`);
+  // 카드는 장 높이에서 위 여백 · 아래(탭바 자리) 여백을 뺀 만큼. 주 줄은 그 달 주 수로 나눠 꽉 채웁니다.
+  const cardH = page - 6 - bottom;
+  const weekH = (cardH - MONTH_HEAD - 6) / weeks.length;
+  const maxItems = Math.max(1, Math.floor((weekH - DATE_H - 4) / ITEM_H));
+  const range = [(index - 1) * page, index * page, (index + 1) * page];
+  return (
+    <View style={{ height: page, paddingTop: 6 }}>
+      <Animated.View style={[s.monthCard, {
+        height: cardH,
+        opacity: scrollY.interpolate({ inputRange: range, outputRange: [0.25, 1, 0.25], extrapolate: "clamp" }),
+        transform: [
+          { scale: scrollY.interpolate({ inputRange: range, outputRange: [0.9, 1, 0.9], extrapolate: "clamp" }) },
+          { translateY: scrollY.interpolate({ inputRange: range, outputRange: [-24, 0, 24], extrapolate: "clamp" }) },
+        ],
+      }]}>
+      <View style={{ height: MONTH_HEAD, flexDirection: "row", alignItems: "baseline", gap: 6, paddingTop: 12, paddingHorizontal: 10 }}>
+        <Text style={{ fontFamily: F.serif, fontSize: 20, color: thisMonth ? C.brick : C.ink }}>{month + 1}월</Text>
+        <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint }}>{year}</Text>
+      </View>
+      {weeks.map((week, wi) => (
+        <View key={wi} style={{ height: weekH, flexDirection: "row", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line }}>
+          {week.map((date, di) => {
+            if (!date) return <View key={di} style={{ flex: 1 }} />;
+            const key = keyOf(date);
+            const visits = byDate.get(key) ?? [];
+            const wishItems = showWishes ? (byDateWish.get(key) ?? []) : [];
+            const isToday = key === todayKey;
+            const milestone = startedOn ? milestoneOn(startedOn, key) : null;
+            // 줄 높이 안에 들어가는 만큼만 — 넘치면 마지막 줄을 「+N」으로. 기념일 이름이 있으면 한 줄 덜.
+            const cap = Math.max(1, maxItems - (milestone ? 1 : 0));
+            const total = visits.length + wishItems.length;
+            const room = total > cap ? cap - 1 : total;
+            const shownVisits = visits.slice(0, room);
+            const shownWishes = wishItems.slice(0, room - shownVisits.length);
+            const extra = total - shownVisits.length - shownWishes.length;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => onOpenDay(key)}
+                accessibilityLabel={`${year}년 ${month + 1}월 ${date.getDate()}일, 기록 ${visits.length}건${wishItems.length ? ` · 예정 ${wishItems.length}건` : ""}${milestone ? ` · ${milestone.label}` : ""}`}
+                style={({ pressed }) => ({ flex: 1, minWidth: 0, overflow: "hidden", paddingTop: 4, paddingHorizontal: 2, backgroundColor: pressed ? "#efe9dd" : "transparent" })}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                  <View style={[s.dateDot, isToday ? { backgroundColor: C.brick } : milestone ? { backgroundColor: C.brickSoft } : null]}>
+                    <Text style={{ fontFamily: isToday ? F.sansBd : F.mono, fontSize: 11, color: isToday ? C.card : milestone ? C.brick : C.ink }}>{date.getDate()}</Text>
+                  </View>
+                </View>
+                {milestone && <Text numberOfLines={1} style={{ marginTop: 1, textAlign: "center", fontFamily: F.mono, fontSize: 7.5, color: C.brick }}>{milestone.label}</Text>}
+                <View style={{ marginTop: 3, gap: 1.5, overflow: "hidden" }}>
+                  {shownVisits.map((v) => <Item key={v.id} name={v.name} category={v.category} onMilestone={!!milestone} />)}
+                  {shownWishes.map((w) => <Item key={w.id} name={w.name} category={w.category} wish />)}
+                  {extra > 0 && <Text style={{ paddingLeft: 5, fontFamily: F.mono, fontSize: 8.5, color: "#a29a8c" }}>+{extra}</Text>}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      ))}
+      </Animated.View>
+    </View>
+  );
+});
+
+/** 월력 — 기록의 visited_at 을 날짜별로 모아 가게 이름(앞에 카테고리 색 막대)으로 보여줍니다. 달은 위아래로 넘깁니다. */
 export default function CalendarTab() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -100,43 +195,33 @@ export default function CalendarTab() {
   const maxVisitedAt = useMemo(() => rows.reduce<string | null>((m, r) => (r.visited_at && (!m || r.visited_at > m) ? r.visited_at : m), null), [rows]);
   const cursor = cursorState ?? monthOfKey(maxVisitedAt ?? keyOf(new Date()));
 
-  const shift = (delta: number) => {
-    const d = new Date(cursor.year, cursor.month + delta, 1);
-    setCursorState({ year: d.getFullYear(), month: d.getMonth() });
+  // 달 목록 — 한 달이 한 장. 위아래로 넘기면 한 달씩 붙어 넘어가고, 멈춘 달이 머리의 「N년 N월」이 됩니다.
+  // 연·월 다이얼에서 고르면 그 달로 바로 넘어갑니다.
+  const listRef = useRef<FlatList<{ year: number; month: number }>>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [page, setPage] = useState(0);
+  const moved = useRef(false);
+  const shownIndex = useRef(monthIndex(cursor));
+  shownIndex.current = monthIndex(cursor);
+  const jumpTo = (c: { year: number; month: number }) => {
+    moved.current = true;
+    setCursorState(c);
+    listRef.current?.scrollToIndex({ index: monthIndex(c), animated: false });
   };
-
-  // 격자를 좌우로 밀면 달 이동(HANDOFF-calendar-nav §2). 스와이프로 잡힌 터치는 칸 onPress 가 나지 않습니다.
-  // 격자는 손가락을 따라오고, 넘기면 짧게 밀려 사라진 뒤 다음 달이 반대쪽에서 살짝 들어옵니다 — 어지럽지 않게 이동 폭은 작게.
-  const shiftRef = useRef(shift);
-  shiftRef.current = shift;
-  const tx = useRef(new Animated.Value(0)).current;
-  const fade = useRef(new Animated.Value(1)).current;
-  const pan = useMemo(() => {
-    const horizontal = (g: { dx: number; dy: number }) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy);
-    const back = () => Animated.spring(tx, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 20 }).start();
-    return PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) => horizontal(g),
-      onMoveShouldSetPanResponderCapture: (_, g) => horizontal(g),
-      onPanResponderMove: (_, g) => tx.setValue(g.dx),
-      onPanResponderRelease: (_, g) => {
-        if (!(Math.abs(g.dx) > 40 && Math.abs(g.dx) > Math.abs(g.dy))) return back();
-        const sign = g.dx < 0 ? -1 : 1; // 손가락이 간 쪽
-        const ease = Easing.out(Easing.cubic);
-        Animated.parallel([
-          Animated.timing(tx, { toValue: sign * (Math.abs(g.dx) + 40), duration: 110, easing: ease, useNativeDriver: true }),
-          Animated.timing(fade, { toValue: 0, duration: 110, useNativeDriver: true }),
-        ]).start(() => {
-          shiftRef.current(-sign);
-          tx.setValue(-sign * 36);
-          Animated.parallel([
-            Animated.timing(tx, { toValue: 0, duration: 200, easing: ease, useNativeDriver: true }),
-            Animated.timing(fade, { toValue: 1, duration: 200, useNativeDriver: true }),
-          ]).start();
-        });
-      },
-      onPanResponderTerminate: back,
-    });
-  }, [tx, fade]);
+  // 처음엔 가장 최근 기록의 달 — 기록이 늦게 오면, 아직 손대지 않았을 때만 그 달로 옮깁니다.
+  useEffect(() => {
+    if (moved.current || !maxVisitedAt || !page) return;
+    listRef.current?.scrollToIndex({ index: monthIndex(monthOfKey(maxVisitedAt)), animated: false });
+  }, [maxVisitedAt, page]);
+  // 장 높이가 바뀌면(리캡 카드가 늦게 뜨는 등) 보던 달에 다시 맞춥니다.
+  useEffect(() => {
+    if (page) listRef.current?.scrollToIndex({ index: shownIndex.current, animated: false });
+  }, [page]);
+  const onSettle = (y: number) => {
+    if (!page) return;
+    const m = ALL_MONTHS[Math.max(0, Math.min(ALL_MONTHS.length - 1, Math.round(y / page)))];
+    if (m.year !== cursor.year || m.month !== cursor.month) setCursorState(m);
+  };
 
   // 연·월 다이얼(§3) — 누른 글자 바로 아래에 펼칩니다. 위치는 글자를 창 기준으로 재서 맞춥니다.
   const yearRef = useRef<View>(null);
@@ -147,16 +232,12 @@ export default function CalendarTab() {
 
   const byDate = useMemo(() => groupBy<Restaurant>(rows, (r) => r.visited_at), [rows]);
   const byDateWish = useMemo(() => groupBy<Wish>(wishes, (w) => w.plan_date), [wishes]);
-  const weeks = useMemo(() => {
-    const cells = monthCells(cursor.year, cursor.month);
-    const out: Date[][] = [];
-    for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
-    return out;
-  }, [cursor]);
+  const openDay = useCallback((key: string) => router.push({ pathname: "/day/[date]", params: { date: key } }), [router]);
 
   const prefix = `${cursor.year}-${pad(cursor.month + 1)}`;
   const countThisMonth = rows.filter((r) => r.visited_at?.startsWith(prefix)).length;
   const todayKey = keyOf(new Date());
+  const bottomGap = Platform.OS === "android" ? 30 : 74 + insets.bottom + 12;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper, paddingTop: insets.top + 8 }}>
@@ -202,58 +283,36 @@ export default function CalendarTab() {
         {WEEKDAYS.map((w) => <Text key={w} style={s.weekday}>{w}</Text>)}
       </View>
 
-      {/* 탭바는 화면 아래에 따로 놓여서(절대 위치 아님) 이 화면은 이미 탭바 위에서 끝납니다. Android 는 화면이 짧아
-          탭바 높이를 또 비우면 칸에 칩 2개가 안 들어가므로, 솟은 카메라 버튼(22) 만큼만 비웁니다. iOS 는 그대로. */}
-      <Animated.View {...pan.panHandlers} style={{ flex: 1, paddingHorizontal: 12, paddingTop: 6, paddingBottom: Platform.OS === "android" ? 30 : 74 + insets.bottom + 12, gap: 4, opacity: fade, transform: [{ translateX: tx }] }}>
-        {weeks.map((week, i) => (
-          <View key={i} style={{ flex: 1, flexDirection: "row", gap: 4 }}>
-            {week.map((date) => {
-              const key = keyOf(date);
-              const inMonth = date.getMonth() === cursor.month;
-              const visits = byDate.get(key) ?? [];
-              const wishChips = showWishes ? (byDateWish.get(key) ?? []) : [];
-              const shownVisits = visits.slice(0, 2);
-              const shownWishes = wishChips.slice(0, Math.max(0, 2 - shownVisits.length));
-              const extra = visits.length + wishChips.length - shownVisits.length - shownWishes.length;
-              const isToday = key === todayKey;
-              const milestone = inMonth && startedOn ? milestoneOn(startedOn, key) : null;
-              return (
-                <Pressable
-                  key={key}
-                  disabled={!inMonth}
-                  onPress={() => router.push({ pathname: "/day/[date]", params: { date: key } })}
-                  accessibilityLabel={`${cursor.year}년 ${cursor.month + 1}월 ${date.getDate()}일, 기록 ${visits.length}건${wishChips.length ? ` · 예정 ${wishChips.length}건` : ""}`}
-                  style={[
-                    s.cell,
-                    { borderWidth: isToday ? 1.5 : 1, borderColor: isToday ? C.brick : inMonth ? C.lineSoft : "transparent", backgroundColor: inMonth ? C.card : "transparent" },
-                    milestone && { backgroundColor: C.brick, borderColor: isToday ? C.ink : C.brick },
-                  ]}
-                >
-                  {milestone ? (
-                    <View style={{ flexDirection: "row", alignItems: "baseline", gap: 2, paddingHorizontal: 4 }}>
-                      <Text style={{ fontFamily: F.sansBd, fontSize: 10.5, color: C.card }}>{date.getDate()}</Text>
-                      <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.mono, fontSize: 8, color: C.card }}>{milestone.label}</Text>
-                    </View>
-                  ) : (
-                    <Text style={{ paddingHorizontal: 4, fontFamily: isToday ? F.sansBd : F.mono, fontSize: 10.5, color: !inMonth ? "#d3cdc0" : isToday ? C.brick : C.ink }}>{date.getDate()}</Text>
-                  )}
-                  {inMonth && (
-                    <View style={{ marginTop: 4, gap: 2, overflow: "hidden" }}>
-                      {shownVisits.map((v) => (
-                        <Text key={v.id} numberOfLines={1} style={[s.chip, milestone ? { backgroundColor: C.card, color: "#a34d27" } : { backgroundColor: v.verified ? "#f2e0d5" : "#eae5da", color: v.verified ? "#a34d27" : C.muted }]}>{clipName(v.name, MAX_CHIP_CHARS)}</Text>
-                      ))}
-                      {shownWishes.map((w) => (
-                        <Text key={w.id} numberOfLines={1} style={[s.chip, { backgroundColor: "#eee9de", color: C.faint }]}>○ {clipName(w.name, MAX_CHIP_CHARS)}</Text>
-                      ))}
-                      {extra > 0 && <Text style={{ paddingHorizontal: 4, fontFamily: F.mono, fontSize: 8.5, color: "#a29a8c" }}>+{extra}</Text>}
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
-        ))}
-      </Animated.View>
+      {/* 탭바는 화면 아래에 따로 놓여서(절대 위치 아님) 이 화면은 이미 탭바 위에서 끝납니다. iOS 는 떠 있는 탭바 만큼 카드 아래에 여유를 둡니다. */}
+      <View style={{ flex: 1 }} onLayout={(e) => setPage(Math.round(e.nativeEvent.layout.height))}>
+        {page > 0 && (
+          <Animated.FlatList
+            ref={listRef}
+            data={ALL_MONTHS}
+            keyExtractor={(m) => `${m.year}-${m.month}`}
+            renderItem={({ item, index }) => (
+              <MonthBlock
+                year={item.year} month={item.month} index={index} page={page} bottom={bottomGap} scrollY={scrollY}
+                todayKey={todayKey} startedOn={startedOn} showWishes={showWishes} byDate={byDate} byDateWish={byDateWish} onOpenDay={openDay}
+              />
+            )}
+            getItemLayout={(_, index) => ({ length: page, offset: page * index, index })}
+            initialScrollIndex={shownIndex.current}
+            initialNumToRender={2}
+            windowSize={3}
+            snapToInterval={page}
+            decelerationRate="fast"
+            disableIntervalMomentum
+            onScrollBeginDrag={() => { moved.current = true; }}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={(e) => onSettle(e.nativeEvent.contentOffset.y)}
+            showsVerticalScrollIndicator={false}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingHorizontal: 10 }}
+          />
+        )}
+      </View>
 
       <Modal visible={!!picker} transparent animationType="none" onRequestClose={() => setPicker(null)} statusBarTranslucent>
         <Pressable onPress={() => setPicker(null)} style={{ flex: 1 }}>
@@ -263,13 +322,13 @@ export default function CalendarTab() {
                 <Dial
                   labels={YEARS.map((y) => `${y}년`)}
                   index={Math.max(0, YEARS.indexOf(cursor.year))}
-                  onPick={(i) => { setCursorState({ year: YEARS[i], month: cursor.month }); setPicker(null); }}
+                  onPick={(i) => { jumpTo({ year: YEARS[i], month: cursor.month }); setPicker(null); }}
                 />
               ) : (
                 <Dial
                   labels={MONTHS.map((m) => `${m + 1}월`)}
                   index={cursor.month}
-                  onPick={(i) => { setCursorState({ year: cursor.year, month: i }); setPicker(null); }}
+                  onPick={(i) => { jumpTo({ year: cursor.year, month: i }); setPicker(null); }}
                 />
               )}
             </Pressable>
@@ -297,6 +356,6 @@ const s = StyleSheet.create({
   },
   toggle: { minHeight: 30, borderRadius: 15, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 6 },
   weekday: { flex: 1, textAlign: "center", fontFamily: F.mono, fontSize: 10, color: C.faint },
-  cell: { flex: 1, minWidth: 0, borderRadius: 12, paddingVertical: 5, paddingHorizontal: 1, overflow: "hidden" },
-  chip: { borderRadius: 5, paddingHorizontal: 1, paddingVertical: 2, fontFamily: F.sans, fontSize: 9, lineHeight: 12, overflow: "hidden" },
+  monthCard: { borderRadius: 20, backgroundColor: C.card, borderWidth: 1, borderColor: C.lineSoft, paddingHorizontal: 2, overflow: "hidden" },
+  dateDot: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 3, alignItems: "center", justifyContent: "center" },
 });

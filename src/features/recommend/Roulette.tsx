@@ -7,8 +7,9 @@ import { REC_CATEGORIES, type RecCategory } from "@/lib/recommend";
 import type { Scored } from "@/lib/rec/score";
 import { C, F } from "@/theme";
 import { MarbleRace } from "./MarbleRace";
-import { Pinball } from "./Pinball";
+import { TugOfWar } from "./TugOfWar";
 import { REC, SectionHead } from "./ui";
+import { WinPopup } from "./WinPopup";
 
 const SIZE = 252;
 const R = SIZE / 2;
@@ -39,11 +40,11 @@ const CUSTOM_KEY = "rec.roulette.custom";
 type Tab = "place" | "category" | "custom";
 type Option = { key: string; label: string };
 
-type Mode = "wheel" | "pinball" | "marble";
+type Mode = "wheel" | "marble" | "tug";
 const MODES: { id: Mode; label: string }[] = [
   { id: "wheel", label: "룰렛" },
-  { id: "pinball", label: "핀볼" },
   { id: "marble", label: "구슬 경주" },
+  { id: "tug", label: "줄다리기" },
 ];
 
 const TABS: { id: Tab; label: string }[] = [
@@ -73,7 +74,7 @@ function slicePath(a0: number, a1: number, r: number) {
 }
 
 /**
- * 「결정을 하지 못하시겠다면?」 — 돌려서 정하는 룰렛, 쏘아 올리는 핀볼(Pinball.tsx), 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
+ * 「랜덤 게임」 모드 — 돌려서 정하는 룰렛, 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx), 둘이 겨루는 줄다리기(TugOfWar.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
  * 칸 옆 − 로 빼고, + 로 원하는 가게 · 카테고리 · 메뉴를 적어 넣습니다. 카테고리가 나오면 그 종류로 다시 추천받을 수 있습니다. 직접 입력한 것은 기기에 남깁니다.
  */
 export function Roulette({ picks, exclude, onPlace, onCategory }: {
@@ -82,6 +83,9 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
 }) {
   const [mode, setMode] = useState<Mode>("wheel");
   const [tab, setTab] = useState<Tab>(picks.length >= 2 ? "place" : "category");
+  // 추천이 늦게 들어오면(이 화면을 먼저 연 경우) 손대기 전까지는 추천된 가게로 옮깁니다.
+  const tabTouched = useRef(false);
+  useEffect(() => { if (!tabTouched.current && picks.length >= 2) setTab("place"); }, [picks.length]);
   // 탭마다 뺀 칸(removed: 기본 칸의 key)과 더한 칸(added: 적어 넣은 이름). 직접 선택은 더한 칸만 있고 기기에 남깁니다.
   const [removed, setRemoved] = useState<Record<Tab, string[]>>({ place: [], category: [], custom: [] });
   const [added, setAdded] = useState<Record<Tab, string[]>>({ place: [], category: [], custom: [] });
@@ -142,6 +146,13 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
   // 칸이 바뀌면(탭 · 빼고 넣기 · 다시 추천) 바퀴를 처음으로.
   const sig = `${tab}|${live.map((o) => o.key).join("|")}`;
   useEffect(() => { setWon(null); deg.current = 0; rot.setValue(0); }, [sig, rot]);
+  // 결과가 나오면 화면 한가운데 큰 창으로 — 구슬 경주는 1등이 결승선을 지나는 걸 잠깐 보여 준 뒤에.
+  const [popup, setPopup] = useState<Option | null>(null);
+  useEffect(() => {
+    if (!won) return setPopup(null);
+    const id = setTimeout(() => setPopup(won), mode === "marble" ? 700 : 250);
+    return () => clearTimeout(id);
+  }, [won, mode]);
 
   const spin = () => {
     if (spinning || live.length < 2) return;
@@ -163,6 +174,16 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
   };
 
   const ready = live.length >= 2;
+  /** 나온 칸이 추천된 가게 · 카테고리면 그리로 가는 단추. */
+  const wonAction = won && ((tab === "place" && !won.key.startsWith("+")) || (tab === "category" && (REC_CATEGORIES as readonly string[]).includes(won.label))) ? {
+    text: tab === "place" ? "카드에서 보기" : `${won.label}${euro(won.label)} 추천받기`,
+    onPress: () => {
+      Haptics.selectionAsync();
+      setPopup(null);
+      if (tab === "place") onPlace(picks.findIndex((p) => p.c.key === won.key));
+      else onCategory(won.key as RecCategory);
+    },
+  } : null;
   const fills = tonesFor(live.length);
   const fontSize = live.length > 8 ? 11.5 : 13.5;
   const maxChars = live.length > 8 ? 5 : 6;
@@ -172,11 +193,11 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
     : null;
 
   return (
-    <View style={{ marginTop: 34 }}>
+    <View>
       <View>
         <SectionHead title="결정을 하지 못하시겠다면?" />
-        {/* 룰렛 · 핀볼 · 구슬 경주 */}
-        <View style={{ marginTop: 10, flexDirection: "row", gap: 6 }}>
+        {/* 룰렛 · 구슬 경주 · 줄다리기 */}
+        <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {MODES.map((m) => {
             const on = mode === m.id;
             return (
@@ -204,7 +225,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
               <Pressable
                 key={t.id}
                 disabled={spinning}
-                onPress={() => { if (!on) { Haptics.selectionAsync(); setTab(t.id); } }}
+                onPress={() => { if (!on) { Haptics.selectionAsync(); tabTouched.current = true; setTab(t.id); } }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: on }}
                 style={{ flex: 1, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: on ? C.ink : "transparent" }}
@@ -264,20 +285,19 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
           </View>
         )}
 
-        {mode === "marble" ? (
+        {mode === "tug" ? (
           <View style={{ marginTop: 22 }}>
-            <MarbleRace
+            <TugOfWar
               options={live}
               busy={spinning}
               onStart={() => { setWon(null); setSpinning(true); }}
               onDone={(o) => { setSpinning(false); setWon(o); }}
             />
           </View>
-        ) : mode === "pinball" ? (
+        ) : mode === "marble" ? (
           <View style={{ marginTop: 22 }}>
-            <Pinball
+            <MarbleRace
               options={live}
-              tones={fills}
               busy={spinning}
               onStart={() => { setWon(null); setSpinning(true); }}
               onDone={(o) => { setSpinning(false); setWon(o); }}
@@ -342,25 +362,22 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
                 <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 2, color: C.brick }}>오늘은 이걸로</Text>
                 <Text style={{ fontFamily: F.sansBd, fontSize: 24, color: C.ink, textAlign: "center" }}>{won.label}</Text>
               </View>
-              {((tab === "place" && !won.key.startsWith("+")) || (tab === "category" && (REC_CATEGORIES as readonly string[]).includes(won.label))) && (
+              {wonAction && (
                 <Pressable
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    if (tab === "place") onPlace(picks.findIndex((p) => p.c.key === won.key));
-                    else onCategory(won.key as RecCategory);
-                  }}
+                  onPress={wonAction.onPress}
                   accessibilityRole="button"
                   style={{ height: 36, borderRadius: 18, backgroundColor: C.brick, paddingHorizontal: 16, justifyContent: "center" }}
                 >
-                  <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.card }}>{tab === "place" ? "카드에서 보기" : `${won.label}${euro(won.label)} 추천받기`}</Text>
+                  <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.card }}>{wonAction.text}</Text>
                 </Pressable>
               )}
             </View>
           ) : (
-            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{mode === "wheel" ? "가운데를 눌러 돌려 보세요" : mode === "pinball" ? "공을 쏘아 보세요" : "먼저 들어온 구슬이 이겨요"}</Text>
+            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{mode === "wheel" ? "가운데를 눌러 돌려 보세요" : mode === "marble" ? "먼저 들어온 구슬이 이겨요" : "둘이 하나씩 고르고, 내 칸을 빨리 두드려 끌어오세요"}</Text>
           )}
         </View>
       </View>
+      <WinPopup label={popup?.label ?? null} action={wonAction} onClose={() => setPopup(null)} />
     </View>
   );
 }

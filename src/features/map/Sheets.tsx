@@ -5,7 +5,7 @@ import { BottomSheetModal, Button, Chip, Eyebrow, PhotoBox } from "@/components/
 import { dottedDate, type Restaurant } from "@/lib/types";
 import type { Place } from "@/lib/places";
 import { Pressable } from "react-native";
-import { C, F, SHADOW } from "@/theme";
+import { C, F, FAINT_BOLD, SHADOW } from "@/theme";
 
 /** 「필터」 시트. */
 export function FilterSheet(p: {
@@ -57,7 +57,7 @@ export function FoundSheet(p: {
           {!p.hit.fromPin && <Eyebrow wide>찾았습니다</Eyebrow>}
           <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ marginTop: p.hit.fromPin ? 0 : 6, fontFamily: F.serif, fontSize: 22, color: C.ink }}>{r.name}</Text>
+              <Text style={[FAINT_BOLD, { marginTop: p.hit.fromPin ? 0 : 6, fontFamily: F.serif, fontSize: 22, color: C.ink }]}>{r.name}</Text>
               <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{[r.category, r.region].filter(Boolean).join(" · ")}</Text>
               <Text style={{ marginTop: 6, fontFamily: F.mono, fontSize: 10.5, color: "#a29a8c" }}>
                 {[`★ ${p.hit.place.rating == null ? "—" : p.hit.place.rating.toFixed(1)}`, `기록 ${p.hit.place.visits.length}건`,

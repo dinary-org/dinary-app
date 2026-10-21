@@ -1,4 +1,4 @@
-import { Platform, type ViewStyle } from "react-native";
+import { Platform, type TextStyle, type ViewStyle } from "react-native";
 
 /** src/app/globals.css @theme 과 같은 값 — 핸드오프 §3. */
 export const C = {
@@ -27,6 +27,9 @@ export const F = {
   sansBd: "NotoSansKR_700Bold",
   mono: "JetBrainsMono_400Regular",
 } as const;
+
+/** 고운돋움(F.serif)은 굵기가 하나뿐이라, 같은 색 그림자를 살짝 둘러 조금 굵어 보이게 합니다 — 가게 이름에 씁니다. */
+export const FAINT_BOLD: TextStyle = { textShadowColor: C.ink, textShadowRadius: 0.6, textShadowOffset: { width: 0, height: 0 } };
 
 const shadow = (opacity: number, radius: number, y: number, elevation: number): ViewStyle =>
   Platform.select<ViewStyle>({

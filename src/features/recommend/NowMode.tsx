@@ -13,7 +13,6 @@ import type { RecFilter } from "@/lib/recommend";
 import { C, F } from "@/theme";
 import { openDirections } from "./api";
 import { logRec, rememberShown, type RecSession } from "./log";
-import { Roulette } from "./Roulette";
 import { HereLegend, HereMarker, NumberMarker, REC } from "./ui";
 
 const MAP_H = 270;
@@ -32,25 +31,23 @@ function regionAround(lat: number, lng: number, radius: number) {
 /**
  * 「지금 뭐 먹지」(§5, 시안 5a) — 필터 줄 + 카드 한 장(위 지도 · 아래 가게 설명 가로 슬라이드).
  * 5곳은 lib/rec/pipeline.ts(hybrid-v3)가 고릅니다: 둘레 후보 → 취향 · 거리 · 시간대 · 위시 · 새로움 점수 → MMR 다양성.
- * 「다시 추천」은 앞서 보여 준 곳을 빼고 다음으로 좋은 5곳을 고릅니다. 그 밑은 룰렛(가게 · 카테고리).
+ * 「다시 추천」은 앞서 보여 준 곳을 빼고 다음으로 좋은 5곳을 고릅니다. 룰렛 · 핀볼 같은 게임은 「랜덤 게임」 모드(Roulette.tsx)로 옮겼습니다.
  */
 export function NowMode({
-  here, result, session, loading, error, kakao, filter, slot, pointLabel, onMapTouch, onOpenFilter, onChangeFilter, onRefresh, onMeal, onRetry, onReveal,
+  here, result, session, loading, error, kakao, filter, slot, pointLabel, index, onIndex: setIndex, onMapTouch, onOpenFilter, onChangeFilter, onRefresh, onMeal, onRetry,
 }: {
   here: RecHere | null; result: RecResult | null; session: RecSession | null; loading: boolean; error: boolean;
   /** 카카오 후보를 받았는지 — unavailable 이면 Dinary 기록 · 위시만으로 고른 것. */
   kakao: "ok" | "partial" | "unavailable" | "loading";
   filter: RecFilter; slot: MealSlot; pointLabel: string;
+  /** 보고 있는 카드 — 부모가 들고 있어 「랜덤 게임」에서 고른 가게로 바로 넘어올 수 있습니다. */
+  index: number; onIndex: (i: number) => void;
   /** 지도를 만지기 시작 · 끝 — 부모가 세로 스크롤을 잠급니다. */
   onMapTouch: (touching: boolean) => void;
   onOpenFilter: () => void; onChangeFilter: (f: RecFilter) => void;
   onRefresh: () => void; onMeal: (slot: "lunch" | "dinner") => void; onRetry: () => void;
-  /** 룰렛에서 고른 뒤 — 부모가 카드가 보이게 위로 올립니다. */
-  onReveal: () => void;
 }) {
   const picks = result?.picks ?? [];
-  const [index, setIndex] = useState(0);
-  useEffect(() => { setIndex(0); }, [session?.id]);
 
   // 보인 카드만 impression — 탭이 앞에 있고, 그 카드가 DWELL_MS 넘게 머물렀을 때.
   const focused = useIsFocused();
@@ -154,14 +151,6 @@ export function NowMode({
         >
           <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.brick }}>다시 추천</Text>
         </Pressable>
-      )}
-      {!!here && !loading && (
-        <Roulette
-          picks={picks}
-          exclude={filter.exc}
-          onPlace={(i) => { setIndex(i); onReveal(); }}
-          onCategory={(cat) => { onChangeFilter({ inc: [cat], exc: filter.exc.filter((x) => x !== cat) }); onReveal(); }}
-        />
       )}
     </View>
   );

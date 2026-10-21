@@ -30,5 +30,8 @@ jobs:
       - name: Verify app before publishing
         run: npm run check
 
+      # 커밋 메시지를 run 에 바로 넣으면 셸이 해석합니다(따옴표로 깨지고, $(...) 는 실행됨) — env 로만 넘깁니다.
       - name: Publish OTA update
-        run: eas update --channel production --environment production --non-interactive --message "${{ github.event.head_commit.message || 'manual update' }}"
+        env:
+          MESSAGE: ${{ github.event.head_commit.message || 'manual update' }}
+        run: eas update --channel production --environment production --non-interactive --message "$MESSAGE"

@@ -1,7 +1,8 @@
 /**
  * account-delete — 옛 웹 /api/account/delete 를 옮긴 것. 회원 탈퇴.
  * auth.users 행을 지우면 restaurants·wishes·profiles 가 on delete cascade 로 함께 지워집니다.
- * 사진 스토리지 정리는 아직 미룬 일이라 여기서 손대지 않습니다.
+ * 사진 파일은 그보다 먼저 지웁니다 — 어떤 파일이 내 것인지는 기록 · 프로필 행이 알려 주므로(account_photo_paths),
+ * 계정을 지운 뒤에는 찾을 수 없습니다. 사진을 못 지우면 계정도 지우지 않고 실패로 돌려 다시 시도하게 합니다.
  *
  *   POST /functions/v1/account-delete   (Authorization: Bearer <세션 토큰>)
  *
@@ -11,6 +12,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SB_SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const BUCKET = "restaurant-photos";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +29,14 @@ Deno.serve(async (req) => {
   const admin = createClient(SB_URL, SB_SERVICE, { auth: { persistSession: false } });
   const { data: { user } } = await admin.auth.getUser(token);
   if (!user) return json({ error: "로그인이 필요합니다" }, { status: 401 });
+
+  const { data: paths, error: listError } = await admin.rpc("account_photo_paths", { p_uid: user.id });
+  if (listError) return json({ error: listError.message }, { status: 500 });
+  const names = (paths ?? []) as string[];
+  for (let i = 0; i < names.length; i += 100) {
+    const { error: removeError } = await admin.storage.from(BUCKET).remove(names.slice(i, i + 100));
+    if (removeError) return json({ error: removeError.message }, { status: 500 });
+  }
 
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) return json({ error: error.message }, { status: 500 });

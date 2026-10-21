@@ -41,7 +41,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare }: { place: P
 
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Text numberOfLines={1} style={[tight, { flexShrink: 1, fontFamily: F.sansBd, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
+          <Text numberOfLines={1} style={[tight, { flexShrink: 1, fontFamily: F.serif, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
           {place.visits.length > 1 && (
             <View style={[badge, { backgroundColor: "#efe9dc" }]}>
               <Text style={[badgeText, { fontFamily: F.mono, fontSize: 9, color: C.muted }]}>기록 {place.visits.length}</Text>

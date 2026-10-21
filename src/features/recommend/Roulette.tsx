@@ -7,7 +7,6 @@ import { REC_CATEGORIES, type RecCategory } from "@/lib/recommend";
 import type { Scored } from "@/lib/rec/score";
 import { C, F } from "@/theme";
 import { MarbleRace } from "./MarbleRace";
-import { Pinball } from "./Pinball";
 import { REC, SectionHead } from "./ui";
 
 const SIZE = 252;
@@ -39,10 +38,9 @@ const CUSTOM_KEY = "rec.roulette.custom";
 type Tab = "place" | "category" | "custom";
 type Option = { key: string; label: string };
 
-type Mode = "wheel" | "pinball" | "marble";
+type Mode = "wheel" | "marble";
 const MODES: { id: Mode; label: string }[] = [
   { id: "wheel", label: "룰렛" },
-  { id: "pinball", label: "핀볼" },
   { id: "marble", label: "구슬 경주" },
 ];
 
@@ -73,7 +71,7 @@ function slicePath(a0: number, a1: number, r: number) {
 }
 
 /**
- * 「결정을 하지 못하시겠다면?」 — 돌려서 정하는 룰렛, 쏘아 올리는 핀볼(Pinball.tsx), 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
+ * 「결정을 하지 못하시겠다면?」 — 돌려서 정하는 룰렛, 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
  * 칸 옆 − 로 빼고, + 로 원하는 가게 · 카테고리 · 메뉴를 적어 넣습니다. 카테고리가 나오면 그 종류로 다시 추천받을 수 있습니다. 직접 입력한 것은 기기에 남깁니다.
  */
 export function Roulette({ picks, exclude, onPlace, onCategory }: {
@@ -175,7 +173,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
     <View style={{ marginTop: 34 }}>
       <View>
         <SectionHead title="결정을 하지 못하시겠다면?" />
-        {/* 룰렛 · 핀볼 · 구슬 경주 */}
+        {/* 룰렛 · 구슬 경주 */}
         <View style={{ marginTop: 10, flexDirection: "row", gap: 6 }}>
           {MODES.map((m) => {
             const on = mode === m.id;
@@ -273,16 +271,6 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
               onDone={(o) => { setSpinning(false); setWon(o); }}
             />
           </View>
-        ) : mode === "pinball" ? (
-          <View style={{ marginTop: 22 }}>
-            <Pinball
-              options={live}
-              tones={fills}
-              busy={spinning}
-              onStart={() => { setWon(null); setSpinning(true); }}
-              onDone={(o) => { setSpinning(false); setWon(o); }}
-            />
-          </View>
         ) : (
         <>
         {/* 바퀴 — 검정 테두리에 작은 점(전구)들, 안쪽은 벽돌 · 살구 · 종이 · 모래 네 톤. 바늘은 위에 고정. */}
@@ -357,7 +345,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
               )}
             </View>
           ) : (
-            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{mode === "wheel" ? "가운데를 눌러 돌려 보세요" : mode === "pinball" ? "공을 쏘아 보세요" : "먼저 들어온 구슬이 이겨요"}</Text>
+            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{mode === "wheel" ? "가운데를 눌러 돌려 보세요" : "먼저 들어온 구슬이 이겨요"}</Text>
           )}
         </View>
       </View>

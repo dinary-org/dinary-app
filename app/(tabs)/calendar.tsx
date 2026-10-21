@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, type ViewToken } from "react-native";
+import { Animated, type FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Eyebrow } from "@/components/ui";
 import { useActiveBook, useAnniversaryPicks } from "@/data/books";
@@ -30,10 +30,10 @@ const monthOfKey = (k: string) => {
 const ALL_MONTHS = YEARS.flatMap((year) => MONTHS.map((month) => ({ year, month })));
 const monthIndex = (c: { year: number; month: number }) =>
   Math.max(0, Math.min(ALL_MONTHS.length - 1, (c.year - YEARS[0]) * 12 + c.month));
-/** 달 머리(「10월」) 높이 · 한 주 줄 높이 · 하루에 보이는 이름 수. 높이가 정해져 있어야 원하는 달로 바로 넘어갑니다. */
-const MONTH_HEAD = 44;
-const WEEK_H = 70;
-const MAX_ITEMS = 3;
+/** 달 카드 머리(「10월」) 높이 · 이름 한 줄 높이(간격 포함) · 날짜 동그라미까지의 높이. */
+const MONTH_HEAD = 42;
+const ITEM_H = 14.5;
+const DATE_H = 31;
 /** 그 달의 주 — 앞뒤 빈칸은 null. 달마다 필요한 만큼(4~6주)만. */
 function monthWeeks(year: number, month: number) {
   const lead = new Date(year, month, 1).getDay();
@@ -44,15 +44,6 @@ function monthWeeks(year: number, month: number) {
   for (let i = 0; i < cells.length; i += 7) out.push(cells.slice(i, i + 7));
   return out;
 }
-const MONTH_LAYOUT = (() => {
-  let offset = 0;
-  return ALL_MONTHS.map(({ year, month }) => {
-    const length = MONTH_HEAD + monthWeeks(year, month).length * WEEK_H;
-    const at = { length, offset };
-    offset += length;
-    return at;
-  });
-})();
 
 function groupBy<T extends { name: string }>(list: T[], key: (t: T) => string | null) {
   const map = new Map<string, T[]>();
@@ -106,23 +97,40 @@ function Item({ name, category, wish, onMilestone }: { name: string; category: s
 }
 
 type MonthProps = {
-  year: number; month: number; todayKey: string; startedOn: string | null; showWishes: boolean;
+  year: number; month: number; index: number; page: number; bottom: number; scrollY: Animated.Value;
+  todayKey: string; startedOn: string | null; showWishes: boolean;
   byDate: Map<string, Restaurant[]>; byDateWish: Map<string, Wish[]>; onOpenDay: (key: string) => void;
 };
 
-/** 한 달 — 칸을 나누지 않고 주마다 가는 줄만 긋습니다(애플 캘린더처럼). 오늘은 벽돌 동그라미, 기념일은 옅은 벽돌 동그라미 + 이름. */
-const MonthBlock = memo(function MonthBlock({ year, month, todayKey, startedOn, showWishes, byDate, byDateWish, onOpenDay }: MonthProps) {
+/**
+ * 한 달 = 한 장. 카드 안은 칸을 나누지 않고 주마다 가는 줄만 긋습니다(애플 캘린더처럼). 「N월」은 카드 왼쪽 위에 고정.
+ * 넘길 때 다음 달은 작고 옅게 있다가 가운데로 오며 커지고, 지나간 달은 작아지며 흐려집니다.
+ * 오늘은 벽돌 동그라미, 기념일은 옅은 벽돌 동그라미 + 이름.
+ */
+const MonthBlock = memo(function MonthBlock({ year, month, index, page, bottom, scrollY, todayKey, startedOn, showWishes, byDate, byDateWish, onOpenDay }: MonthProps) {
   const weeks = monthWeeks(year, month);
-  const lead = new Date(year, month, 1).getDay();
   const thisMonth = todayKey.startsWith(`${year}-${pad(month + 1)}`);
+  // 카드는 장 높이에서 위 여백 · 아래(탭바 자리) 여백을 뺀 만큼. 주 줄은 그 달 주 수로 나눠 꽉 채웁니다.
+  const cardH = page - 6 - bottom;
+  const weekH = (cardH - MONTH_HEAD - 6) / weeks.length;
+  const maxItems = Math.max(1, Math.floor((weekH - DATE_H - 4) / ITEM_H));
+  const range = [(index - 1) * page, index * page, (index + 1) * page];
   return (
-    <View style={{ height: MONTH_HEAD + weeks.length * WEEK_H }}>
-      <View style={{ height: MONTH_HEAD, flexDirection: "row", alignItems: "flex-end", paddingBottom: 8 }}>
-        <View style={{ width: `${(lead / 7) * 100}%` }} />
-        <Text style={{ paddingLeft: 4, fontFamily: F.serif, fontSize: 17, color: thisMonth ? C.brick : C.ink }}>{month === 0 ? `${year}년 1월` : `${month + 1}월`}</Text>
+    <View style={{ height: page, paddingTop: 6 }}>
+      <Animated.View style={[s.monthCard, {
+        height: cardH,
+        opacity: scrollY.interpolate({ inputRange: range, outputRange: [0.25, 1, 0.25], extrapolate: "clamp" }),
+        transform: [
+          { scale: scrollY.interpolate({ inputRange: range, outputRange: [0.9, 1, 0.9], extrapolate: "clamp" }) },
+          { translateY: scrollY.interpolate({ inputRange: range, outputRange: [-24, 0, 24], extrapolate: "clamp" }) },
+        ],
+      }]}>
+      <View style={{ height: MONTH_HEAD, flexDirection: "row", alignItems: "baseline", gap: 6, paddingTop: 12, paddingHorizontal: 10 }}>
+        <Text style={{ fontFamily: F.serif, fontSize: 20, color: thisMonth ? C.brick : C.ink }}>{month + 1}월</Text>
+        <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint }}>{year}</Text>
       </View>
       {weeks.map((week, wi) => (
-        <View key={wi} style={{ height: WEEK_H, flexDirection: "row", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line }}>
+        <View key={wi} style={{ height: weekH, flexDirection: "row", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.line }}>
           {week.map((date, di) => {
             if (!date) return <View key={di} style={{ flex: 1 }} />;
             const key = keyOf(date);
@@ -131,7 +139,7 @@ const MonthBlock = memo(function MonthBlock({ year, month, todayKey, startedOn, 
             const isToday = key === todayKey;
             const milestone = startedOn ? milestoneOn(startedOn, key) : null;
             // 줄 높이 안에 들어가는 만큼만 — 넘치면 마지막 줄을 「+N」으로. 기념일 이름이 있으면 한 줄 덜.
-            const cap = MAX_ITEMS - (milestone ? 1 : 0);
+            const cap = Math.max(1, maxItems - (milestone ? 1 : 0));
             const total = visits.length + wishItems.length;
             const room = total > cap ? cap - 1 : total;
             const shownVisits = visits.slice(0, room);
@@ -160,6 +168,7 @@ const MonthBlock = memo(function MonthBlock({ year, month, todayKey, startedOn, 
           })}
         </View>
       ))}
+      </Animated.View>
     </View>
   );
 });
@@ -186,24 +195,33 @@ export default function CalendarTab() {
   const maxVisitedAt = useMemo(() => rows.reduce<string | null>((m, r) => (r.visited_at && (!m || r.visited_at > m) ? r.visited_at : m), null), [rows]);
   const cursor = cursorState ?? monthOfKey(maxVisitedAt ?? keyOf(new Date()));
 
-  // 달 목록 — 맨 위에 보이는 달이 머리의 「N년 N월」이 됩니다. 연·월 다이얼에서 고르면 그 달로 바로 넘어갑니다.
+  // 달 목록 — 한 달이 한 장. 위아래로 넘기면 한 달씩 붙어 넘어가고, 멈춘 달이 머리의 「N년 N월」이 됩니다.
+  // 연·월 다이얼에서 고르면 그 달로 바로 넘어갑니다.
   const listRef = useRef<FlatList<{ year: number; month: number }>>(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [page, setPage] = useState(0);
   const moved = useRef(false);
+  const shownIndex = useRef(monthIndex(cursor));
+  shownIndex.current = monthIndex(cursor);
   const jumpTo = (c: { year: number; month: number }) => {
     moved.current = true;
     setCursorState(c);
     listRef.current?.scrollToIndex({ index: monthIndex(c), animated: false });
   };
   // 처음엔 가장 최근 기록의 달 — 기록이 늦게 오면, 아직 손대지 않았을 때만 그 달로 옮깁니다.
-  const firstIndex = useRef(monthIndex(cursor)).current;
   useEffect(() => {
-    if (moved.current || !maxVisitedAt) return;
+    if (moved.current || !maxVisitedAt || !page) return;
     listRef.current?.scrollToIndex({ index: monthIndex(monthOfKey(maxVisitedAt)), animated: false });
-  }, [maxVisitedAt]);
-  const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken<{ year: number; month: number }>[] }) => {
-    const top = viewableItems.find((v) => v.isViewable && v.item);
-    if (top?.item && moved.current) setCursorState({ year: top.item.year, month: top.item.month });
-  }).current;
+  }, [maxVisitedAt, page]);
+  // 장 높이가 바뀌면(리캡 카드가 늦게 뜨는 등) 보던 달에 다시 맞춥니다.
+  useEffect(() => {
+    if (page) listRef.current?.scrollToIndex({ index: shownIndex.current, animated: false });
+  }, [page]);
+  const onSettle = (y: number) => {
+    if (!page) return;
+    const m = ALL_MONTHS[Math.max(0, Math.min(ALL_MONTHS.length - 1, Math.round(y / page)))];
+    if (m.year !== cursor.year || m.month !== cursor.month) setCursorState(m);
+  };
 
   // 연·월 다이얼(§3) — 누른 글자 바로 아래에 펼칩니다. 위치는 글자를 창 기준으로 재서 맞춥니다.
   const yearRef = useRef<View>(null);
@@ -219,6 +237,7 @@ export default function CalendarTab() {
   const prefix = `${cursor.year}-${pad(cursor.month + 1)}`;
   const countThisMonth = rows.filter((r) => r.visited_at?.startsWith(prefix)).length;
   const todayKey = keyOf(new Date());
+  const bottomGap = Platform.OS === "android" ? 30 : 74 + insets.bottom + 12;
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper, paddingTop: insets.top + 8 }}>
@@ -264,25 +283,36 @@ export default function CalendarTab() {
         {WEEKDAYS.map((w) => <Text key={w} style={s.weekday}>{w}</Text>)}
       </View>
 
-      {/* 탭바는 화면 아래에 따로 놓여서(절대 위치 아님) 이 화면은 이미 탭바 위에서 끝납니다. iOS 는 떠 있는 탭바 만큼 끝에 여유를 둡니다. */}
-      <FlatList
-        ref={listRef}
-        data={ALL_MONTHS}
-        keyExtractor={(m) => `${m.year}-${m.month}`}
-        renderItem={({ item }) => (
-          <MonthBlock year={item.year} month={item.month} todayKey={todayKey} startedOn={startedOn} showWishes={showWishes} byDate={byDate} byDateWish={byDateWish} onOpenDay={openDay} />
+      {/* 탭바는 화면 아래에 따로 놓여서(절대 위치 아님) 이 화면은 이미 탭바 위에서 끝납니다. iOS 는 떠 있는 탭바 만큼 카드 아래에 여유를 둡니다. */}
+      <View style={{ flex: 1 }} onLayout={(e) => setPage(Math.round(e.nativeEvent.layout.height))}>
+        {page > 0 && (
+          <Animated.FlatList
+            ref={listRef}
+            data={ALL_MONTHS}
+            keyExtractor={(m) => `${m.year}-${m.month}`}
+            renderItem={({ item, index }) => (
+              <MonthBlock
+                year={item.year} month={item.month} index={index} page={page} bottom={bottomGap} scrollY={scrollY}
+                todayKey={todayKey} startedOn={startedOn} showWishes={showWishes} byDate={byDate} byDateWish={byDateWish} onOpenDay={openDay}
+              />
+            )}
+            getItemLayout={(_, index) => ({ length: page, offset: page * index, index })}
+            initialScrollIndex={shownIndex.current}
+            initialNumToRender={2}
+            windowSize={3}
+            snapToInterval={page}
+            decelerationRate="fast"
+            disableIntervalMomentum
+            onScrollBeginDrag={() => { moved.current = true; }}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={(e) => onSettle(e.nativeEvent.contentOffset.y)}
+            showsVerticalScrollIndicator={false}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingHorizontal: 10 }}
+          />
         )}
-        getItemLayout={(_, index) => ({ ...MONTH_LAYOUT[index], index })}
-        initialScrollIndex={firstIndex}
-        initialNumToRender={2}
-        windowSize={5}
-        onScrollBeginDrag={() => { moved.current = true; }}
-        onViewableItemsChanged={onViewable}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 40 }}
-        showsVerticalScrollIndicator={false}
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: Platform.OS === "android" ? 30 : 74 + insets.bottom + 12 }}
-      />
+      </View>
 
       <Modal visible={!!picker} transparent animationType="none" onRequestClose={() => setPicker(null)} statusBarTranslucent>
         <Pressable onPress={() => setPicker(null)} style={{ flex: 1 }}>
@@ -326,5 +356,6 @@ const s = StyleSheet.create({
   },
   toggle: { minHeight: 30, borderRadius: 15, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 6 },
   weekday: { flex: 1, textAlign: "center", fontFamily: F.mono, fontSize: 10, color: C.faint },
+  monthCard: { borderRadius: 20, backgroundColor: C.card, borderWidth: 1, borderColor: C.lineSoft, paddingHorizontal: 2, overflow: "hidden" },
   dateDot: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 3, alignItems: "center", justifyContent: "center" },
 });

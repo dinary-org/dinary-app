@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { LocateIcon, SearchIcon } from "@/components/icons";
-import { BottomSheetModal } from "@/components/ui";
+import { BottomSheetModal, SearchResults } from "@/components/ui";
 import { Wheel, WheelRow } from "@/components/Wheel";
 import type { RecHere } from "@/data/store";
 import { forwardGeocode, type Place } from "@/lib/geocode";
@@ -111,16 +111,16 @@ export function PointSheet({
         />
         {searching && <ActivityIndicator size="small" color={C.faint} />}
       </View>
-      {hits.map((p, i) => (
-        <Pressable
-          key={`${p.lat},${p.lng},${i}`}
-          onPress={() => { setDraftPlace({ lat: p.lat, lng: p.lng, name: nameOf(p), fallback: false }); setQ(""); setHits([]); }}
-          style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 6, borderBottomWidth: i < hits.length - 1 ? 1 : 0, borderColor: C.lineSoft }}
-        >
-          <Text numberOfLines={1} style={{ fontFamily: F.sansMd, fontSize: 13, color: C.ink }}>{nameOf(p)}</Text>
-          {!!p.address && p.address !== nameOf(p) && <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>{p.address}</Text>}
-        </Pressable>
-      ))}
+      {hits.length > 0 && (
+        <SearchResults
+          items={hits}
+          keyOf={(p, i) => `${p.lat},${p.lng},${i}`}
+          title={nameOf}
+          sub={(p) => (p.address && p.address !== nameOf(p) ? p.address : null)}
+          onPick={(p) => { setDraftPlace({ lat: p.lat, lng: p.lng, name: nameOf(p), fallback: false }); setQ(""); setHits([]); }}
+          maxHeight={220}
+        />
+      )}
 
       {/* 시각 */}
       <View style={{ marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>

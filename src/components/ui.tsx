@@ -1,4 +1,4 @@
-import { Image, Modal, Pressable, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VerifiedMark } from "./icons";
@@ -173,3 +173,34 @@ export const Toggle = ({
 export const Row = ({ children, style }: { children: React.ReactNode; style?: ViewStyle }) => (
   <View style={[{ flexDirection: "row", alignItems: "center" }, style]}>{children}</View>
 );
+
+const tightText: TextStyle | null = Platform.OS === "android" ? { includeFontPadding: false } : null;
+
+/** 검색창 아래 결과 목록 — 칸이 넘치면 안에서 위아래로 스크롤합니다. 바깥 ScrollView 안에 있어도 굴러가도록 nestedScrollEnabled(안드로이드),
+    키보드가 떠 있어도 첫 탭에 바로 골라지도록 keyboardShouldPersistTaps 를 켭니다. 줄은 이름 + 위치 두 줄만 담게 촘촘히. */
+export function SearchResults<T>({
+  items, keyOf, title, sub, onPick, maxHeight = 260, style,
+}: {
+  items: T[]; keyOf: (item: T, i: number) => string; title: (item: T) => string; sub?: (item: T) => string | null | undefined;
+  onPick: (item: T) => void; maxHeight?: number; style?: ViewStyle;
+}) {
+  return (
+    <View style={[{ marginTop: 6, maxHeight, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }, SHADOW.card, style]}>
+      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={items.length > 4}>
+        {items.map((item, i) => {
+          const line2 = sub?.(item);
+          return (
+            <Pressable
+              key={keyOf(item, i)}
+              onPress={() => onPick(item)}
+              style={({ pressed }) => ({ paddingHorizontal: 14, paddingVertical: 8, borderBottomWidth: i === items.length - 1 ? 0 : 1, borderBottomColor: C.line, backgroundColor: pressed ? C.lineSoft : undefined })}
+            >
+              <Text numberOfLines={1} style={[{ fontFamily: F.sansMd, fontSize: 13.5, lineHeight: 18, color: C.ink }, tightText]}>{title(item)}</Text>
+              {!!line2 && <Text numberOfLines={1} style={[{ fontFamily: F.sans, fontSize: 11.5, lineHeight: 15, color: C.muted }, tightText]}>{line2}</Text>}
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}

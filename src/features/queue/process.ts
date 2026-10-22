@@ -55,8 +55,9 @@ async function processOne(row: QueueRow): Promise<number | null> {
       return existing.data.id as number;
     },
     reconcileWish: async (recordId) => {
+      // 같은 가게를 여러 번 담았으면 쉼표로 이어 둔 id 를 다 거둡니다(예전 줄은 id 하나).
       if (row.wish_id) {
-        const { error } = await supabase.from("wishes").delete().eq("id", row.wish_id);
+        const { error } = await supabase.from("wishes").delete().in("id", row.wish_id.split(","));
         if (error) throw error;
       }
       // 연인 기록이면 별점·메모가 곧 찍은 사람의 한 줄입니다(HANDOFF-couple §3-6). 오프라인에선 기록장 종류를 몰라 여기서 봅니다.

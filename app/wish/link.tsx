@@ -177,31 +177,34 @@ export default function WishLinkRoute() {
             <View style={[{ marginTop: 6, maxHeight: 320, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }, SHADOW.card]}>
               <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={hits.length > 4}>
               {hits.map((r, i) => {
-                const already = !!matchWish(wishes, r.name);
+                // 이미 담은 가게도 또 담을 수 있습니다(다른 게시물 · 그룹에서 또 봤을 수 있으니) — 알려 주기만.
+                const already = matchWish(wishes, r.name);
                 const on = isPicked(r);
                 return (
                   <Pressable
                     key={`${placeKey(r)}-${i}`}
-                    disabled={already}
                     onPress={() => toggle(r)}
-                    accessibilityState={{ selected: on, disabled: already }}
+                    accessibilityState={{ selected: on }}
                     style={{
                       paddingHorizontal: 14, paddingVertical: 11, flexDirection: "row", alignItems: "center", gap: 10,
-                      backgroundColor: already ? "#f3f0e9" : on ? "#fbf3ee" : C.card,
+                      backgroundColor: on ? "#fbf3ee" : C.card,
                       borderBottomWidth: i === hits.length - 1 ? 0 : 1, borderBottomColor: C.line,
                     }}
                   >
                     <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: already ? "#a29a8c" : C.ink }}>{r.name}</Text>
-                      <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: already ? "#a29a8c" : C.muted }}>
-                        {[r.category ?? (r.kind === "cafe" ? "카페" : "맛집"), r.address, already ? "이미 담음" : null].filter(Boolean).join(" · ")}
+                      <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{r.name}</Text>
+                      <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>
+                        {[r.category ?? (r.kind === "cafe" ? "카페" : "맛집"), r.address].filter(Boolean).join(" · ")}
                       </Text>
+                      {already && (
+                        <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11, color: C.brick }}>
+                          이미 담음{already.group?.name ? ` · ${already.group.name}` : ""}
+                        </Text>
+                      )}
                     </View>
-                    {!already && (
-                      <View style={[s.check, on ? { backgroundColor: C.brick } : { borderWidth: 1.5, borderColor: "#cdc6b8" }]}>
-                        {on && <Text style={{ fontSize: 12, color: "#fff" }}>✓</Text>}
-                      </View>
-                    )}
+                    <View style={[s.check, on ? { backgroundColor: C.brick } : { borderWidth: 1.5, borderColor: "#cdc6b8" }]}>
+                      {on && <Text style={{ fontSize: 12, color: "#fff" }}>✓</Text>}
+                    </View>
                   </Pressable>
                 );
               })}

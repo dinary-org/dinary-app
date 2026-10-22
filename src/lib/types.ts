@@ -246,6 +246,17 @@ export function findMatchingWish(
   return null;
 }
 
+/**
+ * 같은 가게를 담은 위시 전부 — 여러 게시물(그룹)에서 본 같은 가게를 따로 담을 수 있어서, 기록이 되는 순간 다 같이 거둡니다.
+ * 이름이 같고, 둘 다 좌표가 있으면 150m 안(이름만 같은 다른 지점은 남깁니다).
+ */
+export function wishCopies(wishes: Wish[], wish: Wish): Wish[] {
+  const name = normName(wish.name);
+  return wishes.filter((w) => w.id === wish.id || (normName(w.name) === name && (
+    w.lat == null || w.lng == null || wish.lat == null || wish.lng == null || metersBetween(w.lat, w.lng, wish.lat, wish.lng) <= 150
+  )));
+}
+
 /** 그 위시가 기록이 되는 순간 남기는 자취 — restaurants.from_wish 에 그대로 들어갑니다. */
 export const wishMetInfo = (wish: Wish, visitedAt: string) => {
   const savedDate = wish.saved_at.slice(0, 10);

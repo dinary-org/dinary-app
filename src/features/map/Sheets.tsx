@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Text, View } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { BookmarkIcon } from "@/components/icons";
 import { BottomSheetModal, Button, Chip, Eyebrow, PhotoBox } from "@/components/ui";
-import { dottedDate, type Restaurant } from "@/lib/types";
+import { sourceShort } from "@/lib/sourceLink";
+import { dottedDate, type Restaurant, type Wish } from "@/lib/types";
 import type { Place } from "@/lib/places";
 import { Pressable } from "react-native";
 import { C, F, FAINT_BOLD, SHADOW } from "@/theme";
@@ -93,6 +95,57 @@ export function FoundSheet(p: {
     <BottomSheetModal visible={!!p.hit} onClose={p.onClose}>
       {body}
     </BottomSheetModal>
+  );
+}
+
+/**
+ * 같은 가게를 여러 번 담은 위시 핀을 눌렀을 때의 카드 — 「N군데에서 담았어요」, 펼치면 담은 위시마다 한 줄(그룹 · 출처 · 담은 날).
+ * 줄을 누르면 그 위시로 갑니다. 다른 핀을 누르면 접힌 채로 다시 열리게 key 를 대표 위시 id 로 씁니다. 기록 핀 카드처럼 지도를 덮지 않고, 지도를 밀거나 누르면 내려갑니다.
+ */
+export function WishPinCard(p: { wishes: Wish[] | null; onOpen: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const lead = p.wishes?.[0];
+  if (!p.wishes || !lead) return null;
+  return (
+    <Animated.View
+      entering={SlideInDown.duration(200)}
+      exiting={SlideOutDown.duration(140)}
+      style={[{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 20 }, SHADOW.sheet]}
+    >
+      <Text style={[FAINT_BOLD, { fontFamily: F.serif, fontSize: 22, color: C.ink }]}>{lead.name}</Text>
+      {!!(lead.category || lead.where_text) && (
+        <Text numberOfLines={1} style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{[lead.category, lead.where_text].filter(Boolean).join(" · ")}</Text>
+      )}
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        style={{ marginTop: 12, minHeight: 44, borderRadius: 14, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: C.brickSoft, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+      >
+        <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.brick }}>{p.wishes.length}군데에서 담았어요</Text>
+        <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>{open ? "접기 ▴" : "펼치기 ▾"}</Text>
+      </Pressable>
+      {open && (
+        <View style={{ marginTop: 8, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }}>
+          {p.wishes.map((w, i) => (
+            <Pressable
+              key={w.id}
+              onPress={() => p.onOpen(w.id)}
+              accessibilityRole="button"
+              style={({ pressed }) => ({ paddingHorizontal: 14, paddingVertical: 11, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: pressed ? "#f3f0e9" : C.card, borderTopWidth: i ? 1 : 0, borderTopColor: C.line })}
+            >
+              <View style={{ flex: 1, gap: 2 }}>
+                <Text numberOfLines={1} style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{w.group?.name ?? "따로 담음"}</Text>
+                <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>
+                  {[w.source_kind ? `${sourceShort(w.source_kind)}에서` : null, `${dottedDate(w.saved_at.slice(0, 10))} 담음`, w.plan_date ? `${dottedDate(w.plan_date)} 예정` : null].filter(Boolean).join(" · ")}
+                </Text>
+              </View>
+              <Text style={{ fontSize: 16, color: C.faint }}>›</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+    </Animated.View>
   );
 }
 

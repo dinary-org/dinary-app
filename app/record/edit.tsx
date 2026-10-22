@@ -23,7 +23,7 @@ import { regionFromAddress } from "@/lib/regions";
 import { SignedImage } from "@/lib/signedPhoto";
 import { supabase } from "@/lib/supabase";
 import {
-  CATEGORIES, findMatchingWish, KEYWORDS, verifiedDateTime, wishMetInfo, WISH_AUTO_M, type Kind, type MenuItem,
+  CATEGORIES, findMatchingWish, KEYWORDS, wishCopies, verifiedDateTime, wishMetInfo, WISH_AUTO_M, type Kind, type MenuItem,
 } from "@/lib/types";
 import { C, F } from "@/theme";
 import { linkVisit, visitAttribution } from "@/features/recommend/log";
@@ -223,7 +223,7 @@ export default function EditRoute() {
           place_key: `${cleanName}|${finalAddress ?? ""}`.toLowerCase(), lat, lng, verified: false, acc: null,
           revisit: revisit || Boolean(twin),
           pending: false, from_wish: fromWish, price_range: null, cover_index: cover,
-        }, files[0], matchedWish?.id ?? null, hint ? JSON.stringify(hint) : null, files.slice(1), note);
+        }, files[0], matchedWish ? wishCopies(wishes, matchedWish).map((w) => w.id).join(",") : null, hint ? JSON.stringify(hint) : null, files.slice(1), note);
         parsePhotos(p.photos).forEach(removePhoto);
         void drainQueue(qc, queueId).catch((error) => console.warn("큐 전송 실패", error));
         router.dismissAll();
@@ -281,9 +281,12 @@ export default function EditRoute() {
       if (error) throw new Error(error.message);
       if (isCouple && (shared.rating != null || shared.review)) await saveNote(user.id, inserted.id as number, shared.rating, shared.review, false);
       if (kind === "restaurant") void linkVisit({ recordId: inserted.id as number, name: cleanName, lat, lng, verified: false }).catch(() => {});
+      // 같은 가게를 여러 그룹에 담았으면 다 같이 거둡니다.
       if (matchedWish) {
-        await supabase.from("wishes").delete().eq("id", matchedWish.id);
-        if (matchedWish.capture_path) void removePhotoObjects([matchedWish.capture_path]);
+        const copies = wishCopies(wishes, matchedWish);
+        await supabase.from("wishes").delete().in("id", copies.map((w) => w.id));
+        const shots = copies.map((w) => w.capture_path).filter((x): x is string => !!x);
+        if (shots.length) void removePhotoObjects(shots);
       }
 
       await refreshAll(qc);

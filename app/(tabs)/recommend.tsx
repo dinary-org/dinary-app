@@ -14,7 +14,7 @@ import { FilterSheet } from "@/features/recommend/FilterSheet";
 import { uuid, type RecSession } from "@/features/recommend/log";
 import { NowMode } from "@/features/recommend/NowMode";
 import { PointSheet } from "@/features/recommend/PointSheet";
-import { Roulette } from "@/features/recommend/Roulette";
+import { RandomGames } from "@/features/recommend/RandomGames";
 import { REC } from "@/features/recommend/ui";
 import { todayIso } from "@/lib/anniversary";
 import { REC_CONFIG } from "@/lib/rec/config";
@@ -222,7 +222,7 @@ export default function RecommendTab() {
             onRetry={() => { void nowQ.refetch(); void kakaoNear.refetch(); }}
           />
         ) : mode === "games" ? (
-          <Roulette picks={result?.picks ?? []} exclude={filter.exc} onPlace={playPlace} onCategory={playCategory} onDrawTouch={setMapTouch} />
+          <RandomGames picks={result?.picks ?? []} exclude={filter.exc} onPlace={playPlace} onCategory={playCategory} onDrawTouch={setMapTouch} />
         ) : (
           <BrowseMode courses={courses} tours={tours} revisits={revisits} />
         )}

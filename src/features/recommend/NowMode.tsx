@@ -31,7 +31,7 @@ function regionAround(lat: number, lng: number, radius: number) {
 /**
  * 「지금 뭐 먹지」(§5, 시안 5a) — 필터 줄 + 카드 한 장(위 지도 · 아래 가게 설명 가로 슬라이드).
  * 5곳은 lib/rec/pipeline.ts(hybrid-v3)가 고릅니다: 둘레 후보 → 취향 · 거리 · 시간대 · 위시 · 새로움 점수 → MMR 다양성.
- * 「다시 추천」은 앞서 보여 준 곳을 빼고 다음으로 좋은 5곳을 고릅니다. 룰렛 · 핀볼 같은 게임은 「랜덤 게임」 모드(Roulette.tsx)로 옮겼습니다.
+ * 「다시 추천」은 앞서 보여 준 곳을 빼고 다음으로 좋은 5곳을 고릅니다. 게임은 「랜덤 게임」 모드(RandomGames.tsx)에 있습니다.
  */
 export function NowMode({
   here, result, session, loading, error, kakao, filter, slot, pointLabel, index, onIndex: setIndex, onMapTouch, onOpenFilter, onChangeFilter, onRefresh, onMeal, onRetry,

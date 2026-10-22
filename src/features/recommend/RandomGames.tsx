@@ -16,6 +16,7 @@ import { WinPopup } from "./WinPopup";
 /** 칸 수 · 적어 넣는 글자 수 · 직접 선택을 기기에 남겨 두는 키. */
 const CUSTOM_MAX = 12;
 const CUSTOM_LEN = 12;
+// 키 이름은 옛 룰렛 시절 그대로 — 바꾸면 기기에 남겨 둔 직접 선택 칸을 잃습니다.
 const CUSTOM_KEY = "rec.roulette.custom";
 
 type Tab = "place" | "category" | "custom";
@@ -47,7 +48,7 @@ const euro = (w: string) => {
  * 「랜덤 게임」 모드 — 목표 시간에 가장 가깝게 건지는 감자튀김(FrenchFries.tsx) · 모양대로 도우를 펴는 피자(PizzaDough.tsx) — 둘은 칸 없이 사람끼리 겨루고 참가자 목록을 같이 씁니다, 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx), 둘이 겨루는 줄다리기(TugOfWar.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
  * 칸 옆 − 로 빼고, + 로 원하는 가게 · 카테고리 · 메뉴를 적어 넣습니다. 카테고리가 나오면 그 종류로 다시 추천받을 수 있습니다. 직접 입력한 것은 기기에 남깁니다.
  */
-export function Roulette({ picks, exclude, onPlace, onCategory, onDrawTouch }: {
+export function RandomGames({ picks, exclude, onPlace, onCategory, onDrawTouch }: {
   picks: Scored[]; exclude: readonly string[];
   onPlace: (i: number) => void; onCategory: (cat: RecCategory) => void;
   /** 피자 판을 만지는 동안 true — 화면 스크롤을 멈춥니다. */

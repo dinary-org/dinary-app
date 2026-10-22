@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } fro
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SearchLineIcon } from "@/components/icons";
 import { useGallerySearch, useGalleryTopMenus, type GalleryScope } from "@/features/community/api";
+import { useTourDefs } from "@/features/recommend/api";
 import { StaffAvatar } from "@/features/community/BoardPost";
 import { useOpenProfile } from "@/features/community/ProfileSheet";
 import { Avatar, FilterChips, K, metaLine, PhotoOrStripes, shortAddr, titleName } from "@/features/community/ui";
@@ -18,6 +19,7 @@ export default function GallerySearch() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const openProfile = useOpenProfile();
+  useTourDefs(); // 투어 칭호 이름
   const [text, setText] = useState("");
   const [q, setQ] = useState("");
   const [scope, setScope] = useState<GalleryScope>("all");

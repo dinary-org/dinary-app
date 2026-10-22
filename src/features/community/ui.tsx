@@ -3,7 +3,8 @@ import * as Haptics from "expo-haptics";
 import { Pressable, ScrollView, Text, View, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { LABELS } from "@/lib/labels";
+import { useTourDefs } from "@/features/recommend/api";
+import { LABELS, tourTitleName } from "@/lib/labels";
 import { C, F } from "@/theme";
 import { SignedImage } from "@/lib/signedPhoto";
 
@@ -191,11 +192,13 @@ export function Avatar({ name, url, size, ring, seed }: { name: string; url?: st
 }
 
 /** 칭호(대표 라벨) 이름. 없으면 null. */
-export const titleName = (id: string | null | undefined) => (id ? LABELS.find((l) => l.id === id)?.name ?? null : null);
+/** 대표 라벨 이름 — 라벨이거나 투어 칭호(「tour:…」, 투어 목록을 받아 와야 보입니다 — 쓰는 화면에서 useTourDefs 를 불러 두세요). */
+export const titleName = (id: string | null | undefined) => (id ? LABELS.find((l) => l.id === id)?.name ?? tourTitleName(id) : null);
 const titleColor = (id: string | null | undefined) => (id ? LABELS.find((l) => l.id === id)?.color : undefined) ?? C.brick;
 
 /** 이름 옆 칭호 칩 — 내계정과 같은 모양(라벨 색 30%/10%). */
 export function TitleChip({ id }: { id: string | null | undefined }) {
+  useTourDefs();
   const name = titleName(id);
   if (!name) return null;
   const color = titleColor(id);

@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useMemo, useState } from "react
 import { Alert, Pressable, Text, View } from "react-native";
 import { Character } from "@/components/Character";
 import { BottomSheetModal } from "@/components/ui";
+import { useTourDefs } from "@/features/recommend/api";
 import { characterOf, DEFAULT_CHARACTER, isCharacterId, RARITY } from "@/lib/characters";
 import { C, F } from "@/theme";
 import {
@@ -49,6 +50,7 @@ function CardBody({ card, onClose }: { card: ProfileCard; onClose: () => void })
   const qc = useQueryClient();
   const router = useRouter();
   const { data: isAdmin } = useIsAdmin();
+  useTourDefs(); // 투어 칭호 이름
   const [busy, setBusy] = useState(false);
   const charId = isCharacterId(card.character_id) ? card.character_id : DEFAULT_CHARACTER;
   const ch = characterOf(charId);

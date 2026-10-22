@@ -275,6 +275,8 @@ export type TourDef = {
 
 export type TourTitle = {
   id: string;
+  /** 대표 라벨로 붙일 때 profiles.title_label_id 에 들어가는 값 — 「tour:{투어 id}」 */
+  titleId: string;
   /** 칭호 — mark_name, 없으면 「{투어} 완주」 */
   name: string;
   tour: string;
@@ -284,6 +286,17 @@ export type TourTitle = {
   /** 아직 받지 못했는데 투어가 끝났음 — 라벨첩에서 숨깁니다. */
   closed: boolean;
 };
+
+/** 투어 칭호를 대표 라벨로 붙일 때의 id — 라벨 id(코드 상수)와 겹치지 않게 앞에 「tour:」. */
+export const tourTitleId = (tourId: string) => `tour:${tourId}`;
+const tourTitleOf = (t: Pick<TourDef, "title" | "mark_name">) => t.mark_name ?? `${t.title} 완주`;
+
+/** 남의 대표 라벨(커뮤니티 칩 · 랭킹)에 쓸 투어 칭호 이름 — useTourDefs 가 받아 오면 채웁니다. */
+const tourTitleNames = new Map<string, string>();
+export function rememberTourTitles(tours: TourDef[]) {
+  for (const t of tours) tourTitleNames.set(tourTitleId(t.id), tourTitleOf(t));
+}
+export const tourTitleName = (id: string) => tourTitleNames.get(id) ?? null;
 
 const kstDate = (iso: string) => new Date(new Date(iso).getTime() + 9 * 3600e3).toISOString().slice(0, 10);
 
@@ -306,7 +319,7 @@ export function tourTitles(tours: TourDef[], rows: Restaurant[]): TourTitle[] {
     }
     const earned = hit.size >= t.need;
     return {
-      id: t.id, name: t.mark_name ?? `${t.title} 완주`, tour: t.title, have: Math.min(hit.size, t.need), need: t.need, earned,
+      id: t.id, titleId: tourTitleId(t.id), name: tourTitleOf(t), tour: t.title, have: Math.min(hit.size, t.need), need: t.need, earned,
       closed: !earned && !!t.ends_at && t.ends_at < today,
     };
   });

@@ -9,7 +9,7 @@ import type { KakaoPlace } from "@/lib/rec/candidates";
 import type { Weather } from "@/lib/rec/score";
 import { areaOf, frequentSpot, type Course, type PlaceStat } from "@/lib/recommend";
 import { supabase } from "@/lib/supabase";
-import type { TourDef } from "@/lib/labels";
+import { rememberTourTitles, type TourDef } from "@/lib/labels";
 import type { Restaurant } from "@/lib/types";
 
 /**
@@ -132,7 +132,9 @@ export const useTourDefs = () =>
     queryFn: async () => {
       const { data, error } = await supabase.from("tours").select("id, title, need, mark_name, starts_at, ends_at, places:tour_places(place_key)").order("created_at");
       if (error) throw new Error(error.message);
-      return (data ?? []) as TourDef[];
+      const tours = (data ?? []) as TourDef[];
+      rememberTourTitles(tours);
+      return tours;
     },
   });
 

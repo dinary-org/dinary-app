@@ -12,12 +12,13 @@ import { useActiveBook } from "@/data/books";
 import { useAccount, useOwnedCharacters, useSetCharacter, useSetLeaderboardOptIn, useTickets } from "@/data/profile";
 import { refreshAll } from "@/data/invalidate";
 import { usePersonalRows, usePersonalWishes } from "@/data/queries";
+import { useTourDefs } from "@/features/recommend/api";
 import CoupleAccount from "@/features/couple/CoupleAccount";
 import { apiFetch } from "@/lib/api";
 import { CHARACTERS } from "@/lib/characters";
 import { StampBoard } from "@/features/stamps/Stamp";
 import { useSeenLabels } from "@/lib/labelSeen";
-import { currentBoard, earnedLabels, nextBowl, stampRows, STAMPS_PER_BOARD } from "@/lib/labels";
+import { currentBoard, earnedLabels, nextBowl, stampRows, STAMPS_PER_BOARD, tourTitles } from "@/lib/labels";
 import { uploadPhoto } from "@/lib/photos";
 import { supabase } from "@/lib/supabase";
 import type { Restaurant } from "@/lib/types";
@@ -47,6 +48,7 @@ export function MyAccount() {
   const qc = useQueryClient();
   const { data: account } = useAccount();
   const { data: rows = [], isSuccess: rowsReady } = usePersonalRows();
+  const { data: tourDefs = [] } = useTourDefs();
   const { data: wishes = [] } = usePersonalWishes();
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [labelBusy, setLabelBusy] = useState(false);
@@ -68,8 +70,15 @@ export function MyAccount() {
   const verified = rows.filter((r) => r.verified).length;
   const places = new Set(rows.map(placeKeyOf)).size;
   const labels = earnedLabels(rows);
-  const got = labels.filter((l) => l.earned);
+  // 받은 라벨 + 완주한 투어 칭호(벽돌색) — 어느 쪽이든 대표 라벨로 붙일 수 있습니다.
+  const tours = tourTitles(tourDefs, rows).filter((t) => !t.closed);
+  const got = [
+    ...labels.filter((l) => l.earned).map((l) => ({ id: l.id, name: l.name, color: l.color })),
+    ...tours.filter((t) => t.earned).map((t) => ({ id: t.titleId, name: t.name, color: C.brick })),
+  ];
   const titleLabelId = account.titleLabelId;
+  // 「· 새로」는 리캡이 있는 라벨만 — 투어 칭호는 늘 본 것으로.
+  const isNew = (id: string) => !id.startsWith("tour:") && seen.isNew(id);
   const titleLabel = titleLabelId ? got.find((l) => l.id === titleLabelId) ?? null : null;
   const connectedLine = account.providers.length ? account.providers.map((p) => PROVIDER_LABEL[p] ?? p).join(" · ") + " 연결됨" : "연결된 계정 없음";
 
@@ -252,13 +261,13 @@ export function MyAccount() {
         <>
           <View style={{ marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
             <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>모은 라벨</Text>
-            <Pressable onPress={() => router.push("/labels")}><Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{got.length} / {labels.length} ›</Text></Pressable>
+            <Pressable onPress={() => router.push("/labels")}><Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{got.length} / {labels.length + tours.length} ›</Text></Pressable>
           </View>
           <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>탭하면 닉네임 옆 대표 라벨로 붙습니다</Text>
           <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-            {[...got].sort((a, b) => Number(b.id === titleLabelId) - Number(a.id === titleLabelId) || Number(seen.isNew(b.id)) - Number(seen.isNew(a.id))).slice(0, 3).map((l) => {
+            {[...got].sort((a, b) => Number(b.id === titleLabelId) - Number(a.id === titleLabelId) || Number(isNew(b.id)) - Number(isNew(a.id))).slice(0, 3).map((l) => {
               const on = l.id === titleLabelId;
-              const fresh = seen.isNew(l.id);
+              const fresh = isNew(l.id);
               return (
                 <Pressable key={l.id} onPress={() => selectTitleLabel(l.id)} disabled={labelBusy} style={{ borderRadius: 13, borderWidth: 1, borderColor: on || fresh ? C.brick : "rgba(180,85,45,.2)", backgroundColor: on ? C.brick : C.brickSoft, paddingHorizontal: 11, paddingVertical: 5, opacity: labelBusy ? 0.6 : 1 }}>
                   <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: on ? "#fdf9f3" : C.brick }}>{on ? "✓ " : ""}{l.name}{fresh ? " · 새로" : ""}</Text>

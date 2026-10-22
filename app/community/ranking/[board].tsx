@@ -7,6 +7,7 @@ import { useFriends, useIsAdmin, useLeaderboard, type Period, type RankRow, type
 import { RankAdminSheet } from "@/features/community/RankAdminSheet";
 import { boardMeta, periodLabel, PERIODS, SCOPES } from "@/features/community/boards";
 import { Avatar, CommunityHeader, K, MiniSegment, PeriodTabs, TitleBlock, titleName } from "@/features/community/ui";
+import { useTourDefs } from "@/features/recommend/api";
 import { DEFAULT_CHARACTER, isCharacterId } from "@/lib/characters";
 import { C, F } from "@/theme";
 
@@ -18,6 +19,7 @@ export default function RankingDetail() {
   const params = useLocalSearchParams<{ board: string; period?: Period; scope?: Scope }>();
   const router = useRouter();
   const board = boardMeta(params.board);
+  useTourDefs(); // 투어 칭호 이름
   const [period, setPeriod] = useState<Period>(params.period ?? "month");
   const [scope, setScope] = useState<Scope>(params.scope ?? "friends");
   const { data: account } = useAccount();

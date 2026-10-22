@@ -21,7 +21,7 @@ import { C, F } from "@/theme";
 /**
  * 라벨첩(지시서 3 §E-4) — 그릇 수 8단계 타일 · 이야기 목록 · 동네 칭호 칩 · 투어 칭호 칩(누르면 그 투어).
  * 그릇 수 타일을 누르면 리캡, 이야기 줄을 누르면 메달 · 도장 · 채운 가게 시트(「기록 보기」로 리캡).
- * 받은 라벨을 길게 누르면 닉네임 옆 대표 라벨로 붙습니다.
+ * 받은 라벨 · 투어 칭호를 길게 누르면 닉네임 옆 대표 라벨로 붙습니다.
  */
 export default function Labels() {
   const insets = useSafeAreaInsets();
@@ -38,19 +38,22 @@ export default function Labels() {
   const bowls = labels.filter((l) => l.group === "bowl");
   const stories = labels.filter((l) => l.group === "story");
   const seen = useSeenLabels(account?.userId, labels.filter((l) => l.earned).map((l) => l.id), isSuccess);
-  const title = labels.find((l) => l.id === titleId && l.earned) ?? null;
   // 인증 기록이 한 건이라도 있는 구는 모두 — 칭호를 받기 전이면 회색으로 다음 칭호까지 보여 줍니다.
   const districts = regionTitles(rows);
   // 투어 칭호 — 받은 것 먼저, 그다음 진행 중인 투어. 받지 못한 채 끝난 투어는 숨깁니다.
   const { data: tourDefs = [] } = useTourDefs();
   const tours = tourTitles(tourDefs, rows).filter((t) => !t.closed).sort((a, b) => Number(b.earned) - Number(a.earned) || b.have / b.need - a.have / a.need);
+  // 대표 라벨 — 라벨이거나 완주한 투어 칭호. 투어 칭호는 아이콘 대신 ✓ 원.
+  const titleLabel = labels.find((l) => l.id === titleId && l.earned) ?? null;
+  const titleTour = tours.find((t) => t.titleId === titleId && t.earned) ?? null;
+  const title = titleLabel ? { name: titleLabel.name, color: titleLabel.color, icon: titleLabel.icon as string | null } : titleTour ? { name: titleTour.name, color: C.brick, icon: null } : null;
 
   const open = (l: EarnedLabel) => {
     if (!l.earned) return;
     router.push({ pathname: "/label-recap", params: { id: l.id } });
   };
 
-  async function toggleTitle(l: EarnedLabel) {
+  async function toggleTitle(l: { id: string; earned: boolean }) {
     if (busy || !l.earned) return;
     Haptics.selectionAsync();
     const next = titleId === l.id ? null : l.id;
@@ -80,22 +83,26 @@ export default function Labels() {
           {title ? (
             <>
               <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: title.color, alignItems: "center", justifyContent: "center" }}>
-                <Svg width={18} height={18} viewBox="0 0 24 24">
-                  <Path d={title.icon} fill="none" stroke={C.card} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
+                {title.icon ? (
+                  <Svg width={18} height={18} viewBox="0 0 24 24">
+                    <Path d={title.icon} fill="none" stroke={C.card} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                ) : (
+                  <Text style={{ fontSize: 14, color: C.card }}>✓</Text>
+                )}
               </View>
               <View style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: F.sansBd, fontSize: 12.5, color: C.ink }}>
                   {account?.nickname || "나"}
                   <Text style={{ color: title.color }}> · {title.name}</Text>
                 </Text>
-                <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>받은 라벨을 길게 누르면 대표 라벨이 바뀌어요</Text>
+                <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>받은 라벨 · 투어 칭호를 길게 누르면 대표 라벨이 바뀌어요</Text>
               </View>
             </>
           ) : (
             <>
               <View style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderStyle: "dashed", borderColor: "#cfc7b6" }} />
-              <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>받은 라벨을 길게 누르면 대표 라벨로 붙어요</Text>
+              <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>받은 라벨 · 투어 칭호를 길게 누르면 대표 라벨로 붙어요</Text>
             </>
           )}
         </View>
@@ -187,9 +194,10 @@ export default function Labels() {
               <Pressable
                 key={t.id}
                 onPress={() => router.push({ pathname: "/recommend/tour/[id]", params: { id: t.id } })}
-                accessibilityLabel={t.earned ? `${t.name} · ${t.tour} 완주` : `${t.name} · ${t.tour} ${t.have} / ${t.need}`}
+                onLongPress={() => toggleTitle({ id: t.titleId, earned: t.earned })}
+                accessibilityLabel={t.earned ? `${t.name} · ${t.tour} 완주${t.titleId === titleId ? " · 대표" : ""}` : `${t.name} · ${t.tour} ${t.have} / ${t.need}`}
                 style={t.earned
-                  ? { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 13, borderWidth: 1, borderColor: "rgba(180,85,45,.4)", backgroundColor: C.brickSoft, paddingHorizontal: 11, paddingVertical: 5 }
+                  ? { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 13, borderWidth: t.titleId === titleId ? 1.5 : 1, borderColor: t.titleId === titleId ? C.ink : "rgba(180,85,45,.4)", backgroundColor: C.brickSoft, paddingHorizontal: 11, paddingVertical: 5 }
                   : { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: "#d6cfc2", backgroundColor: "#f3efe6", paddingHorizontal: 11, paddingVertical: 5 }}
               >
                 <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: t.earned ? C.brick : C.faint }}>{t.name}</Text>

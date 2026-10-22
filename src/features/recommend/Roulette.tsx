@@ -6,6 +6,7 @@ import Svg, { Circle, G, Line, Path, Text as SvgText } from "react-native-svg";
 import { REC_CATEGORIES, type RecCategory } from "@/lib/recommend";
 import type { Scored } from "@/lib/rec/score";
 import { C, F } from "@/theme";
+import { FrenchFries } from "./FrenchFries";
 import { MarbleRace } from "./MarbleRace";
 import { TugOfWar } from "./TugOfWar";
 import { REC, SectionHead } from "./ui";
@@ -40,9 +41,10 @@ const CUSTOM_KEY = "rec.roulette.custom";
 type Tab = "place" | "category" | "custom";
 type Option = { key: string; label: string };
 
-type Mode = "wheel" | "marble" | "tug";
+type Mode = "wheel" | "fries" | "marble" | "tug";
 const MODES: { id: Mode; label: string }[] = [
   { id: "wheel", label: "룰렛" },
+  { id: "fries", label: "감자튀김" },
   { id: "marble", label: "구슬 경주" },
   { id: "tug", label: "줄다리기" },
 ];
@@ -74,7 +76,7 @@ function slicePath(a0: number, a1: number, r: number) {
 }
 
 /**
- * 「랜덤 게임」 모드 — 돌려서 정하는 룰렛, 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx), 둘이 겨루는 줄다리기(TugOfWar.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
+ * 「랜덤 게임」 모드 — 돌려서 정하는 룰렛, 목표 시간에 가장 가깝게 건지는 감자튀김(FrenchFries.tsx — 칸 없이 사람끼리 겨룹니다), 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx), 둘이 겨루는 줄다리기(TugOfWar.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
  * 칸 옆 − 로 빼고, + 로 원하는 가게 · 카테고리 · 메뉴를 적어 넣습니다. 카테고리가 나오면 그 종류로 다시 추천받을 수 있습니다. 직접 입력한 것은 기기에 남깁니다.
  */
 export function Roulette({ picks, exclude, onPlace, onCategory }: {
@@ -217,6 +219,8 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
       </View>
 
       <View style={{ marginTop: 12, borderRadius: 24, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: REC.paper, padding: 16 }}>
+        {mode === "fries" ? <FrenchFries /> : (
+        <>
         {/* 고를 거리 — 세 칸 전환 */}
         <View style={{ height: 38, borderRadius: 19, backgroundColor: "#efebe2", padding: 3, flexDirection: "row", gap: 3 }}>
           {TABS.map((t) => {
@@ -376,6 +380,8 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
             <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{mode === "wheel" ? "가운데를 눌러 돌려 보세요" : mode === "marble" ? "먼저 들어온 구슬이 이겨요" : "둘이 하나씩 고르고, 내 칸을 빨리 두드려 끌어오세요"}</Text>
           )}
         </View>
+        </>
+        )}
       </View>
       <WinPopup label={popup?.label ?? null} action={wonAction} onClose={() => setPopup(null)} />
     </View>

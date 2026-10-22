@@ -55,6 +55,8 @@ const MAP_PAD_BOTTOM = 320;
 /** 웹 MobileShell 과 같은 네 단계 — peek 96 · 35% · 75% · full(화면 − 84). 처음엔 75% 로 엽니다. */
 /** 시트가 이보다 낮으면 머리를 한 줄(맛집 기록 · 가게 N · 기록 M)로 줄입니다 — 웹 COMPACT_BELOW. */
 const COMPACT_BELOW = 200;
+/** 시트를 가장 낮게 내렸을 때 높이. */
+const SHEET_MIN = 46;
 /** 지도 위 단추들이 시트 윗변에서 띄우는 간격. */
 const GAP_DRAFTS = 14;
 const GAP_PLUS = 16;
@@ -114,7 +116,8 @@ export default function MapTab() {
     const H = layoutH || windowH;
     const max = Math.max(260, H - 84);
     const pts: number[] = [];
-    for (let y = 96; y < max; y += 6) pts.push(y);
+    // 가장 낮게는 하단 탭에 붙을 만큼 — 손잡이와 가운데 카메라 단추(탭바 위로 22 솟음) 위로 한 줄만 남깁니다.
+    for (let y = SHEET_MIN; y < max; y += 6) pts.push(y);
     pts.push(max);
     return pts;
   }, [layoutH, windowH]);

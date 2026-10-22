@@ -5,7 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from "react-native";
+import { Keyboard, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from "react-native";
 import Animated, { useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue } from "react-native-reanimated";
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
@@ -29,7 +29,7 @@ import { recordsAt, usePlacesAt, type PlaceAt } from "@/features/map/usePlacesAt
 import PlaceSearch from "@/features/map/PlaceSearch";
 import { SegmentSwitch, useWishItems, WishRow, type WishItem } from "@/features/map/WishSegment";
 import RecapInvite from "@/features/recap/RecapInvite";
-import { FilterSheet as FilterSheetImpl, FoundSheet, SearchMissSheet, WishPinCard } from "@/features/map/Sheets";
+import { FilterSheet as FilterSheetImpl, FoundSheet, SearchMissSheet, SortSheet, WishPinCard } from "@/features/map/Sheets";
 import { mealLabels } from "@/lib/anniversary";
 import type { Place as GeocodePlace } from "@/lib/geocode";
 import { findRecord, findWish, norm } from "@/lib/geo";
@@ -162,6 +162,9 @@ export default function MapTab() {
   const [revisitOnly, setRevisitOnly] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  /** 머리의 돋보기를 누르면 맛집/카페 줄 자리에 「내 기록에서 찾기」 칸이 열립니다. */
+  const [searchOpen, setSearchOpen] = useState(false);
   const [viewBounds, setViewBounds] = useState<Bounds | null>(null);
   const shownWishes = useMemo(() => (viewBounds ? wishes.filter((w) => inBounds(viewBounds, w.lat, w.lng)) : wishes), [wishes, viewBounds]);
   const wishItems = useWishItems(wishes, shownWishes);
@@ -489,14 +492,6 @@ export default function MapTab() {
 
   /* ── 시트 ───────────────────────────────────── */
 
-  const chipItems = [
-    ...(viewBounds ? [{ key: "bounds", label: "이 지도 범위", onClear: () => setViewBounds(null) }] : []),
-    ...categories.map((c) => ({ key: `cat:${c}`, label: c, onClear: () => setCategories((l) => l.filter((v) => v !== c)) })),
-    ...keywords.map((k) => ({ key: `kw:${k}`, label: k, onClear: () => setKeywords((l) => l.filter((v) => v !== k)) })),
-    ...(revisitOnly ? [{ key: "revisit", label: "재방문", onClear: () => setRevisitOnly(false) }] : []),
-    ...(verifiedOnly ? [{ key: "verified", label: "인증된 기록", onClear: () => setVerifiedOnly(false) }] : []),
-  ];
-
   // 종류·낱말은 맛집과 카페가 달라 바꿀 때 비웁니다.
   const changeKind = (k: Kind) => {
     if (k === kind) return;
@@ -505,6 +500,7 @@ export default function MapTab() {
     setCategories([]);
     setKeywords([]);
   };
+  const sortLabel = SORTS.find((o) => o.value === sort)?.label ?? "최근순";
   const title = isCouple ? "우리 기록" : kind === "cafe" ? "카페 기록" : "맛집 기록";
 
   // 시트가 낮으면(peek) 한 줄 요약만 — 검색·칩·정렬은 숨깁니다(웹과 같음).
@@ -529,47 +525,43 @@ export default function MapTab() {
   ) : (
     <View>
       {segmentSwitch}
-      <View style={[s.headRow, chipItems.length > 0 && { paddingBottom: 6 }]}>
-        {/* 맛집 / 카페 — 고른 쪽만 목록과 지도 핀에 남습니다(검색·필터·정렬과 함께). */}
-        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10 }}>
-          {KINDS.map((o) => (
-            <Pressable key={o.value} onPress={() => changeKind(o.value)} hitSlop={{ top: 12, bottom: 12, left: 5, right: 5 }} accessibilityRole="button" accessibilityState={{ selected: kind === o.value }}>
-              <Text numberOfLines={1} style={[s.h, { color: kind === o.value ? C.ink : "#c4bdb0" }]}>{o.label}</Text>
-            </Pressable>
-          ))}
+      {searchOpen || q ? (
+        <View style={s.headRow}>
+          <View style={s.searchIn}>
+            <SearchIcon size={14} />
+            <BottomSheetTextInput autoFocus value={q} onChangeText={setQ} placeholder="내 기록에서 찾기" placeholderTextColor="#a8a196" style={{ flex: 1, padding: 0, fontFamily: F.sans, fontSize: 12.5, color: C.ink }} />
+          </View>
+          <Pressable onPress={() => { setQ(""); setSearchOpen(false); }} accessibilityLabel="찾기 닫기" style={s.iconBtn}>
+            <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink }}>✕</Text>
+          </Pressable>
         </View>
-        <View style={s.searchIn}>
-          <SearchIcon size={14} />
-          <BottomSheetTextInput value={q} onChangeText={setQ} placeholder="내 기록에서 찾기" placeholderTextColor="#a8a196" style={{ flex: 1, padding: 0, fontFamily: F.sans, fontSize: 12.5, color: C.ink }} />
-        </View>
-      </View>
-
-      {chipItems.length > 0 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 20, paddingBottom: 3, alignItems: "center" }}>
-          {chipItems.map((c) => (
-            <Pressable key={c.key} onPress={c.onClear} style={{ borderRadius: 15, backgroundColor: c.key === "bounds" ? C.card : "#f2e0d5", borderWidth: c.key === "bounds" ? 1 : 0, borderColor: C.line, paddingHorizontal: 10, paddingVertical: 5 }}>
-              <Text style={{ fontFamily: F.sans, fontSize: 11, lineHeight: 15, color: c.key === "bounds" ? C.muted : "#a34d27" }}>{c.label} ✕</Text>
+      ) : (
+        <View style={s.headRow}>
+          {/* 맛집 / 카페 — 고른 쪽만 목록과 지도 핀에 남습니다(검색·필터·정렬과 함께). */}
+          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 14 }}>
+            {KINDS.map((o) => (
+              <Pressable key={o.value} onPress={() => changeKind(o.value)} hitSlop={{ top: 10, bottom: 10, left: 7, right: 7 }} accessibilityRole="button" accessibilityState={{ selected: kind === o.value }}>
+                <Text numberOfLines={1} style={[s.h, { color: kind === o.value ? C.ink : "#c4bdb0" }]}>{o.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Pressable onPress={() => setSearchOpen(true)} accessibilityLabel="내 기록에서 찾기" hitSlop={2} style={s.iconBtn}>
+              <SearchIcon size={16} stroke={C.ink} />
             </Pressable>
-          ))}
-          <Pressable onPress={clearAll}><Text style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>모두 지우기</Text></Pressable>
-        </ScrollView>
+            <Pressable onPress={() => setFiltersOpen(true)} accessibilityLabel={activeFilters ? `필터 ${activeFilters}개 켜짐` : "필터"} hitSlop={2} style={s.iconBtn}>
+              <FilterLinesIcon stroke={C.ink} />
+              {activeFilters > 0 && <View style={s.filterDot} />}
+            </Pressable>
+          </View>
+        </View>
       )}
 
-      <View style={s.sortRow}>
-        {SORTS.map((o) => (
-          <Pressable key={o.value} onPress={() => { Haptics.selectionAsync(); setSort(o.value); }} style={{ paddingBottom: 3, borderBottomWidth: 1, borderBottomColor: sort === o.value ? C.ink : "transparent" }}>
-            <Text numberOfLines={1} style={{ fontFamily: sort === o.value ? F.sansMd : F.sans, fontSize: 12.5, color: sort === o.value ? C.ink : "#a8a196" }}>{o.label}</Text>
-          </Pressable>
-        ))}
-        {/* 필터 단추는 정렬과 같은 줄 오른쪽 끝에 둡니다 — 위 줄은 검색창이 넓게 씁니다. */}
-        <Pressable
-          onPress={() => setFiltersOpen(true)}
-          accessibilityLabel="필터"
-          hitSlop={{ top: 6, bottom: 6 }}
-          style={[s.filterBtn, activeFilters ? { backgroundColor: C.ink, borderWidth: 0 } : null]}
-        >
-          <FilterLinesIcon stroke={activeFilters ? C.card : C.muted} />
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: activeFilters ? C.card : C.muted }}>{activeFilters ? `필터 ${activeFilters}` : "필터"}</Text>
+      <View style={s.countRow}>
+        <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>{`${filtered.length}곳 · 기록 ${visitCount}`}</Text>
+        <Pressable onPress={() => setSortOpen(true)} accessibilityLabel={`정렬: ${sortLabel}`} hitSlop={{ top: 12, bottom: 12, left: 8 }} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+          <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.ink }}>{sortLabel}</Text>
+          <ChevronDownIcon />
         </Pressable>
       </View>
     </View>
@@ -791,6 +783,8 @@ export default function MapTab() {
         onClose={() => setFiltersOpen(false)}
       />
 
+      <SortSheet visible={sortOpen} options={SORTS} value={sort} onChange={(v) => { Haptics.selectionAsync(); setSort(v); }} onClose={() => setSortOpen(false)} />
+
       <FoundSheet
         hit={foundHit}
         onClose={() => setFoundHit(null)}
@@ -840,10 +834,17 @@ const PlusIcon = ({ stroke }: { stroke: string }) => (
   </Svg>
 );
 
-/** 필터 단추의 세 줄. */
+/** 필터 단추의 세 줄 — 아래로 갈수록 짧아집니다. */
 const FilterLinesIcon = ({ stroke }: { stroke: string }) => (
-  <Svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={1.9} strokeLinecap="round">
+  <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth={1.9} strokeLinecap="round">
     <Path d="M4 7h16M7 12h10M10 17h4" />
+  </Svg>
+);
+
+/** 정렬 단추의 아래 꺾쇠(12). */
+const ChevronDownIcon = () => (
+  <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <Path d="M6 9l6 6 6-6" />
   </Svg>
 );
 
@@ -886,13 +887,14 @@ const s = StyleSheet.create({
     position: "absolute", top: -3, right: -3, minWidth: 21, height: 21, borderRadius: 11, borderWidth: 2, borderColor: C.paper,
     backgroundColor: C.brick, alignItems: "center", justifyContent: "center", paddingHorizontal: 4,
   },
-  headRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingBottom: 10 },
+  headRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 4, paddingBottom: 14 },
+  countRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 4, paddingBottom: 10 },
   compactRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
-  h: { fontFamily: F.serif, fontSize: 18, color: C.ink },
-  filterBtn: { marginLeft: "auto", height: 30, borderRadius: 15, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 5 },
+  h: { fontFamily: F.serif, fontSize: 21, color: C.ink },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
+  filterDot: { position: "absolute", top: 2, right: 2, width: 7, height: 7, borderRadius: 3.5, backgroundColor: C.brick },
   searchIn: {
     flex: 1, minWidth: 0, height: 40, borderRadius: 20, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card,
     paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8,
   },
-  sortRow: { flexDirection: "row", alignItems: "center", minHeight: 28, gap: 12, paddingHorizontal: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#e6e0d3", marginBottom: 12 },
 });

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { BookmarkIcon } from "@/components/icons";
-import { BottomSheetModal, Button, Chip, Eyebrow, PhotoBox } from "@/components/ui";
+import { BottomSheetModal, Button, Chip, Eyebrow, PhotoBox, Toggle } from "@/components/ui";
 import { sourceShort } from "@/lib/sourceLink";
 import { dottedDate, type Restaurant, type Wish } from "@/lib/types";
 import type { Place } from "@/lib/places";
@@ -42,9 +42,41 @@ export function FilterSheet(p: {
       <View style={{ marginTop: 18, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
         <Chip label="재방문한 곳만" active={p.revisitOnly} onPress={p.onToggleRevisit} />
         <Chip label="인증된 기록만" active={p.verifiedOnly} onPress={p.onToggleVerified} />
-        <Chip label="현 지도에 있는 기록만" active={p.boundsOnly} onPress={p.onToggleBounds} />
       </View>
+      {/* 지금 지도에 보이는 범위 안 기록만 — 켜는 순간의 범위로 고정합니다. */}
+      <Pressable onPress={p.onToggleBounds} style={{ marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
+        <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink }}>현 지도에 있는 기록만</Text>
+        <Toggle value={p.boundsOnly} onChange={p.onToggleBounds} label="현 지도에 있는 기록만" />
+      </Pressable>
       <Button label={`${p.count}곳 보기`} onPress={p.onClose} style={{ marginTop: 22, minHeight: 54, borderRadius: 20 }} />
+    </BottomSheetModal>
+  );
+}
+
+/** 「정렬」 시트 — 고른 것에 ✓, 누르면 바로 닫힙니다. */
+export function SortSheet<T extends string>(p: {
+  visible: boolean; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void; onClose: () => void;
+}) {
+  return (
+    <BottomSheetModal visible={p.visible} onClose={p.onClose}>
+      <Text style={{ fontFamily: F.serif, fontSize: 18, color: C.ink }}>정렬</Text>
+      <View style={{ marginTop: 8 }}>
+        {p.options.map((o) => {
+          const on = o.value === p.value;
+          return (
+            <Pressable
+              key={o.value}
+              onPress={() => { p.onChange(o.value); p.onClose(); }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: on }}
+              style={{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#ece7dc" }}
+            >
+              <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 14, color: on ? C.ink : C.muted }}>{o.label}</Text>
+              {on && <Text style={{ fontFamily: F.sans, fontSize: 14, color: C.ink }}>✓</Text>}
+            </Pressable>
+          );
+        })}
+      </View>
     </BottomSheetModal>
   );
 }

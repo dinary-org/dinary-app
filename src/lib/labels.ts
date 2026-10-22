@@ -267,6 +267,51 @@ export function regionTitles(rows: Restaurant[]): RegionTitle[] {
     .sort((a, b) => b.have - a.have);
 }
 
+/** 투어 정의 — 끝난 투어까지 다(완주로 받은 칭호는 투어가 끝나도 남습니다). */
+export type TourDef = {
+  id: string; title: string; need: number; mark_name: string | null; starts_at: string | null; ends_at: string | null;
+  places: { place_key: string }[];
+};
+
+export type TourTitle = {
+  id: string;
+  /** 칭호 — mark_name, 없으면 「{투어} 완주」 */
+  name: string;
+  tour: string;
+  have: number;
+  need: number;
+  earned: boolean;
+  /** 아직 받지 못했는데 투어가 끝났음 — 라벨첩에서 숨깁니다. */
+  closed: boolean;
+};
+
+const kstDate = (iso: string) => new Date(new Date(iso).getTime() + 9 * 3600e3).toISOString().slice(0, 10);
+
+/**
+ * 투어 칭호 — 서버 my_tours · tour_visits 와 같은 규칙: 인증되고 보관함이 아닌 내 기록이 투어 후보 가게(place_key)면 1곳,
+ * 투어 기간(starts_at ~ ends_at, 한국 날짜) 안에 인증한 것만. 후보 need 곳을 채우면 칭호.
+ */
+export function tourTitles(tours: TourDef[], rows: Restaurant[]): TourTitle[] {
+  const today = kstDate(new Date().toISOString());
+  return tours.map((t) => {
+    const keys = new Set(t.places.map((p) => p.place_key));
+    const hit = new Set<string>();
+    for (const r of rows) {
+      if (!r.verified || r.pending || !r.verified_at || r.source_record_id != null || r.copied_at) continue;
+      const key = r.place_key ?? `${r.name}|${r.address ?? ""}`.toLowerCase();
+      if (!keys.has(key)) continue;
+      const day = kstDate(r.verified_at);
+      if ((t.starts_at && day < t.starts_at) || (t.ends_at && day > t.ends_at)) continue;
+      hit.add(key);
+    }
+    const earned = hit.size >= t.need;
+    return {
+      id: t.id, name: t.mark_name ?? `${t.title} 완주`, tour: t.title, have: Math.min(hit.size, t.need), need: t.need, earned,
+      closed: !earned && !!t.ends_at && t.ends_at < today,
+    };
+  });
+}
+
 export type EarnedLabel = LabelDef & { have: number; earned: boolean };
 
 export const earnedLabels = (rows: Restaurant[]): EarnedLabel[] =>

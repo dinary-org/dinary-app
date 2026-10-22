@@ -9,6 +9,7 @@ import type { KakaoPlace } from "@/lib/rec/candidates";
 import type { Weather } from "@/lib/rec/score";
 import { areaOf, frequentSpot, type Course, type PlaceStat } from "@/lib/recommend";
 import { supabase } from "@/lib/supabase";
+import type { TourDef } from "@/lib/labels";
 import type { Restaurant } from "@/lib/types";
 
 /**
@@ -120,6 +121,18 @@ export const useMyTours = () =>
       const { data, error } = await supabase.rpc("my_tours");
       if (error) throw new Error(error.message);
       return (data ?? []) as Tour[];
+    },
+  });
+
+/** 투어 칭호(라벨첩 · 뽑기권)용 — 끝난 투어까지 전부, 후보 가게 열쇠만. */
+export const useTourDefs = () =>
+  useQuery({
+    queryKey: ["rec", "tour-defs"],
+    staleTime: FIVE_MIN,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tours").select("id, title, need, mark_name, starts_at, ends_at, places:tour_places(place_key)").order("created_at");
+      if (error) throw new Error(error.message);
+      return (data ?? []) as TourDef[];
     },
   });
 

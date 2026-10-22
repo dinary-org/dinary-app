@@ -9,16 +9,17 @@ import { LabelBadge } from "@/components/Badges";
 import { BackButton, BottomSheetModal, Button, Eyebrow } from "@/components/ui";
 import { refreshAll } from "@/data/invalidate";
 import { usePersonalRows } from "@/data/queries";
+import { useTourDefs } from "@/features/recommend/api";
 import { useAccount } from "@/data/profile";
 import { EmptySlot, Stamp } from "@/features/stamps/Stamp";
 import { useSeenLabels } from "@/lib/labelSeen";
-import { earnedLabels, regionTitles, stampTilt, type EarnedLabel } from "@/lib/labels";
+import { earnedLabels, regionTitles, stampTilt, tourTitles, type EarnedLabel } from "@/lib/labels";
 import { supabase } from "@/lib/supabase";
 import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
 /**
- * 라벨첩(지시서 3 §E-4) — 그릇 수 8단계 타일 · 이야기 목록 · 동네 칭호 칩.
+ * 라벨첩(지시서 3 §E-4) — 그릇 수 8단계 타일 · 이야기 목록 · 동네 칭호 칩 · 투어 칭호 칩(누르면 그 투어).
  * 그릇 수 타일을 누르면 리캡, 이야기 줄을 누르면 메달 · 도장 · 채운 가게 시트(「기록 보기」로 리캡).
  * 받은 라벨을 길게 누르면 닉네임 옆 대표 라벨로 붙습니다.
  */
@@ -40,6 +41,9 @@ export default function Labels() {
   const title = labels.find((l) => l.id === titleId && l.earned) ?? null;
   // 인증 기록이 한 건이라도 있는 구는 모두 — 칭호를 받기 전이면 회색으로 다음 칭호까지 보여 줍니다.
   const districts = regionTitles(rows);
+  // 투어 칭호 — 받은 것 먼저, 그다음 진행 중인 투어. 받지 못한 채 끝난 투어는 숨깁니다.
+  const { data: tourDefs = [] } = useTourDefs();
+  const tours = tourTitles(tourDefs, rows).filter((t) => !t.closed).sort((a, b) => Number(b.earned) - Number(a.earned) || b.have / b.need - a.have / a.need);
 
   const open = (l: EarnedLabel) => {
     if (!l.earned) return;
@@ -174,6 +178,27 @@ export default function Labels() {
           </View>
         ) : (
           <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12, color: C.faint }}>한 구에서 인증 기록 10건이면 첫 칭호를 받아요</Text>
+        )}
+
+        <SectionHead title="투어 칭호" right={`${tours.filter((t) => t.earned).length}`} />
+        {tours.length > 0 ? (
+          <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
+            {tours.map((t) => (
+              <Pressable
+                key={t.id}
+                onPress={() => router.push({ pathname: "/recommend/tour/[id]", params: { id: t.id } })}
+                accessibilityLabel={t.earned ? `${t.name} · ${t.tour} 완주` : `${t.name} · ${t.tour} ${t.have} / ${t.need}`}
+                style={t.earned
+                  ? { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 13, borderWidth: 1, borderColor: "rgba(180,85,45,.4)", backgroundColor: C.brickSoft, paddingHorizontal: 11, paddingVertical: 5 }
+                  : { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: "#d6cfc2", backgroundColor: "#f3efe6", paddingHorizontal: 11, paddingVertical: 5 }}
+              >
+                <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: t.earned ? C.brick : C.faint }}>{t.name}</Text>
+                <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: t.earned ? C.brick : "#bdb4a3" }}>{t.earned ? "✓" : `${t.have} / ${t.need}`}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : (
+          <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12, color: C.faint }}>추천 탭 「둘러보기」의 투어를 완주하면 칭호를 받아요</Text>
         )}
       </ScrollView>
       {detail && (

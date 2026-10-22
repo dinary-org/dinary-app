@@ -2,8 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useSession } from "@/data/session";
 import { usePersonalRows } from "@/data/queries";
+import { useTourDefs } from "@/features/recommend/api";
 import { DEFAULT_CHARACTER, VERIFIED_PER_TICKET, isCharacterId, type CharacterId } from "@/lib/characters";
-import { earnedLabels, regionTitles, REGION_TIERS } from "@/lib/labels";
+import { earnedLabels, regionTitles, REGION_TIERS, tourTitles, type TourDef } from "@/lib/labels";
 import { supabase } from "@/lib/supabase";
 import type { Restaurant } from "@/lib/types";
 
@@ -66,12 +67,13 @@ export const useAccount = () => {
 export const verifiedCount = (rows: Restaurant[]) => rows.filter((r) => r.verified && !r.pending).length;
 
 /**
- * 받은 라벨 수(동네 칭호 포함) — 뽑기권 계산에 씁니다. 동네 칭호는 오른 등급마다 1개(동·은·금)로 셉니다.
+ * 받은 라벨 수(동네 칭호 · 투어 칭호 포함) — 뽑기권 계산에 씁니다. 동네 칭호는 오른 등급마다 1개(동·은·금), 투어 칭호는 완주한 투어마다 1개.
  * TODO(랭킹 전): 앱이 넘기는 값이라 조작할 수 있습니다. 랭킹 전에 DB 로 옮기세요.
  */
-export const receivedLabelCount = (rows: Restaurant[]) =>
+export const receivedLabelCount = (rows: Restaurant[], tours: TourDef[] = []) =>
   earnedLabels(rows).filter((l) => l.earned).length +
-  regionTitles(rows).reduce((n, t) => n + (t.tier ? REGION_TIERS.indexOf(t.tier) + 1 : 0), 0);
+  regionTitles(rows).reduce((n, t) => n + (t.tier ? REGION_TIERS.indexOf(t.tier) + 1 : 0), 0) +
+  tourTitles(tours, rows).filter((t) => t.earned).length;
 
 export type OwnedCharacter = { id: CharacterId; count: number };
 
@@ -93,7 +95,8 @@ export const useOwnedCharacters = () =>
 /** 쓸 수 있는 뽑기권 · 다음 장까지 남은 인증 기록. */
 export function useTickets() {
   const { data: rows = [], isSuccess } = usePersonalRows();
-  const labelCount = receivedLabelCount(rows);
+  const { data: tours = [] } = useTourDefs();
+  const labelCount = receivedLabelCount(rows, tours);
   const verified = verifiedCount(rows);
   const q = useQuery({
     queryKey: ["characters", "tickets", labelCount, verified],

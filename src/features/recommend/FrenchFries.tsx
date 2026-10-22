@@ -76,7 +76,7 @@ type Fry = "ready" | "frying" | "lifted";
  */
 export function FrenchFries() {
   const [phase, setPhase] = useState<Phase>("setup");
-  const [names, setNames] = useState(["나", "민지", "준호"]);
+  const [names, setNames] = useState(["태현", "예준"]);
   const [target, setTarget] = useState(drawTarget);
   const [turn, setTurn] = useState(0);
   const [fry, setFry] = useState<Fry>("ready");
@@ -227,7 +227,7 @@ export function FrenchFries() {
           <Text style={{ fontFamily: F.serif, fontSize: 16, color: C.brick }}>감자튀김 마스터</Text>
           <Text style={{ marginTop: 6, fontFamily: F.serif, fontSize: 30, color: C.ink }}>{win.name}</Text>
           <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>
-            목표 {target.toFixed(2)}초에서 {Math.abs(win.d).toFixed(2)}초 차이
+            오늘은 {win.name}님이 먹자고 하는 거 먹어요!
           </Text>
         </View>
         <View style={{ marginTop: 18, gap: 4 }}>
@@ -370,14 +370,7 @@ function Fryer({ fry, t0, shown, d, disabled, onPress }: {
   return (
     <View style={{ marginTop: 12, borderRadius: 18, backgroundColor: STEEL, borderWidth: 1, borderColor: STEEL_EDGE, overflow: "hidden" }}>
       {/* 위 스테인리스 판 — 검은 숫자판 */}
-      <View style={{ paddingHorizontal: 14, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: STEEL_EDGE, backgroundColor: "#dad7d0" }}>
-        <View style={{ gap: 3 }}>
-          <Text style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: 1.5, color: "#6f6a61" }}>FRYER · 01</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: frying ? LED : "#8d887f" }} />
-            <Text style={{ fontFamily: F.mono, fontSize: 9, color: "#6f6a61" }}>{frying ? "FRYING" : "READY"}</Text>
-          </View>
-        </View>
+      <View style={{ paddingHorizontal: 14, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", borderBottomWidth: 1, borderBottomColor: STEEL_EDGE, backgroundColor: "#dad7d0" }}>
         <Readout fry={fry} t0={t0} shown={shown} />
       </View>
 
@@ -447,11 +440,7 @@ function Fryer({ fry, t0, shown, d, disabled, onPress }: {
       </Pressable>
 
       {/* 아래 판 — 오른쪽에 누르는 단추 */}
-      <View style={{ paddingHorizontal: 14, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: STEEL_EDGE, backgroundColor: "#dad7d0" }}>
-        <View style={{ gap: 3 }}>
-          <Text style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: 1.5, color: "#6f6a61" }}>OIL 175°C</Text>
-          <Text style={{ fontFamily: F.mono, fontSize: 9, color: "#8d887f" }}>{frying ? "목표다 싶을 때" : "누르면 튀기기 시작"}</Text>
-        </View>
+      <View style={{ paddingHorizontal: 14, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", borderTopWidth: 1, borderTopColor: STEEL_EDGE, backgroundColor: "#dad7d0" }}>
         <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button">
           {({ pressed }) => (
             <View style={{

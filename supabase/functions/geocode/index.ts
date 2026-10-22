@@ -1,9 +1,10 @@
 /**
  * geocode — 옛 웹 /api/geocode 를 옮긴 것. 카카오 로컬 API(주소·좌표·가게 검색). 카카오 키는 여기에만 둡니다.
  *
- *   GET /functions/v1/geocode?q=            주소·상호 → 좌표
+ *   GET /functions/v1/geocode?q=&page=      주소·상호 → 좌표 (15곳씩, 2쪽까지)
  *   GET /functions/v1/geocode?lat=&lng=     좌표 → 주소
- *   GET /functions/v1/geocode?q=&food=1     음식점·카페만 이름으로
+ *   GET /functions/v1/geocode?q=&food=1     음식점·카페만 이름으로 (각 15곳)
+ *   검색 둘 다 from=lat,lng 를 주면 그 자리에서 가까운 순입니다. 좌표는 정렬에만 쓰고 남기지 않습니다.
  *   GET /functions/v1/geocode?lat=&lng=&near=1  둘레 음식점·카페(500m)
  *
  * 환경변수(Edge Function secrets): KAKAO_REST_API_KEY
@@ -18,6 +19,8 @@ const json = (body: unknown, init: { status?: number } = {}) =>
 const RAW = Deno.env.get("KAKAO_REST_API_KEY");
 const KEY = RAW?.trim();
 const BASE = "https://dapi.kakao.com/v2/local";
+/** 이름 · 주소 검색은 2쪽(30곳)까지만 — 그 뒤는 멀거나 덜 맞는 곳입니다. */
+const MAX_PAGE = 2;
 
 type Place = {
   name: string;
@@ -83,6 +86,11 @@ Deno.serve(async (req) => {
 
   const lat = sp.get("lat");
   const lng = sp.get("lng");
+  // 검색어 결과를 가까운 순으로 — 카카오는 x(경도) · y(위도) 와 sort=distance 로 정렬하고 distance(m) 를 붙입니다.
+  const [fromLat, fromLng] = (sp.get("from") ?? "").split(",").map(Number);
+  const from = Number.isFinite(fromLat) && Number.isFinite(fromLng) && (fromLat !== 0 || fromLng !== 0)
+    ? { x: String(fromLng), y: String(fromLat), sort: "distance" }
+    : null;
 
   try {
     // 좌표 둘레의 음식점·카페 — 방문인증 후보 (좌표는 여기서만 쓰고 남기지 않습니다)
@@ -145,7 +153,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 이름으로 찾되 음식점·카페만(방문 인증의 가게 찾기 화면 §2) — 거리 제한 없이 전국에서 찾습니다.
+    // 이름으로 찾되 음식점·카페만(방문 인증의 가게 찾기 화면 §2) — 거리 제한 없이 전국에서, from 이 있으면 가까운 순으로.
     if (sp.get("food")) {
       const fq = (sp.get("q") ?? "").trim();
       if (fq.length < 2) return json({ places: [] });
@@ -160,15 +168,15 @@ Deno.serve(async (req) => {
             category: category(d.category_name),
             lat: Number(d.y),
             lng: Number(d.x),
-            distance: 0,
+            distance: from ? Number(d.distance) || 0 : 0,
             kind,
             place_url: d.place_url || null,
           };
         });
 
       const [restJson, cafeJson] = await Promise.all([
-        kakao("search/keyword.json", { query: fq, category_group_code: GROUP.restaurant, size: "15" }),
-        kakao("search/keyword.json", { query: fq, category_group_code: GROUP.cafe, size: "15" }),
+        kakao("search/keyword.json", { query: fq, category_group_code: GROUP.restaurant, size: "15", ...from }),
+        kakao("search/keyword.json", { query: fq, category_group_code: GROUP.cafe, size: "15", ...from }),
       ]);
 
       const seen = new Set<string>();
@@ -178,6 +186,7 @@ Deno.serve(async (req) => {
         seen.add(key);
         return true;
       });
+      if (from) places.sort((a, b) => a.distance - b.distance);
 
       return json({ places });
     }
@@ -185,10 +194,12 @@ Deno.serve(async (req) => {
     // 주소·상호 검색
     const q = (sp.get("q") ?? "").trim();
     if (q.length < 2) return json({ places: [] });
+    const page = Math.min(MAX_PAGE, Math.max(1, Number(sp.get("page")) || 1));
 
+    // 주소는 첫 쪽에만 — 다음 쪽은 상호만 15곳 더.
     const [byAddress, byKeyword] = await Promise.all([
-      kakao("search/address.json", { query: q, size: "5" }),
-      kakao("search/keyword.json", { query: q, size: "10", sort: "accuracy" }),
+      page === 1 ? kakao("search/address.json", { query: q, size: "5" }) : null,
+      kakao("search/keyword.json", { query: q, size: "15", page: String(page), ...(from ?? { sort: "accuracy" }) }),
     ]);
 
     const places: Place[] = [];
@@ -223,7 +234,8 @@ Deno.serve(async (req) => {
       return true;
     });
 
-    return json({ places: unique.slice(0, 8) });
+    const more = page < MAX_PAGE && byKeyword?.meta?.is_end === false;
+    return json({ places: unique, more });
   } catch (err) {
     return json(
       { error: err instanceof Error ? err.message : "unknown" },

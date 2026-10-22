@@ -9,6 +9,7 @@ import { Eyebrow, fieldStyle } from "@/components/ui";
 import { useWishes } from "@/data/queries";
 import { setState } from "@/data/store";
 import { searchFoodPlaces, type FoodPlace } from "@/lib/geocode";
+import { useBlurOnKeyboardHide } from "@/lib/keyboard";
 import { fetchLinkMeta, headOf, isSourceKind, queryFromTitle, shortUrl, type LinkMeta } from "@/lib/sourceLink";
 import { matchWish } from "@/lib/types";
 import { C, F, SHADOW } from "@/theme";
@@ -38,6 +39,8 @@ export default function WishLinkRoute() {
   const [focused, setFocused] = useState(true);
   const [hits, setHits] = useState<FoodPlace[]>([]);
   const [picked, setPicked] = useState<FoodPlace[]>([]);
+  const input = useRef<TextInput>(null);
+  useBlurOnKeyboardHide(input);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,7 +57,7 @@ export default function WishLinkRoute() {
   useEffect(() => {
     if (query.trim().length < 2) { setHits([]); return; }
     const ctrl = new AbortController();
-    const t = setTimeout(async () => { try { setHits((await searchFoodPlaces(query, ctrl.signal)).slice(0, 5)); } catch { /* 취소·오프라인 */ } }, 250);
+    const t = setTimeout(async () => { try { setHits(await searchFoodPlaces(query, ctrl.signal)); } catch { /* 취소·오프라인 */ } }, 250);
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [query]);
 
@@ -156,6 +159,7 @@ export default function WishLinkRoute() {
           <Eyebrow>가게 찾기</Eyebrow>
           <View style={{ justifyContent: "center" }}>
             <TextInput
+              ref={input}
               autoFocus
               value={query}
               onChangeText={(t) => { typed.current = true; setQuery(t); }}
@@ -168,8 +172,10 @@ export default function WishLinkRoute() {
               <SearchIcon size={15} stroke={focused ? C.brick : C.faint} />
             </View>
           </View>
-          {hits.length > 0 && (
-            <View style={[{ marginTop: 6, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }, SHADOW.card]}>
+          {/* 키보드가 떠 있을 때만 — 바깥을 누르거나 키보드를 내리면 목록도 닫힙니다. 고른 가게는 위에 남습니다. */}
+          {focused && hits.length > 0 && (
+            <View style={[{ marginTop: 6, maxHeight: 320, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }, SHADOW.card]}>
+              <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={hits.length > 4}>
               {hits.map((r, i) => {
                 const already = !!matchWish(wishes, r.name);
                 const on = isPicked(r);
@@ -199,6 +205,7 @@ export default function WishLinkRoute() {
                   </Pressable>
                 );
               })}
+              </ScrollView>
             </View>
           )}
         </View>

@@ -179,14 +179,23 @@ const tightText: TextStyle | null = Platform.OS === "android" ? { includeFontPad
 /** 검색창 아래 결과 목록 — 칸이 넘치면 안에서 위아래로 스크롤합니다. 바깥 ScrollView 안에 있어도 굴러가도록 nestedScrollEnabled(안드로이드),
     키보드가 떠 있어도 첫 탭에 바로 골라지도록 keyboardShouldPersistTaps 를 켭니다. 줄은 이름 + 위치 두 줄만 담게 촘촘히. */
 export function SearchResults<T>({
-  items, keyOf, title, sub, onPick, maxHeight = 260, style,
+  items, keyOf, title, sub, onPick, onEndReached, maxHeight = 260, style,
 }: {
   items: T[]; keyOf: (item: T, i: number) => string; title: (item: T) => string; sub?: (item: T) => string | null | undefined;
-  onPick: (item: T) => void; maxHeight?: number; style?: ViewStyle;
+  onPick: (item: T) => void;
+  /** 목록 끝 가까이까지 내리면 — 다음 쪽 결과를 불러올 때 씁니다. */
+  onEndReached?: () => void;
+  maxHeight?: number; style?: ViewStyle;
 }) {
   return (
     <View style={[{ marginTop: 6, maxHeight, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, overflow: "hidden" }, SHADOW.card, style]}>
-      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={items.length > 4}>
+      <ScrollView
+        nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={items.length > 4}
+        scrollEventThrottle={100}
+        onScroll={onEndReached && (({ nativeEvent: { layoutMeasurement, contentOffset, contentSize } }) => {
+          if (layoutMeasurement.height + contentOffset.y >= contentSize.height - 60) onEndReached();
+        })}
+      >
         {items.map((item, i) => {
           const line2 = sub?.(item);
           return (

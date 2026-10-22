@@ -15,6 +15,7 @@ import { refreshAll } from "@/data/invalidate";
 import { useRows, useWishes } from "@/data/queries";
 import { samePlace } from "@/lib/geo";
 import { forwardGeocode, searchFoodPlaces, type FoodPlace } from "@/lib/geocode";
+import { useBlurOnKeyboardHide } from "@/lib/keyboard";
 import { MAX_PHOTOS, pickAlbumUris, removePhotoObjects, uploadAlbumPhoto } from "@/lib/photos";
 import { FELT_PRICE } from "@/lib/price";
 import { photosOf, verifiedShotOf } from "@/lib/record";
@@ -154,12 +155,16 @@ export default function EditRoute() {
     if (skipSearch.current) { skipSearch.current = false; return; }
     if (!isNew || !suggestOpen || name.trim().length < 2) { setHits([]); return; }
     const ctrl = new AbortController();
-    const t = setTimeout(async () => { try { setHits((await searchFoodPlaces(name, ctrl.signal)).slice(0, 6)); } catch { /* 취소·오프라인 */ } }, 250);
+    const t = setTimeout(async () => { try { setHits(await searchFoodPlaces(name, ctrl.signal)); } catch { /* 취소·오프라인 */ } }, 250);
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [name, suggestOpen, isNew]);
 
+  const nameInput = useRef<TextInput>(null);
+  useBlurOnKeyboardHide(nameInput);
+
   function pickPlace(r: FoodPlace) {
     skipSearch.current = true;
+    nameInput.current?.blur();
     setName(r.name);
     setAddress(r.address);
     setPlaceUrl(r.place_url ?? null);
@@ -359,6 +364,7 @@ export default function EditRoute() {
             onChangeText={(t) => { setName(t); setPlaceUrl(null); setSuggestOpen(true); }}
             onFocus={() => setSuggestOpen(true)}
             onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+            ref={nameInput}
             placeholder="가게 이름" placeholderTextColor="#b3ada1" style={fieldStyle}
           />
           {suggestOpen && hits.length > 0 && (

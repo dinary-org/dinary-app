@@ -276,13 +276,14 @@ export default function Capture() {
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       if (needle.length < 2) return setApiHits([]);
-      searchFoodPlaces(needle, ctrl.signal).then(setApiHits).catch(() => {});
+      // 셔터 순간 위치가 있으면 그 자리에서 가까운 순으로.
+      searchFoodPlaces(needle, ctrl.signal, geo).then(setApiHits).catch(() => {});
     }, 250);
     return () => {
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [step, query]);
+  }, [step, query, geo]);
 
   // 인증 대상 위시가 100m 이내면 후보를 묻지 않고 그 가게로 정합니다.
   useEffect(() => {
@@ -562,6 +563,9 @@ export default function Capture() {
 
         <FlatList
           style={{ marginTop: 12 }}
+          // 가게를 한 번에 누르고(키보드 먼저 내리느라 두 번 누르지 않게), 목록을 밀면 키보드를 내립니다.
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           data={items as (Candidate & Partial<PickItem>)[]}
           keyExtractor={(c) => c.id}
           ItemSeparatorComponent={() => <View style={{ height: 9 }} />}

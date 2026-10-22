@@ -16,6 +16,7 @@ import { useWishes } from "@/data/queries";
 import { setState, useAppState } from "@/data/store";
 import { askWishPermissions } from "@/features/notify/geofence";
 import { forwardGeocode, searchFoodPlaces, type FoodPlace } from "@/lib/geocode";
+import { useBlurOnKeyboardHide } from "@/lib/keyboard";
 import { pickAlbumUris, removePhotoObjects, uploadAlbumPhoto } from "@/lib/photos";
 import { SignedImage } from "@/lib/signedPhoto";
 import { isAcceptedKind, isSourceKind, parseSourceLink, sourceStrip, type SourceKind } from "@/lib/sourceLink";
@@ -89,12 +90,16 @@ export default function WishForm() {
     if (skipSearch.current) { skipSearch.current = false; return; }
     if (!isNew || !suggestOpen || name.trim().length < 2) { setHits([]); return; }
     const ctrl = new AbortController();
-    const t = setTimeout(async () => { try { setHits((await searchFoodPlaces(name, ctrl.signal)).slice(0, 6)); } catch { /* 취소·오프라인 */ } }, 250);
+    const t = setTimeout(async () => { try { setHits(await searchFoodPlaces(name, ctrl.signal)); } catch { /* 취소·오프라인 */ } }, 250);
     return () => { clearTimeout(t); ctrl.abort(); };
   }, [name, suggestOpen, isNew]);
 
+  const nameInput = useRef<TextInput>(null);
+  useBlurOnKeyboardHide(nameInput);
+
   function pickPlace(r: FoodPlace) {
     skipSearch.current = true;
+    nameInput.current?.blur();
     setName(r.name);
     setWhereText(r.address);
     setSpot({ lat: r.lat, lng: r.lng });
@@ -311,7 +316,8 @@ export default function WishForm() {
               onChangeText={(t) => { setName(t); setSuggestOpen(true); }}
               onFocus={() => setSuggestOpen(true)}
               onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
-              placeholder="가게 이름" placeholderTextColor="#b3ada1" style={[fieldStyle, { borderRadius: 14, minHeight: 46 }]}
+              ref={nameInput}
+            placeholder="가게 이름" placeholderTextColor="#b3ada1" style={[fieldStyle, { borderRadius: 14, minHeight: 46 }]}
             />
             {suggestOpen && hits.length > 0 && (
               <SearchResults

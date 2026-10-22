@@ -1,37 +1,29 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-native";
 import { SearchIcon } from "@/components/icons";
 import { SearchResults } from "@/components/ui";
-import { forwardGeocode, type Place } from "@/lib/geocode";
+import type { Place } from "@/lib/geocode";
+import { useBlurOnKeyboardHide } from "@/lib/keyboard";
+import { usePlaceSearch } from "@/lib/usePlaceSearch";
 import { C, F, SHADOW } from "@/theme";
 
-/** 지도 위 메인 검색창 — 어디든 실시간으로 찾아 지도를 옮깁니다. */
+/** 지도 위 메인 검색창 — 어디든 실시간으로(가까운 곳부터) 찾아 지도를 옮깁니다. 키보드가 내려가면 목록도 닫힙니다. */
 export default function PlaceSearch({
   value, onChange, onChoose, hasPicked, onClearPicked, placeholder = "음식점이나 지역 찾기",
 }: {
   value: string; onChange: (v: string) => void; onChoose: (p: Place) => void; hasPicked: boolean; onClearPicked: () => void; placeholder?: string;
 }) {
-  const [results, setResults] = useState<Place[]>([]);
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const skip = useRef(false);
-
-  useEffect(() => {
-    if (skip.current) { skip.current = false; return; }
-    if (!open || value.trim().length < 2) { setResults([]); return; }
-    const ctrl = new AbortController();
-    const t = setTimeout(async () => {
-      setBusy(true);
-      try { setResults(await forwardGeocode(value, ctrl.signal)); } catch { /* 취소·오프라인 */ } finally { setBusy(false); }
-    }, 250);
-    return () => { clearTimeout(t); ctrl.abort(); };
-  }, [value, open]);
+  const { results, busy, loadMore, clear } = usePlaceSearch(value, open);
+  const input = useRef<TextInput>(null);
+  useBlurOnKeyboardHide(input);
 
   return (
     <View style={{ flex: 1 }}>
       <View style={[{ height: 46, borderRadius: 23, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 15, flexDirection: "row", alignItems: "center", gap: 9 }, SHADOW.card]}>
         <SearchIcon />
         <TextInput
+          ref={input}
           value={value}
           onChangeText={(t) => { onChange(t); setOpen(true); }}
           onFocus={() => setOpen(true)}
@@ -43,7 +35,7 @@ export default function PlaceSearch({
         />
         {busy && <ActivityIndicator size="small" color={C.faint} />}
         {(!!value || hasPicked) && !busy && (
-          <Pressable onPress={() => { onChange(""); setResults([]); onClearPicked(); }} hitSlop={8}>
+          <Pressable onPress={() => { onChange(""); clear(); onClearPicked(); }} hitSlop={8}>
             <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint }}>지우기</Text>
           </Pressable>
         )}
@@ -57,7 +49,8 @@ export default function PlaceSearch({
           keyOf={(p, i) => `${p.lat}-${p.lng}-${i}`}
           title={(p) => p.name || p.address}
           sub={(p) => p.address}
-          onPick={(p) => { skip.current = true; onChange(p.name || p.address); setOpen(false); setResults([]); onChoose(p); }}
+          onPick={(p) => { input.current?.blur(); onChange(p.name || p.address); setOpen(false); clear(); onChoose(p); }}
+          onEndReached={loadMore}
           style={{ borderRadius: 16 }}
         />
       )}

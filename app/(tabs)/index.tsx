@@ -5,7 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from "react-native";
+import { Keyboard, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from "react-native";
 import Animated, { useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue } from "react-native-reanimated";
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
@@ -573,9 +573,12 @@ export default function MapTab() {
         onCameraChanged={foundHit?.fromPin ? (e) => { if (e.reason === "Gesture") setFoundHit(null); } : undefined}
         onTapMap={() => {
           // 짧은 탭은 핀 요약 카드를 닫기만 합니다. 그 자리 가게 목록은 길게 눌러서 엽니다.
+          // 네이티브 지도 탭은 RN 이 키보드를 내리지 않으므로 직접 — 검색 목록도 함께 닫힙니다.
+          Keyboard.dismiss();
           if (foundHit?.fromPin) setFoundHit(null);
         }}
         onLongTapMap={(e) => {
+          Keyboard.dismiss();
           if (foundHit?.fromPin) setFoundHit(null);
           onMapLongPress(e.latitude, e.longitude);
         }}

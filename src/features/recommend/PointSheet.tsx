@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { LocateIcon, SearchIcon } from "@/components/icons";
 import { BottomSheetModal, SearchResults } from "@/components/ui";
 import { Wheel, WheelRow } from "@/components/Wheel";
 import type { RecHere } from "@/data/store";
-import { forwardGeocode, type Place } from "@/lib/geocode";
+import type { Place } from "@/lib/geocode";
+import { useBlurOnKeyboardHide } from "@/lib/keyboard";
 import { areaOf } from "@/lib/recommend";
+import { usePlaceSearch } from "@/lib/usePlaceSearch";
 import { C, F } from "@/theme";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -35,26 +37,16 @@ export function PointSheet({
   const [draftPlace, setDraftPlace] = useState<RecHere | null>(place);
   const [draftAt, setDraftAt] = useState<number | null>(at);
   const [q, setQ] = useState("");
-  const [hits, setHits] = useState<Place[]>([]);
-  const [searching, setSearching] = useState(false);
+  // 동네 · 역 이름 검색 — 250ms 쉬면 가까운 곳부터 찾고, 끝까지 내리면 더. 키보드가 내려가면 목록도 닫습니다.
+  const [focused, setFocused] = useState(false);
+  const { results: hits, busy: searching, loadMore, clear } = usePlaceSearch(q);
+  const input = useRef<TextInput>(null);
+  useBlurOnKeyboardHide(input);
 
   useEffect(() => {
     if (!visible) return;
-    setDraftPlace(place); setDraftAt(at); setQ(""); setHits([]);
-  }, [visible, place, at]);
-
-  // 동네 · 역 이름 검색 — 250ms 쉬면 찾습니다.
-  useEffect(() => {
-    const needle = q.trim();
-    if (needle.length < 2) { setHits([]); return; }
-    const ctrl = new AbortController();
-    const t = setTimeout(async () => {
-      setSearching(true);
-      const found = await forwardGeocode(needle, ctrl.signal).catch(() => []);
-      if (!ctrl.signal.aborted) { setHits(found.slice(0, 5)); setSearching(false); }
-    }, 250);
-    return () => { clearTimeout(t); ctrl.abort(); };
-  }, [q]);
+    setDraftPlace(place); setDraftAt(at); setQ(""); clear();
+  }, [visible, place, at, clear]);
 
   const now = new Date();
   const when = draftAt ? new Date(draftAt) : now;
@@ -102,8 +94,11 @@ export function PointSheet({
       <View style={{ marginTop: 8, minHeight: 44, borderRadius: 22, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8 }}>
         <SearchIcon />
         <TextInput
+          ref={input}
           value={q}
           onChangeText={setQ}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
           returnKeyType="search"
           placeholder="동네 · 역 이름으로 다른 곳 찾기"
           placeholderTextColor={C.faint}
@@ -111,13 +106,14 @@ export function PointSheet({
         />
         {searching && <ActivityIndicator size="small" color={C.faint} />}
       </View>
-      {hits.length > 0 && (
+      {focused && hits.length > 0 && (
         <SearchResults
           items={hits}
           keyOf={(p, i) => `${p.lat},${p.lng},${i}`}
           title={nameOf}
           sub={(p) => (p.address && p.address !== nameOf(p) ? p.address : null)}
-          onPick={(p) => { setDraftPlace({ lat: p.lat, lng: p.lng, name: nameOf(p), fallback: false }); setQ(""); setHits([]); }}
+          onPick={(p) => { input.current?.blur(); setDraftPlace({ lat: p.lat, lng: p.lng, name: nameOf(p), fallback: false }); setQ(""); clear(); }}
+          onEndReached={loadMore}
           maxHeight={220}
         />
       )}

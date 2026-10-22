@@ -35,7 +35,7 @@ import { visitAttribution } from "@/features/recommend/log";
 import { MAX_PHOTOS, pickAlbumUris } from "@/lib/photos";
 import { supabase } from "@/lib/supabase";
 import {
-  findMatchingWish, wishKind, wishMetInfo, WISH_AUTO_M, type Kind, type Restaurant, type Wish,
+  findMatchingWish, wishCopies, wishKind, wishMetInfo, WISH_AUTO_M, type Kind, type Restaurant, type Wish,
 } from "@/lib/types";
 import { C, F, SHADOW } from "@/theme";
 
@@ -354,7 +354,7 @@ export default function Capture() {
       };
 
       const hint = await visitAttribution({ name: picked.name, lat: payload.lat ?? null, lng: payload.lng ?? null }, at.getTime());
-      const queueId = await enqueue(payload, persistPhoto(shot.uri), matchedWish?.id ?? null, hint ? JSON.stringify(hint) : null);
+      const queueId = await enqueue(payload, persistPhoto(shot.uri), matchedWish ? wishCopies(wishes, matchedWish).map((w) => w.id).join(",") : null, hint ? JSON.stringify(hint) : null);
       const newId = await drainQueue(qc, queueId);
 
       if (newId != null) {

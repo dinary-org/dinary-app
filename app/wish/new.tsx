@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { logRec } from "@/features/recommend/log";
 import { useEffect, useRef, useState } from "react";
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinkIcon, PhotoIcon } from "@/components/icons";
 import { SourceIcon } from "@/components/SourceIcon";
@@ -169,24 +169,33 @@ export default function WishForm() {
 
   const missing = !name.trim() ? "가게 이름을 적어주세요" : "";
 
-  async function save() {
+  async function save(again = false) {
     if (missing || saving) return;
     setSaving(true);
     setError("");
     const cleanName = name.trim();
 
-    // 같은 이름의 위시가 이미 있으면 중복으로 만들지 않고 그 위시로 돌려보냅니다.
-    if (isNew) {
-      const dup = matchWish(wishes, cleanName);
-      if (dup) {
+    // 같은 이름의 위시가 이미 있으면 알려만 줍니다 — 다른 게시물에서 또 봤을 수 있으니 「그래도 담기」로 한 번 더 담을 수 있습니다.
+    const dup = isNew && !again ? matchWish(wishes, cleanName) : null;
+    if (dup) {
+      setSaving(false);
+      const openDup = async () => {
         // 그 위시에 출처가 비어 있으면 이번 링크로 채웁니다.
         if (source && !dup.source_url) {
           await supabase.from("wishes").update({ source_url: source.url, source_kind: source.kind, source_title: source.title ?? null, source_author: source.author ?? null }).eq("id", dup.id);
           await refreshAll(qc);
         }
-        setSaving(false);
-        return router.replace({ pathname: "/wish/[id]", params: { id: dup.id } });
-      }
+        router.replace({ pathname: "/wish/[id]", params: { id: dup.id } });
+      };
+      return Alert.alert(
+        "이미 담은 가게예요",
+        `「${dup.name}」${dup.group?.name ? `은(는) 「${dup.group.name}」에` : "은(는) 위시에"} 담겨 있어요. 다른 곳에서 또 봤다면 한 번 더 담을 수 있어요.`,
+        [
+          { text: "담아둔 곳 보기", onPress: () => void openDup() },
+          { text: "그래도 담기", onPress: () => void save(true) },
+          { text: "취소", style: "cancel" },
+        ],
+      );
     }
 
     // 가게 검색으로 고르지 않고 위치를 손으로 적었으면 그 주소(없으면 가게 이름)로 자리를 찾아 둡니다 — 기록 쓰기와 같음.
@@ -388,7 +397,7 @@ export default function WishForm() {
             <Text style={{ fontFamily: F.sans, fontSize: 14.5, color: C.faint }}>{missing}</Text>
           </View>
         ) : (
-          <Button label={saving ? "담는 중…" : isNew ? "담기" : "고치기"} onPress={save} disabled={saving} style={{ marginTop: 18, minHeight: 54, borderRadius: 20 }} />
+          <Button label={saving ? "담는 중…" : isNew ? "담기" : "고치기"} onPress={() => void save()} disabled={saving} style={{ marginTop: 18, minHeight: 54, borderRadius: 20 }} />
         )}
 
         {!isNew && (confirmingDelete ? (

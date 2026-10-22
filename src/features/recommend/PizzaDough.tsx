@@ -266,9 +266,9 @@ export function PizzaDough({ names, setNames, onTouch }: {
   const guide = shown && last.mean > 0
     ? pathOf(T.pts.filter((_, i) => i % 4 === 0).map((p): Pt => [last.c[0] + (p[0] - T.c[0]) * (last.mean / T.mean), last.c[1] + (p[1] - T.c[1]) * (last.mean / T.mean)]), true)
     : "";
-  // 그리기 전 · 그리는 동안 — 이번 모양을 판 가운데에 연한 점선으로 깔아 둡니다(가장 먼 끝이 가운데에서 100).
+  // 그리기 전에만(손을 대면 사라짐) — 이번 모양을 판 가운데에 연한 점선으로 깔아 둡니다(가장 먼 끝이 가운데에서 100).
   const reach = Math.max(...T.pts.map((p) => Math.max(Math.abs(p[0] - T.c[0]), Math.abs(p[1] - T.c[1]))));
-  const preview = shown ? "" : pathOf(T.pts.filter((_, i) => i % 4 === 0).map((p): Pt => [BOARD / 2 + (p[0] - T.c[0]) * (100 / reach), BOARD / 2 + (p[1] - T.c[1]) * (100 / reach)]), true);
+  const preview = draw !== "ready" ? "" : pathOf(T.pts.filter((_, i) => i % 4 === 0).map((p): Pt => [BOARD / 2 + (p[0] - T.c[0]) * (100 / reach), BOARD / 2 + (p[1] - T.c[1]) * (100 / reach)]), true);
   const hint = finished ? "곧 결과가 나와요" : recs.length ? "판을 누르면 다음 사람이 시작해요" : "판을 누르고 한 붓에 그리세요";
 
   return (

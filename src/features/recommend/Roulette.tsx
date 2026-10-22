@@ -7,6 +7,8 @@ import type { Scored } from "@/lib/rec/score";
 import { C, F } from "@/theme";
 import { FrenchFries } from "./FrenchFries";
 import { MarbleRace } from "./MarbleRace";
+import { PLAYERS0 } from "./party";
+import { PizzaDough } from "./PizzaDough";
 import { TugOfWar } from "./TugOfWar";
 import { REC, SectionHead } from "./ui";
 import { WinPopup } from "./WinPopup";
@@ -19,9 +21,10 @@ const CUSTOM_KEY = "rec.roulette.custom";
 type Tab = "place" | "category" | "custom";
 type Option = { key: string; label: string };
 
-type Mode = "fries" | "marble" | "tug";
+type Mode = "fries" | "pizza" | "marble" | "tug";
 const MODES: { id: Mode; label: string }[] = [
   { id: "fries", label: "감자튀김" },
+  { id: "pizza", label: "피자" },
   { id: "marble", label: "구슬 경주" },
   { id: "tug", label: "줄다리기" },
 ];
@@ -41,14 +44,17 @@ const euro = (w: string) => {
 };
 
 /**
- * 「랜덤 게임」 모드 — 목표 시간에 가장 가깝게 건지는 감자튀김(FrenchFries.tsx — 칸 없이 사람끼리 겨룹니다), 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx), 둘이 겨루는 줄다리기(TugOfWar.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
+ * 「랜덤 게임」 모드 — 목표 시간에 가장 가깝게 건지는 감자튀김(FrenchFries.tsx) · 모양대로 도우를 펴는 피자(PizzaDough.tsx) — 둘은 칸 없이 사람끼리 겨루고 참가자 목록을 같이 씁니다, 먼저 들어오면 이기는 구슬 경주(MarbleRace.tsx), 둘이 겨루는 줄다리기(TugOfWar.tsx). 추천된 가게 · 카테고리 · 직접 선택 셋 중에서 고르고,
  * 칸 옆 − 로 빼고, + 로 원하는 가게 · 카테고리 · 메뉴를 적어 넣습니다. 카테고리가 나오면 그 종류로 다시 추천받을 수 있습니다. 직접 입력한 것은 기기에 남깁니다.
  */
-export function Roulette({ picks, exclude, onPlace, onCategory }: {
+export function Roulette({ picks, exclude, onPlace, onCategory, onDrawTouch }: {
   picks: Scored[]; exclude: readonly string[];
   onPlace: (i: number) => void; onCategory: (cat: RecCategory) => void;
+  /** 피자 판을 만지는 동안 true — 화면 스크롤을 멈춥니다. */
+  onDrawTouch?: (touching: boolean) => void;
 }) {
   const [mode, setMode] = useState<Mode>("fries");
+  const [names, setNames] = useState(PLAYERS0);
   const [tab, setTab] = useState<Tab>(picks.length >= 2 ? "place" : "category");
   // 추천이 늦게 들어오면(이 화면을 먼저 연 경우) 손대기 전까지는 추천된 가게로 옮깁니다.
   const tabTouched = useRef(false);
@@ -138,7 +144,7 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
     <View>
       <View>
         <SectionHead title="결정을 하지 못하시겠다면?" />
-        {/* 감자튀김 · 구슬 경주 · 줄다리기 */}
+        {/* 감자튀김 · 피자 · 구슬 경주 · 줄다리기 */}
         <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {MODES.map((m) => {
             const on = mode === m.id;
@@ -159,7 +165,8 @@ export function Roulette({ picks, exclude, onPlace, onCategory }: {
       </View>
 
       <View style={{ marginTop: 12, borderRadius: 24, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: REC.paper, padding: 16 }}>
-        {mode === "fries" ? <FrenchFries /> : (
+        {mode === "fries" ? <FrenchFries names={names} setNames={setNames} />
+        : mode === "pizza" ? <PizzaDough names={names} setNames={setNames} onTouch={onDrawTouch} /> : (
         <>
         {/* 고를 거리 — 세 칸 전환 */}
         <View style={{ height: 38, borderRadius: 19, backgroundColor: "#efebe2", padding: 3, flexDirection: "row", gap: 3 }}>

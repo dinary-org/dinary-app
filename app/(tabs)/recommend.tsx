@@ -222,7 +222,7 @@ export default function RecommendTab() {
             onRetry={() => { void nowQ.refetch(); void kakaoNear.refetch(); }}
           />
         ) : mode === "games" ? (
-          <Roulette picks={result?.picks ?? []} exclude={filter.exc} onPlace={playPlace} onCategory={playCategory} />
+          <Roulette picks={result?.picks ?? []} exclude={filter.exc} onPlace={playPlace} onCategory={playCategory} onDrawTouch={setMapTouch} />
         ) : (
           <BrowseMode courses={courses} tours={tours} revisits={revisits} />
         )}

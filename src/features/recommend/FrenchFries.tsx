@@ -1,8 +1,9 @@
 import * as Haptics from "expo-haptics";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import { Animated, Easing, Pressable, Text, View } from "react-native";
 import Svg, { Defs, G, Line, LinearGradient, Rect, Stop } from "react-native-svg";
 import { C, F } from "@/theme";
+import { HI, pad2, pickFresh, playerNames, Players } from "./party";
 
 /**
  * 설정으로 뺀 값 — 타이머 표시(1초 뒤 숨김 · 처음부터 숨김 · 끝까지 보임) · 퍼펙트 범위(ms) · 목표 시간 최소 · 최대(초).
@@ -16,11 +17,7 @@ export const FRIES = {
 /** 목표보다 이만큼 지나면 저절로 건집니다 · 마지막 사람이 건지고 결과로 넘어가기까지. */
 const AUTO_LIFT_S = 4.5;
 const RESULT_DELAY_MS = 2200;
-const MIN_PLAYERS = 2;
-const MAX_PLAYERS = 8;
-const NAME_LEN = 8;
 
-const HI = "#f2ddcf";
 const LED = "#ffb04a";
 const VERDICT = {
   perfect: { label: "퍼펙트", ink: C.brick },
@@ -60,7 +57,6 @@ export function fryColor(d: number) {
 
 const verdictOf = (d: number): Verdict => (Math.abs(d) <= FRIES.perfectMs / 1000 ? "perfect" : d < 0 ? "under" : "over");
 const signed = (d: number) => `${d < 0 ? "−" : "+"}${Math.abs(d).toFixed(2)}`;
-const pad2 = (n: number) => String(n).padStart(2, "0");
 const drawTarget = () => {
   const lo = Math.round(FRIES.targetMin * 10), hi = Math.round(FRIES.targetMax * 10);
   return (lo + Math.floor(Math.random() * (hi - lo + 1))) / 10;
@@ -74,9 +70,8 @@ type Fry = "ready" | "frying" | "lifted";
  * 감자튀김 — 목표 시간(3.0~8.0초)을 뽑고, 휴대폰 한 대를 돌려 가며 한 명씩 「넣기」 → 목표다 싶을 때 「건지기」. 목표와 가장 가까운 사람이 이깁니다.
  * 타이머는 처음 1초만 보이고 「?.??」로 가립니다. 업소용 튀김기를 위에서 내려다본 모양 — 위 스테인리스 판(숫자판) · 기름통(바구니 + 감자 13개) · 아래 판(누르는 단추).
  */
-export function FrenchFries() {
+export function FrenchFries({ names, setNames }: { names: string[]; setNames: Dispatch<SetStateAction<string[]>> }) {
   const [phase, setPhase] = useState<Phase>("setup");
-  const [names, setNames] = useState(["태현", "예준"]);
   const [target, setTarget] = useState(drawTarget);
   const [turn, setTurn] = useState(0);
   const [fry, setFry] = useState<Fry>("ready");
@@ -87,7 +82,7 @@ export function FrenchFries() {
   const clear = () => { timers.current.forEach(clearTimeout); timers.current = []; };
   useEffect(() => clear, []);
 
-  const players = names.map((n, i) => n.trim() || `참가자 ${i + 1}`);
+  const players = playerNames(names);
   const last = recs[recs.length - 1];
 
   function begin(newTarget: boolean) {
@@ -106,11 +101,7 @@ export function FrenchFries() {
     const v = verdictOf(d);
     const near = Math.abs(d) <= 0.3;
     const group = MENTS[v === "perfect" ? "perfect" : v === "under" ? (near ? "underNear" : "underFar") : near ? "overNear" : "overFar"];
-    const fresh = group.filter((m) => !used.current.has(m));
-    const pool = fresh.length ? fresh : group;
-    const m = pool[Math.floor(Math.random() * pool.length)];
-    used.current.add(m);
-    return m;
+    return pickFresh(group, used.current);
   }
 
   // 같은 판 안에서 넣기 · 건지기가 겹치지 않게 지금 값을 잡아 둡니다.
@@ -163,42 +154,7 @@ export function FrenchFries() {
           </Pressable>
         </View>
 
-        {/* 참가자 — 이름은 바로 고치고, − 로 빼고(2명까지), + 로 더합니다(8명까지). */}
-        <Text style={{ marginTop: 22, fontFamily: F.mono, fontSize: 10, letterSpacing: 1.5, color: C.faint }}>참가자 {names.length}</Text>
-        <View style={{ marginTop: 8, gap: 6 }}>
-          {names.map((n, i) => (
-            <View key={i} style={{ height: 42, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingLeft: 12, paddingRight: 6, flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint }}>{pad2(i + 1)}</Text>
-              <TextInput
-                value={n}
-                onChangeText={(t) => setNames((cur) => cur.map((x, k) => (k === i ? t.slice(0, NAME_LEN) : x)))}
-                maxLength={NAME_LEN}
-                placeholder={`참가자 ${i + 1}`}
-                placeholderTextColor="#b3ada1"
-                returnKeyType="done"
-                style={{ flex: 1, height: "100%", fontFamily: F.serif, fontSize: 15, color: C.ink }}
-              />
-              <Pressable
-                onPress={() => { Haptics.selectionAsync(); setNames((cur) => cur.filter((_, k) => k !== i)); }}
-                disabled={names.length <= MIN_PLAYERS}
-                hitSlop={6}
-                accessibilityLabel={`${players[i]} 빼기`}
-                style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#efebe2", alignItems: "center", justifyContent: "center", opacity: names.length <= MIN_PLAYERS ? 0.4 : 1 }}
-              >
-                <Text style={{ fontFamily: F.sansMd, fontSize: 14, lineHeight: 16, color: C.muted }}>−</Text>
-              </Pressable>
-            </View>
-          ))}
-          {names.length < MAX_PLAYERS && (
-            <Pressable
-              onPress={() => { Haptics.selectionAsync(); setNames((cur) => [...cur, ""]); }}
-              accessibilityRole="button"
-              style={{ height: 40, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: C.brick, alignItems: "center", justifyContent: "center" }}
-            >
-              <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.brick }}>+ 한 명 더</Text>
-            </Pressable>
-          )}
-        </View>
+        <Players names={names} setNames={setNames} />
 
         {/* 판정 안내 — 칸마다 그 상태의 감자 색 막대. */}
         <View style={{ marginTop: 18, flexDirection: "row", gap: 6 }}>

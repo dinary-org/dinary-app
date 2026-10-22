@@ -29,14 +29,14 @@ import { recordsAt, usePlacesAt, type PlaceAt } from "@/features/map/usePlacesAt
 import PlaceSearch from "@/features/map/PlaceSearch";
 import { SegmentSwitch, useWishItems, WishRow, type WishItem } from "@/features/map/WishSegment";
 import RecapInvite from "@/features/recap/RecapInvite";
-import { FilterSheet as FilterSheetImpl, FoundSheet, SearchMissSheet } from "@/features/map/Sheets";
+import { FilterSheet as FilterSheetImpl, FoundSheet, SearchMissSheet, WishPinCard } from "@/features/map/Sheets";
 import { mealLabels } from "@/lib/anniversary";
 import type { Place as GeocodePlace } from "@/lib/geocode";
 import { findRecord, findWish, norm } from "@/lib/geo";
 import { groupPlaces, type Place } from "@/lib/places";
 import { feltLevel } from "@/lib/price";
 import { inRegion, inSearchedRegion, matchRegionName, regionFromSearch, regionNamesFrom } from "@/lib/regions";
-import { matchWish, type Kind, type Restaurant, type Sort } from "@/lib/types";
+import { matchWish, wishCopies, type Kind, type Restaurant, type Sort, type Wish } from "@/lib/types";
 import { C, F, SHADOW } from "@/theme";
 
 const KINDS: { value: Kind; label: string }[] = [
@@ -171,6 +171,8 @@ export default function MapTab() {
   const [labelOn, setLabelOn] = useState<ReadonlySet<string>>(() => new Set());
   const [regionView, setRegionView] = useState<{ name: string; count: number } | null>(null);
   const [foundHit, setFoundHit] = useState<{ restaurant: Restaurant; place: Place; fromPin?: boolean } | null>(null);
+  /** 같은 가게를 여러 번 담은 위시 핀을 눌렀을 때 — 그 위시들(WishPinCard). */
+  const [wishPin, setWishPin] = useState<Wish[] | null>(null);
   const [plusOpen, setPlusOpen] = useState(false);
   const { data: isAdmin } = useIsAdmin();
   const [adminOpen, setAdminOpen] = useState(false);
@@ -239,7 +241,7 @@ export default function MapTab() {
     return { me: meMember, partner, meWrote: wrote(meMember), partnerWrote: wrote(partner), tag: placeTag(p) };
   }, [isCouple, notes, meMember, partner, placeTag]);
   const activeFilters = categories.length + keywords.length + (revisitOnly ? 1 : 0) + (verifiedOnly ? 1 : 0) + (viewBounds ? 1 : 0);
-  const overlayOpen = filtersOpen || foundHit !== null || ghost !== null || regionView !== null || placesAt.state.status !== "idle";
+  const overlayOpen = filtersOpen || foundHit !== null || wishPin !== null || ghost !== null || regionView !== null || placesAt.state.status !== "idle";
 
   /* ── 지도 이동 ──────────────────────────────── */
 
@@ -427,9 +429,18 @@ export default function MapTab() {
 
   // 지도에는 탭(맛집 기록 · 위시리스트)과 상관없이 기록과 위시를 늘 함께 보여 줍니다 — 탭은 아래 목록만 바꿉니다.
   const recordMarkers = useMemo(() => filtered.filter((p) => p.lat != null && p.lng != null), [filtered]);
+  // 같은 가게를 여러 그룹에 담았으면 핀은 하나 — 먼저 나온 위시가 대표, copies 에 같은 가게 위시가 다 들어 있습니다.
   const wishMarkers = useMemo(() => {
     const names = new Set(filtered.map((p) => norm(p.name)));
-    return wishes.filter((w) => w.lat != null && w.lng != null && inBounds(viewBounds, w.lat, w.lng) && !names.has(norm(w.name)));
+    const taken = new Set<string>();
+    const out: (Wish & { copies: Wish[] })[] = [];
+    for (const w of wishes) {
+      if (taken.has(w.id) || w.lat == null || w.lng == null || !inBounds(viewBounds, w.lat, w.lng) || names.has(norm(w.name))) continue;
+      const copies = wishCopies(wishes, w).filter((c) => !taken.has(c.id));
+      copies.forEach((c) => taken.add(c.id));
+      out.push({ ...w, copies });
+    }
+    return out;
   }, [wishes, filtered, viewBounds]);
   /** 마커마다 이름표가 나타나는 줌 — 이웃 이름표·핀과 안 겹치는 줌부터(labelZoom). */
   const labelItems = useMemo(() => [
@@ -466,10 +477,13 @@ export default function MapTab() {
   const recordTaps = useMemo(() => new Map(recordMarkers.map((p) => [p.key, () => {
     Haptics.selectionAsync();
     // 이름표가 보이든 안 보이든 요약 카드(이름 · 별점)부터 — 「기록 보기」로 기록 화면에 들어갑니다.
+    setWishPin(null);
     setFoundHit({ restaurant: p.latest, place: p, fromPin: true });
   }])), [recordMarkers]);
+  // 한 번 담은 곳은 바로 그 위시로, 여러 번 담은 곳은 「N군데에서 담았어요」 카드부터.
   const wishTaps = useMemo(() => new Map(wishMarkers.map((w) => [w.id, () => {
     Haptics.selectionAsync();
+    if (w.copies.length > 1) { setFoundHit(null); return setWishPin(w.copies); }
     router.push({ pathname: "/wish/[id]", params: { id: w.id } });
   }])), [wishMarkers, router]);
 
@@ -570,13 +584,15 @@ export default function MapTab() {
         logoAlign="TopLeft"
         logoMargin={{ top: 20, left: 6, right: 0, bottom: 0 }}
         // 핀 요약 카드는 지도를 밀자마자 내립니다. 카드가 없을 땐 넘기지 않아 움직이는 동안 매 프레임 JS 로 오는 이벤트가 없습니다.
-        onCameraChanged={foundHit?.fromPin ? (e) => { if (e.reason === "Gesture") setFoundHit(null); } : undefined}
+        onCameraChanged={foundHit?.fromPin || wishPin ? (e) => { if (e.reason === "Gesture") { setFoundHit(null); setWishPin(null); } } : undefined}
         onTapMap={() => {
           // 짧은 탭은 핀 요약 카드를 닫기만 합니다. 그 자리 가게 목록은 길게 눌러서 엽니다.
           if (foundHit?.fromPin) setFoundHit(null);
+          setWishPin(null);
         }}
         onLongTapMap={(e) => {
           if (foundHit?.fromPin) setFoundHit(null);
+          setWishPin(null);
           onMapLongPress(e.latitude, e.longitude);
         }}
         onCameraIdle={(e) => {
@@ -779,6 +795,8 @@ export default function MapTab() {
         onWish={() => { const r = foundHit!.restaurant; setFoundHit(null); openWishPlan({ name: r.name, where_text: r.address ?? r.region ?? undefined, category: r.category ?? undefined, lat: r.lat ?? undefined, lng: r.lng ?? undefined }); }}
         onOpen={() => { const h = foundHit!; setFoundHit(null); openPlace(h.place); }}
       />
+
+      <WishPinCard key={wishPin?.[0]?.id ?? "none"} wishes={wishPin} onOpen={(id) => { setWishPin(null); openWish(id); }} />
 
       <PlacesAtSheet
         state={placesAt.state}

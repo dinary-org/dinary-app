@@ -202,7 +202,7 @@ export function FrenchFries({ names, setNames }: { names: string[]; setNames: Di
             <Text style={{ fontFamily: F.serif, fontSize: 14, color: C.card }}>한 판 더</Text>
           </Pressable>
           <Pressable onPress={() => { Haptics.selectionAsync(); setPhase("setup"); }} accessibilityRole="button" style={{ flex: 1, height: 46, borderRadius: 23, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontFamily: F.serif, fontSize: 14, color: C.ink }}>참가자 바꾸기</Text>
+            <Text style={{ fontFamily: F.serif, fontSize: 14, color: C.ink }}>설정 바꾸기</Text>
           </Pressable>
         </View>
       </View>

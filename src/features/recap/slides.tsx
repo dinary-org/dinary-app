@@ -581,14 +581,14 @@ export function Next({ data, season, L }: SlideProps) {
 /* 1n · 공유 카드 — 바깥 단추는 재생기가 그립니다(캡처 대상은 카드만). */
 export type ShareTheme = { name: string; bg: string; ink: string; sub: string; line: string };
 
-/** 공유 카드 바탕색 네 가지 — 0번은 그 분기의 계절색입니다. */
+/** 공유 카드 바탕색 네 가지 — 종이(흰색, 처음 뜨는 색) · 먹색 · 그 분기의 계절색 · 쪽빛 순서. */
 export function shareThemes(season: Season): ShareTheme[] {
   const light = "rgba(251,250,246,.35)";
   return [
-    { name: "계절색", bg: season.accent, ink: CARD, sub: "#f2e0d5", line: light },
-    { name: "먹색", bg: INK, ink: CARD, sub: "#cdc6b8", line: light },
-    { name: "쪽빛", bg: "#4f6b7a", ink: CARD, sub: "#e6ebec", line: light },
     { name: "종이", bg: PAPER, ink: INK, sub: "#6b665e", line: "rgba(28,26,23,.2)" },
+    { name: "먹색", bg: INK, ink: CARD, sub: "#cdc6b8", line: light },
+    { name: "계절색", bg: season.accent, ink: CARD, sub: "#f2e0d5", line: light },
+    { name: "쪽빛", bg: "#4f6b7a", ink: CARD, sub: "#e6ebec", line: light },
   ];
 }
 

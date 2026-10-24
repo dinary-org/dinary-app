@@ -37,7 +37,7 @@ import { groupPlaces, type Place } from "@/lib/places";
 import { feltLevel } from "@/lib/price";
 import { inRegion, inSearchedRegion, matchRegionName, regionFromSearch, regionNamesFrom } from "@/lib/regions";
 import { matchWish, wishCopies, type Kind, type Restaurant, type Sort, type Wish } from "@/lib/types";
-import { C, F, SHADOW } from "@/theme";
+import { C, F, FAINT_BOLD, SHADOW } from "@/theme";
 
 const KINDS: { value: Kind; label: string }[] = [
   { value: "restaurant", label: "맛집" },
@@ -541,7 +541,7 @@ export default function MapTab() {
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 14 }}>
             {KINDS.map((o) => (
               <Pressable key={o.value} onPress={() => changeKind(o.value)} hitSlop={{ top: 10, bottom: 10, left: 7, right: 7 }} accessibilityRole="button" accessibilityState={{ selected: kind === o.value }}>
-                <Text numberOfLines={1} style={[s.h, { color: kind === o.value ? C.ink : "#c4bdb0" }]}>{o.label}</Text>
+                <Text numberOfLines={1} style={[s.h, FAINT_BOLD, { color: kind === o.value ? C.ink : "#c4bdb0", textShadowColor: kind === o.value ? C.ink : "#c4bdb0" }]}>{o.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -558,7 +558,7 @@ export default function MapTab() {
       )}
 
       <View style={s.countRow}>
-        <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>{`${filtered.length}곳 · 기록 ${visitCount}`}</Text>
+        <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>{`${filtered.length}곳 기록 ${visitCount}`}</Text>
         <Pressable onPress={() => setSortOpen(true)} accessibilityLabel={`정렬: ${sortLabel}`} hitSlop={{ top: 12, bottom: 12, left: 8 }} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
           <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.ink }}>{sortLabel}</Text>
           <ChevronDownIcon />

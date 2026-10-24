@@ -51,7 +51,7 @@ export type WishItem =
   | { t: "group"; key: string; group: WishGroup; wishes: Wish[]; all: Wish[]; date: string | null }
   | { t: "empty"; key: string };
 
-/** 예정 · N / 언젠가 · N 두 묶음으로 펼친 목록. 불러온 뒤 한 번, 지난 예정은 조용히 「언젠가」로 되돌립니다. */
+/** 예정 N / 언젠가 N 두 묶음으로 펼친 목록. 불러온 뒤 한 번, 지난 예정은 조용히 「언젠가」로 되돌립니다. */
 /** shown — 목록에 보일 위시(「이 지도 범위」로 좁힌 것). 지난 예정 정리는 늘 전체(wishes)로 합니다. */
 export function useWishItems(wishes: Wish[], shown: Wish[] = wishes) {
   const qc = useQueryClient();
@@ -87,11 +87,11 @@ export function useWishItems(wishes: Wish[], shown: Wish[] = wishes) {
     const sum = (es: Entry[]) => es.reduce((n, e) => n + e.count, 0);
     const items: WishItem[] = [];
     if (dated.length) {
-      items.push({ t: "head", key: "h-dated", title: `예정 · ${sum(dated)}`, first: true });
+      items.push({ t: "head", key: "h-dated", title: `예정 ${sum(dated)}`, first: true });
       dated.forEach((e) => items.push(e.item));
     }
     if (someday.length) {
-      items.push({ t: "head", key: "h-someday", title: `언젠가 · ${sum(someday)}`, first: !dated.length });
+      items.push({ t: "head", key: "h-someday", title: `언젠가 ${sum(someday)}`, first: !dated.length });
       someday.forEach((e) => items.push(e.item));
     }
     if (!items.length) items.push({ t: "empty", key: "empty" });

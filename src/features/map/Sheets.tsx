@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Text, View } from "react-native";
-import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
+import { Modal, Text, View } from "react-native";
+import Animated, { FadeIn, SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { BookmarkIcon } from "@/components/icons";
 import { BottomSheetModal, Button, Chip, Eyebrow, PhotoBox, Toggle } from "@/components/ui";
 import { sourceShort } from "@/lib/sourceLink";
@@ -53,31 +53,37 @@ export function FilterSheet(p: {
   );
 }
 
-/** 「정렬」 시트 — 고른 것에 ✓, 누르면 바로 닫힙니다. */
-export function SortSheet<T extends string>(p: {
-  visible: boolean; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void; onClose: () => void;
+/** 정렬 고르기 — 시트 대신 「최근순 ▾」 바로 아래에 작은 상자로 펼칩니다. 바깥을 누르면 닫힙니다. */
+export function SortMenu<T extends string>(p: {
+  anchor: { right: number; top: number } | null; options: { value: T; label: string }[]; value: T; onChange: (v: T) => void; onClose: () => void;
 }) {
   return (
-    <BottomSheetModal visible={p.visible} onClose={p.onClose}>
-      <Text style={{ fontFamily: F.serif, fontSize: 18, color: C.ink }}>정렬</Text>
-      <View style={{ marginTop: 8 }}>
-        {p.options.map((o) => {
-          const on = o.value === p.value;
-          return (
-            <Pressable
-              key={o.value}
-              onPress={() => { p.onChange(o.value); p.onClose(); }}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-              style={{ minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#ece7dc" }}
-            >
-              <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 14, color: on ? C.ink : C.muted }}>{o.label}</Text>
-              {on && <Text style={{ fontFamily: F.sans, fontSize: 14, color: C.ink }}>✓</Text>}
-            </Pressable>
-          );
-        })}
-      </View>
-    </BottomSheetModal>
+    <Modal visible={!!p.anchor} transparent animationType="none" onRequestClose={p.onClose} statusBarTranslucent>
+      <Pressable onPress={p.onClose} style={{ flex: 1 }}>
+        {p.anchor && (
+          <Animated.View
+            entering={FadeIn.duration(120)}
+            style={[{ position: "absolute", right: p.anchor.right, top: p.anchor.top, minWidth: 128, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingVertical: 4 }, SHADOW.big]}
+          >
+            {p.options.map((o) => {
+              const on = o.value === p.value;
+              return (
+                <Pressable
+                  key={o.value}
+                  onPress={() => { p.onChange(o.value); p.onClose(); }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  style={({ pressed }) => ({ minHeight: 40, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, paddingHorizontal: 14, backgroundColor: pressed ? "#f3efe6" : "transparent" })}
+                >
+                  <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 13, color: on ? C.ink : C.muted }}>{o.label}</Text>
+                  <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink, opacity: on ? 1 : 0 }}>✓</Text>
+                </Pressable>
+              );
+            })}
+          </Animated.View>
+        )}
+      </Pressable>
+    </Modal>
   );
 }
 

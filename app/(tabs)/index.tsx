@@ -29,7 +29,7 @@ import { recordsAt, usePlacesAt, type PlaceAt } from "@/features/map/usePlacesAt
 import PlaceSearch from "@/features/map/PlaceSearch";
 import { SegmentSwitch, useWishItems, WishRow, type WishItem } from "@/features/map/WishSegment";
 import RecapInvite from "@/features/recap/RecapInvite";
-import { FilterSheet as FilterSheetImpl, FoundSheet, SearchMissSheet, SortSheet, WishPinCard } from "@/features/map/Sheets";
+import { FilterSheet as FilterSheetImpl, FoundSheet, SearchMissSheet, SortMenu, WishPinCard } from "@/features/map/Sheets";
 import { mealLabels } from "@/lib/anniversary";
 import type { Place as GeocodePlace } from "@/lib/geocode";
 import { findRecord, findWish, norm } from "@/lib/geo";
@@ -76,7 +76,7 @@ const uniq = (list: (string | null | undefined)[]) => [...new Set(list.filter((v
 /** 지도 탭 — 네이버 지도 + 기록 목록 시트. 웹 MobileShell 의 지도 화면 상태를 그대로 옮겼습니다. */
 export default function MapTab() {
   const insets = useSafeAreaInsets();
-  const { height: windowH } = useWindowDimensions();
+  const { width: winW, height: windowH } = useWindowDimensions();
   const router = useRouter();
   const { data: allRows = [] } = useRows();
   const { data: wishes = [] } = useWishes();
@@ -162,7 +162,9 @@ export default function MapTab() {
   const [revisitOnly, setRevisitOnly] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [sortOpen, setSortOpen] = useState(false);
+  // 정렬 상자는 「최근순 ▾」 바로 아래, 오른쪽 끝을 맞춰 펼칩니다 — 위치는 단추를 창 기준으로 재서.
+  const sortRef = useRef<View>(null);
+  const [sortAt, setSortAt] = useState<{ right: number; top: number } | null>(null);
   /** 머리의 돋보기를 누르면 맛집/카페 줄 자리에 「내 기록에서 찾기」 칸이 열립니다. */
   const [searchOpen, setSearchOpen] = useState(false);
   const [viewBounds, setViewBounds] = useState<Bounds | null>(null);
@@ -514,6 +516,13 @@ export default function MapTab() {
     />
   );
 
+  const filterBtn = (
+    <Pressable onPress={() => setFiltersOpen(true)} accessibilityLabel={activeFilters ? `필터 ${activeFilters}개 켜짐` : "필터"} hitSlop={2} style={s.iconBtn}>
+      <FilterLinesIcon stroke={C.ink} />
+      {activeFilters > 0 && <View style={s.filterDot} />}
+    </Pressable>
+  );
+
   const header = compact ? (
     <View style={s.compactRow}>
       <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.mono, fontSize: 11.5, color: C.faint }}>
@@ -534,6 +543,8 @@ export default function MapTab() {
           <Pressable onPress={() => { setQ(""); setSearchOpen(false); }} accessibilityLabel="찾기 닫기" style={s.iconBtn}>
             <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink }}>✕</Text>
           </Pressable>
+          {/* 찾는 중에도 필터는 그대로 — 찾기 칸 · 닫기 · 필터 순. */}
+          {filterBtn}
         </View>
       ) : (
         <View style={s.headRow}>
@@ -549,10 +560,7 @@ export default function MapTab() {
             <Pressable onPress={() => setSearchOpen(true)} accessibilityLabel="내 기록에서 찾기" hitSlop={2} style={s.iconBtn}>
               <SearchIcon size={16} stroke={C.ink} />
             </Pressable>
-            <Pressable onPress={() => setFiltersOpen(true)} accessibilityLabel={activeFilters ? `필터 ${activeFilters}개 켜짐` : "필터"} hitSlop={2} style={s.iconBtn}>
-              <FilterLinesIcon stroke={C.ink} />
-              {activeFilters > 0 && <View style={s.filterDot} />}
-            </Pressable>
+            {filterBtn}
           </View>
         </View>
       )}
@@ -562,7 +570,7 @@ export default function MapTab() {
           <Text numberOfLines={1} style={s.count}>{`${KINDS.find((o) => o.value === kind)?.label} ${filtered.length}곳`}</Text>
           <Text numberOfLines={1} style={s.count}>{`기록 ${visitCount}`}</Text>
         </View>
-        <Pressable onPress={() => setSortOpen(true)} accessibilityLabel={`정렬: ${sortLabel}`} hitSlop={{ top: 12, bottom: 12, left: 8 }} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+        <Pressable ref={sortRef} onPress={() => sortRef.current?.measureInWindow((x, y, w, h) => setSortAt({ right: winW - (x + w), top: y + h + 6 }))} accessibilityLabel={`정렬: ${sortLabel}`} hitSlop={{ top: 12, bottom: 12, left: 8 }} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
           <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.ink }}>{sortLabel}</Text>
           <ChevronDownIcon />
         </Pressable>
@@ -786,7 +794,7 @@ export default function MapTab() {
         onClose={() => setFiltersOpen(false)}
       />
 
-      <SortSheet visible={sortOpen} options={SORTS} value={sort} onChange={(v) => { Haptics.selectionAsync(); setSort(v); }} onClose={() => setSortOpen(false)} />
+      <SortMenu anchor={sortAt} options={SORTS} value={sort} onChange={(v) => { Haptics.selectionAsync(); setSort(v); }} onClose={() => setSortAt(null)} />
 
       <FoundSheet
         hit={foundHit}

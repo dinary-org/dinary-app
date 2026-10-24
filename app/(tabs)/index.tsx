@@ -272,16 +272,41 @@ export default function MapTab() {
     if (ghost && lastFit.current !== `fly:${ghost.lat},${ghost.lng}`) flyTo(ghost.lat, ghost.lng, 16);
   }, [ghost, flyTo]);
 
+  // 앱을 열면 전국 기록 범위 대신 내 위치 둘레를 넓게(줌 12) 보여 줍니다. 위치를 못 얻으면 예전처럼 기록 범위에 맞춥니다.
+  const [started, setStarted] = useState(false);
+  const startedHere = useRef(false);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const perm = await Location.requestForegroundPermissionsAsync().catch(() => null);
+      const pos = perm?.granted
+        ? (await Location.getLastKnownPositionAsync().catch(() => null)) ??
+          (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).catch(() => null))
+        : null;
+      if (!alive) return;
+      if (pos) {
+        startedHere.current = true;
+        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        flyTo(pos.coords.latitude, pos.coords.longitude, 12);
+      }
+      setStarted(true);
+    })();
+    return () => { alive = false; };
+  }, [flyTo]);
+
   // 목록(검색·필터) 결과가 바뀌면 지도를 그 범위에 맞춥니다 — 시트·지역 보기가 떠 있는 동안은 건너뜁니다.
   useEffect(() => {
+    if (!started) return;
     const pts = filtered.filter((p) => p.lat != null && p.lng != null);
     if (!pts.length) return;
     const key = pts.map((p) => p.key).join(",");
     if (key === lastFit.current) return;
     lastFit.current = key;
+    // 처음 불러온 기록 범위는 건너뜁니다 — 내 위치에서 시작했으니까요.
+    if (startedHere.current) { startedHere.current = false; return; }
     if (overlayOpen || holdFit.current) { holdFit.current = false; return; }
     fitTo(pts.map((p) => [p.lat as number, p.lng as number]));
-  }, [filtered, overlayOpen, fitTo]);
+  }, [started, filtered, overlayOpen, fitTo]);
 
   async function locate() {
     Haptics.selectionAsync();

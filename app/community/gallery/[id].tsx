@@ -7,7 +7,7 @@ import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChatIcon, HeartIcon } from "@/components/icons";
 import {
-  addGalleryComment, setGalleryLike, useGalleryComments, useGalleryPhoto, useIsAdmin, type GalleryComment,
+  addGalleryComment, editGalleryComment, setGalleryLike, useGalleryComments, useGalleryPhoto, useIsAdmin, type GalleryComment,
 } from "@/features/community/api";
 import { StaffAvatar } from "@/features/community/BoardPost";
 import { CommentInput, CommentRow } from "@/features/community/CommentThread";
@@ -34,9 +34,12 @@ export default function GalleryPhotoScreen() {
   const { data: comments = [] } = useGalleryComments(photoId);
   const { add: addWish, sheet: wishSheet } = useAddWish();
   const [replyTo, setReplyTo] = useState<GalleryComment | null>(null);
+  // ⋯ 「수정」으로 고르는 내 댓글 — 아래 입력줄에서 고칩니다(답글과 함께 쓰지 않음).
+  const [editing, setEditing] = useState<GalleryComment | null>(null);
   const [allComments, setAllComments] = useState(false);
   const [wish, setWish] = useState<"idle" | "added" | "exists">("idle");
   const inputRef = useRef<TextInput>(null);
+  const startEdit = (c: GalleryComment) => { setReplyTo(null); setEditing(c); inputRef.current?.focus(); };
 
   // 좋아요는 누르는 즉시 바뀌게 — 서버 값이 오면 맞춥니다.
   const [liked, setLiked] = useState(false);
@@ -183,10 +186,10 @@ export default function GalleryPhotoScreen() {
               </View>
               {comments.map((c) => (
                 <View key={c.id}>
-                  <CommentRow c={c} ownerId={photo.author_id} target={{ kind: "gallery_comment", comment: c }} onReply={() => { setReplyTo(c); inputRef.current?.focus(); }} />
+                  <CommentRow c={c} ownerId={photo.author_id} target={{ kind: "gallery_comment", comment: c }} onReply={() => { setEditing(null); setReplyTo(c); inputRef.current?.focus(); }} onEdit={() => startEdit(c)} />
                   {c.replies.map((r) => (
                     <View key={r.id} style={{ paddingLeft: 35 }}>
-                      <CommentRow c={r} ownerId={photo.author_id} target={{ kind: "gallery_comment", comment: r }} />
+                      <CommentRow c={r} ownerId={photo.author_id} target={{ kind: "gallery_comment", comment: r }} onEdit={() => startEdit(r)} />
                     </View>
                   ))}
                 </View>
@@ -202,6 +205,9 @@ export default function GalleryPhotoScreen() {
           onClearReply={() => setReplyTo(null)}
           inputRef={inputRef}
           onSend={async (p) => { await addGalleryComment(qc, { photoId: photo.id, body: p.body, parentId: p.parentId }); setAllComments(true); }}
+          editing={editing}
+          onClearEdit={() => setEditing(null)}
+          onSaveEdit={(body) => editGalleryComment(qc, editing!.id, body)}
         />
       )}
       {wishSheet}

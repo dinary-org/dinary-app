@@ -35,7 +35,7 @@ type Item = { label: string; onPress: () => void; danger?: boolean; muted?: bool
 
 /**
  * 글 · 댓글 · 갤러리 사진의 작성자 줄 오른쪽 끝 ⋯ (HANDOFF-board-v2 §3 ⋯ 메뉴, HANDOFF-gallery 02).
- * 남의 것: 신고하기 · 차단하기 / 내 것: 수정(글만) · 삭제(사진은 「갤러리에서 내리기」) / 관리자: 숨기기 · 작성자 정지 · 공지로 고정(글만).
+ * 남의 것: 신고하기 · 차단하기 / 내 것: 수정(글 · 댓글) · 삭제(사진은 「갤러리에서 내리기」) / 관리자: 숨기기 · 작성자 정지 · 공지로 고정(글만).
  */
 export function MoreButton({ target, onEdit, onDeleted, onBlocked }: { target: MenuTarget; onEdit?: () => void; onDeleted?: () => void; onBlocked?: () => void }) {
   const qc = useQueryClient();
@@ -44,7 +44,6 @@ export function MoreButton({ target, onEdit, onDeleted, onBlocked }: { target: M
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"main" | "report" | "sanction">("main");
 
-  const isPost = target.kind === "post";
   const isPhoto = target.kind === "gallery_photo";
   const d = describe(target);
   const { id, authorId, hidden, what } = d;
@@ -93,7 +92,7 @@ export function MoreButton({ target, onEdit, onDeleted, onBlocked }: { target: M
   }
 
   const main: Item[] = mine
-    ? [...(isPost && onEdit ? [{ label: "수정", onPress: () => { close(); onEdit(); } }] : []), { label: isPhoto ? "갤러리에서 내리기" : "삭제", onPress: remove, danger: true }]
+    ? [...(onEdit && !isPhoto ? [{ label: "수정", onPress: () => { close(); onEdit(); } }] : []), { label: isPhoto ? "갤러리에서 내리기" : "삭제", onPress: remove, danger: true }]
     : [{ label: "신고하기", onPress: () => setStep("report") }, { label: "차단하기", onPress: block, danger: true }];
   if (isAdmin) {
     main.push({

@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, ScrollView, TextInput, View } from "react-native"
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  addBoardComment, useBoardComments, useBoardPost, useCourseStops, useCurrentTheme, useIsAdmin, type BoardComment, type BoardPost,
+  addBoardComment, editBoardComment, useBoardComments, useBoardPost, useCourseStops, useCurrentTheme, useIsAdmin, type BoardComment, type BoardPost,
 } from "@/features/community/api";
 import {
   AuthorRow, boardPill, CourseBlock, PollOptions, postPhoto, postTitle, Reactions, RecordMini, Tags,
@@ -31,7 +31,10 @@ export default function BoardPostScreen() {
   const { data: stopsMap } = useCourseStops(post?.type === "course" ? [postId] : []);
   const stops = stopsMap?.get(postId) ?? [];
   const [replyTo, setReplyTo] = useState<BoardComment | null>(null);
+  // ⋯ 「수정」으로 고르는 내 댓글 — 아래 입력줄에서 고칩니다(답글과 함께 쓰지 않음).
+  const [editing, setEditing] = useState<BoardComment | null>(null);
   const inputRef = useRef<TextInput>(null);
+  const startEdit = (c: BoardComment) => { setReplyTo(null); setEditing(c); inputRef.current?.focus(); };
 
   const back = () => (router.canGoBack() ? router.back() : router.replace("/community/board"));
   const count = comments.reduce((n, c) => n + 1 + c.replies.length, 0);
@@ -81,10 +84,10 @@ export default function BoardPostScreen() {
           {comments.length === 0 && <Text style={{ paddingVertical: 24, textAlign: "center", fontFamily: F.sans, fontSize: 12, color: C.faint }}>첫 댓글을 남겨 보세요.</Text>}
           {comments.map((c) => (
             <View key={c.id}>
-              <CommentRow c={c} ownerId={post.author_id} target={{ kind: "comment", comment: c }} onReply={() => { setReplyTo(c); inputRef.current?.focus(); }} />
+              <CommentRow c={c} ownerId={post.author_id} target={{ kind: "comment", comment: c }} onReply={() => { setEditing(null); setReplyTo(c); inputRef.current?.focus(); }} onEdit={() => startEdit(c)} />
               {c.replies.map((r) => (
                 <View key={r.id} style={{ paddingLeft: 35 }}>
-                  <CommentRow c={r} ownerId={post.author_id} target={{ kind: "comment", comment: r }} />
+                  <CommentRow c={r} ownerId={post.author_id} target={{ kind: "comment", comment: r }} onEdit={() => startEdit(r)} />
                 </View>
               ))}
             </View>
@@ -98,6 +101,9 @@ export default function BoardPostScreen() {
           onClearReply={() => setReplyTo(null)}
           inputRef={inputRef}
           onSend={(p) => addBoardComment(qc, { postId: post.id, ...p })}
+          editing={editing}
+          onClearEdit={() => setEditing(null)}
+          onSaveEdit={(body) => editBoardComment(qc, editing!.id, body)}
         />
       )}
     </KeyboardAvoidingView>

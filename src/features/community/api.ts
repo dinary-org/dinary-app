@@ -289,6 +289,20 @@ export async function addComment(qc: QueryClient, recordId: number, body: string
   await qc.invalidateQueries({ queryKey: ["community", "social"] });
 }
 
+/** 내 댓글 고치기 — 쓸 때와 같이 120자 · 링크 · 연락처 검사(edit_record_comment). */
+export async function editComment(qc: QueryClient, recordId: number, id: number, body: string) {
+  const { error } = await supabase.rpc("edit_record_comment", { p_id: id, p_body: stripContact(body).trim().slice(0, 120) });
+  if (error) throw new Error(boardError(error.message));
+  await qc.invalidateQueries({ queryKey: ["community", "comments", recordId] });
+}
+
+export async function deleteComment(qc: QueryClient, recordId: number, id: number) {
+  const { error } = await supabase.from("record_comments").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  await qc.invalidateQueries({ queryKey: ["community", "comments", recordId] });
+  await qc.invalidateQueries({ queryKey: ["community", "social"] });
+}
+
 /** 탭바 커뮤니티 점 — 마지막으로 본 뒤 친구가 올린 소식 수(friend_feed). */
 export const useCommunityUnseen = (enabled = true) =>
   useQuery({
@@ -559,6 +573,12 @@ export async function addBoardComment(qc: QueryClient, p: { postId: number; body
   await qc.invalidateQueries({ queryKey: ["community", "board"] });
 }
 
+export async function editBoardComment(qc: QueryClient, id: number, body: string) {
+  const { error } = await supabase.rpc("edit_board_comment", { p_id: id, p_body: stripContact(body).trim().slice(0, 500) });
+  if (error) throw new Error(boardError(error.message));
+  await qc.invalidateQueries({ queryKey: ["community", "board"] });
+}
+
 export async function deleteBoardComment(qc: QueryClient, id: number) {
   const { error } = await supabase.from("board_comments").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -597,6 +617,8 @@ export const BOARD_ERRORS: Record<string, string> = {
   poll_closed: "마감된 투표입니다",
   one_level: "답글에는 답글을 달 수 없습니다",
   no_post: "지워진 글입니다",
+  not_mine: "내가 쓴 댓글만 고칠 수 있습니다",
+  empty: "내용을 적어 주세요",
   not_admin: "운영자만 할 수 있습니다",
   role_locked: "바꿀 수 없는 값입니다",
   already_posted: "이미 갤러리에 올린 사진입니다",
@@ -914,6 +936,12 @@ export async function addGalleryComment(qc: QueryClient, p: { photoId: number; b
   const { error } = await supabase.rpc("add_gallery_comment", {
     p_photo_id: p.photoId, p_body: stripContact(p.body).trim().slice(0, 500), p_parent_id: p.parentId ?? null,
   });
+  if (error) throw new Error(boardError(error.message));
+  await qc.invalidateQueries({ queryKey: ["community", "gallery"] });
+}
+
+export async function editGalleryComment(qc: QueryClient, id: number, body: string) {
+  const { error } = await supabase.rpc("edit_gallery_comment", { p_id: id, p_body: stripContact(body).trim().slice(0, 500) });
   if (error) throw new Error(boardError(error.message));
   await qc.invalidateQueries({ queryKey: ["community", "gallery"] });
 }

@@ -161,7 +161,7 @@ export default function RecommendTab() {
           <Pressable
             onPress={() => setPointSheet(true)}
             accessibilityRole="button"
-            accessibilityLabel="추천 기준 위치 · 시각 바꾸기"
+            accessibilityLabel="추천 기준 위치 바꾸기"
             hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
             style={{ flexShrink: 1, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 13, paddingHorizontal: custom ? 9 : 0, paddingVertical: custom ? 4 : 0, backgroundColor: custom ? C.brickSoft : "transparent" }}
           >
@@ -238,9 +238,8 @@ export default function RecommendTab() {
         visible={pointSheet}
         gps={gps}
         place={recPlace}
-        at={recAt}
         onClose={() => setPointSheet(false)}
-        onApply={(place, when) => { setState({ recPlace: place, recAt: when }); setPointSheet(false); }}
+        onApply={(place) => { setState({ recPlace: place }); setPointSheet(false); }}
       />
       <FilterSheet visible={sheet} value={filter} defaults={defaults} onClose={() => setSheet(false)} onApply={applyFilter} />
     </View>

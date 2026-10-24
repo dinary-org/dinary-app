@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "@/components/Text";
 import { sourceIcon, type SourceKind } from "@/lib/sourceLink";
 import { C, F } from "@/theme";
 import { DocIcon } from "./icons";

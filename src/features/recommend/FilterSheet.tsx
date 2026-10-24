@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { REC_CATEGORIES, type RecCategory, type RecFilter } from "@/lib/recommend";
 import { C, F } from "@/theme";

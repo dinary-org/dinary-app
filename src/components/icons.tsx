@@ -269,3 +269,17 @@ export const DocIcon = ({ size = 18, stroke = "#ffffff", strokeWidth = 1.7 }: P)
     <Path d="M8.3 8.5h7.4M8.3 12h7.4M8.3 15.5h4.6" />
   </Svg>
 );
+
+/** 동그라미 · 네모 안의 체크 — 글자 「✓」는 안드로이드에서 폰마다 다른 시스템 글꼴로 그려져 가운데가 어긋나서 선으로 그립니다. */
+export const CheckIcon = ({ size = 12, stroke = "#b4552d", strokeWidth = 3 }: P) => (
+  <Svg {...base(size, stroke, strokeWidth)}>
+    <Path d="M5 12.5l4.5 4.5L19 7.5" />
+  </Svg>
+);
+
+/** CheckIcon 의 짝 — 「✕」 대신. */
+export const CrossIcon = ({ size = 10, stroke = "#a29a8c", strokeWidth = 3 }: P) => (
+  <Svg {...base(size, stroke, strokeWidth)}>
+    <Path d="M6 6l12 12M18 6L6 18" />
+  </Svg>
+);

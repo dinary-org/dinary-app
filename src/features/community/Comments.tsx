@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { C, F } from "@/theme";
 import { addComment, useComments } from "./api";

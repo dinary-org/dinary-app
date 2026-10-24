@@ -1,6 +1,7 @@
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { memo } from "react";
-import { Linking, Pressable, Text, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Circle, Path } from "react-native-svg";
 import { useResnap } from "@/features/map/Markers";
 import { C, F } from "@/theme";

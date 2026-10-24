@@ -1,6 +1,7 @@
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { memo, useEffect, useState, type ReactNode } from "react";
-import { Platform, Text, View } from "react-native";
+import { Platform, View } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Path } from "react-native-svg";
 import { BOOKMARK_PATH } from "@/components/icons";
 import { pinColor } from "@/lib/types";
@@ -38,7 +39,8 @@ function TagBubble() {
   const corner = { position: "absolute", left: 0, bottom: 0, width: 14, height: 14 } as const;
   return (
     <>
-      <View style={[fill, { borderRadius: 14, backgroundColor: C.line }, SHADOW.card]} />
+      {/* 그림자는 iOS 만 — 안드로이드 그림자(elevation)는 형제 뷰보다 위에 그려져서, 이 선 색 바탕이 안쪽 카드 색과 글자를 덮어 회색 상자만 보였습니다. */}
+      <View style={[fill, { borderRadius: 14, backgroundColor: C.line }, Platform.OS === "ios" ? SHADOW.card : null]} />
       <View style={[corner, { borderRadius: 3, backgroundColor: C.line }]} />
       <View style={[fill, { left: 1, top: 1, right: 1, bottom: 1, borderRadius: 13, backgroundColor: C.card }]} />
       <View style={[corner, { left: 1, bottom: 1, width: 13, height: 13, borderRadius: 2, backgroundColor: C.card }]} />

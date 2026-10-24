@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { Character } from "@/components/Character";
 import { useAccount } from "@/data/profile";
 import { useFriends, useIsAdmin, useLeaderboard, type Period, type RankRow, type Scope } from "@/features/community/api";

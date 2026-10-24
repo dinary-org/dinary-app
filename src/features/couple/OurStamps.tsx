@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { ClipPath, Defs, Path, Rect } from "react-native-svg";
 import { EmptySlot } from "@/features/stamps/Stamp";
 import { ME_COLOR, PARTNER_COLOR, type BookMember, type RecordNote } from "@/data/books";

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Dimensions, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Dimensions, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { LocateIcon, SearchIcon } from "@/components/icons";
 import { BottomSheetModal, SearchResults } from "@/components/ui";
 import { Wheel, WheelRow } from "@/components/Wheel";

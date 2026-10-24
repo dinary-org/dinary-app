@@ -1,5 +1,6 @@
 import * as Haptics from "expo-haptics";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { setState, useAppState } from "@/data/store";
 import { todayIso } from "@/lib/anniversary";
 import { metersBetweenLL, norm } from "@/lib/geo";

@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal, PhotoBox } from "@/components/ui";
 import { savePick } from "@/data/books";
 import { daysBetween, dottedWithDay, type Meal, type Milestone } from "@/lib/anniversary";

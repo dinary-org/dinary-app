@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { C, F } from "@/theme";
 
 /** 내계정 · 연인계정이 함께 쓰는 통계 칸과 메뉴 줄. */

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { SearchIcon } from "@/components/icons";
 import { SearchResults } from "@/components/ui";
 import type { Place } from "@/lib/geocode";

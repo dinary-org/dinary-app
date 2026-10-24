@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Share, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, ScrollView, Share, View, useWindowDimensions } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Path } from "react-native-svg";
 import { ShareIcon } from "./icons";
 import { BottomSheetModal, Button, Eyebrow, Toggle } from "./ui";

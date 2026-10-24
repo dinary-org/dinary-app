@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal, Eyebrow } from "@/components/ui";
 import { C, F } from "@/theme";
 import { Star } from "./anim";

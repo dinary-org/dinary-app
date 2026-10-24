@@ -1,6 +1,7 @@
 import { useNavigation, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Pressable, ScrollView, Text, View, type ViewStyle } from "react-native";
+import { Pressable, ScrollView, View, type ViewStyle } from "react-native";
+import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { useTourDefs } from "@/features/recommend/api";

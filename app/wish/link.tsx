@@ -1,9 +1,10 @@
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SearchIcon } from "@/components/icons";
+import { CheckIcon, SearchIcon } from "@/components/icons";
 import { SourceIcon } from "@/components/SourceIcon";
 import { Eyebrow, fieldStyle } from "@/components/ui";
 import { useWishes } from "@/data/queries";
@@ -203,7 +204,7 @@ export default function WishLinkRoute() {
                       )}
                     </View>
                     <View style={[s.check, on ? { backgroundColor: C.brick } : { borderWidth: 1.5, borderColor: "#cdc6b8" }]}>
-                      {on && <Text style={{ fontSize: 12, color: "#fff" }}>✓</Text>}
+                      {on && <CheckIcon size={13} stroke="#fff" />}
                     </View>
                   </Pressable>
                 );

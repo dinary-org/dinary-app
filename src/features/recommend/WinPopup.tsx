@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, Modal, Pressable, Text, useWindowDimensions, View } from "react-native";
+import { Animated, Easing, Modal, Pressable, useWindowDimensions, View } from "react-native";
+import { Text } from "@/components/Text";
 import { C, F, FAINT_BOLD } from "@/theme";
 
 /** 꽃가루 색 — 앱 톤(벽돌 · 살구 · 겨자 · 올리브 · 청록 · 장미 · 모래). */

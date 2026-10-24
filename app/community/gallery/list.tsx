@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "@/components/Text";
 import { useGalleryFeed } from "@/features/community/api";
 import { GalleryGrid } from "@/features/community/GalleryGrid";
 import { CommunityHeader, TitleBlock } from "@/features/community/ui";

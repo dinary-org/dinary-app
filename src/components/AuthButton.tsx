@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Path } from "react-native-svg";
 import { C, F } from "@/theme";
 

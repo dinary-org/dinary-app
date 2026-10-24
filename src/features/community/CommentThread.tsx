@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { coverPhoto, type Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";

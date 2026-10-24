@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { SearchLineIcon } from "@/components/icons";
 import { usePersonalRows } from "@/data/queries";
 import { useGalleryFeed, useGalleryToday, useIsAdmin, type GallerySort } from "@/features/community/api";

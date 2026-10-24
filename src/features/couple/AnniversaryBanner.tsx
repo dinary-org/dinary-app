@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { RingsIcon } from "@/components/icons";
 import { daysBetween, mealFor, milestonesUntil, nextMilestone, todayIso, type AnniversaryPick } from "@/lib/anniversary";
 import type { Restaurant } from "@/lib/types";

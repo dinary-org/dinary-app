@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Path } from "react-native-svg";
 import { Button, BottomSheetModal, Eyebrow, fieldStyle, MobileStars } from "@/components/ui";
 import { ME_COLOR, PARTNER_COLOR, useSaveNote, type BookMember, type RecordNote } from "@/data/books";

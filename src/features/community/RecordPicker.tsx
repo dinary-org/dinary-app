@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { usePersonalRows } from "@/data/queries";
 import { coverPhoto, type Kind, type Restaurant } from "@/lib/types";

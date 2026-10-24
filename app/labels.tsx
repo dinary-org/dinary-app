@@ -2,7 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, ScrollView, View, useWindowDimensions } from "react-native";
+import { Text } from "@/components/Text";
+import { CheckIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { LabelBadge } from "@/components/Badges";
@@ -94,7 +96,7 @@ export default function Labels() {
                     <Path d={title.icon} fill="none" stroke={C.card} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                 ) : (
-                  <Text style={{ fontSize: 14, color: C.card }}>✓</Text>
+                  <CheckIcon size={16} stroke={C.card} strokeWidth={2.6} />
                 )}
               </View>
               <View style={{ flex: 1 }}>

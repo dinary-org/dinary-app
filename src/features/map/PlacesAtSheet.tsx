@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, Text, View } from "react-native";
+import { Animated, Pressable, ScrollView, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal, Button, Chip, Eyebrow } from "@/components/ui";
 import { pinColor, type Restaurant, type Wish } from "@/lib/types";
 import { C, F } from "@/theme";

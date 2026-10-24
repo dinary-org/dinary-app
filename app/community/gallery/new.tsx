@@ -2,7 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, useWindowDimensions, View } from "react-native";
+import { Text } from "@/components/Text";
+import { CheckIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePersonalRows } from "@/data/queries";
 import { postGalleryPhoto, useIsAdmin, useMyGalleryRefs } from "@/features/community/api";
@@ -216,7 +218,7 @@ export default function GalleryCompose() {
                 {done && <Text style={{ position: "absolute", left: 4, bottom: 4, borderRadius: 6, backgroundColor: "rgba(28,26,23,.7)", paddingHorizontal: 5, fontFamily: F.sans, fontSize: 9.5, color: C.card, overflow: "hidden" }}>올림</Text>}
                 {!done && t.r.verified && !on && (
                   <View style={{ position: "absolute", top: 4, right: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: C.card, alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ fontFamily: F.sansBd, fontSize: 9, color: C.brick }}>✓</Text>
+                    <CheckIcon size={10} stroke={C.brick} />
                   </View>
                 )}
               </Pressable>

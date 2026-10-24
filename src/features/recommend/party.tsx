@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import type { Dispatch, SetStateAction } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { C, F } from "@/theme";
 
 /**

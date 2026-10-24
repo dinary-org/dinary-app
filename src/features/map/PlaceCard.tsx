@@ -1,4 +1,5 @@
-import { Platform, Pressable, Text, View, type TextStyle, type ViewStyle } from "react-native";
+import { Platform, Pressable, View, type TextStyle, type ViewStyle } from "react-native";
+import { Text } from "@/components/Text";
 import { VerifiedMark } from "@/components/icons";
 import { ShareButton } from "@/components/ShareSheet";
 import { MobileStars, PhotoBox, Pigs } from "@/components/ui";

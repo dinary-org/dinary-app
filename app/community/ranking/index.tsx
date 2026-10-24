@@ -1,7 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, View } from "react-native";
+import { Text } from "@/components/Text";
+import { CheckIcon, CrossIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAccount, useSetLeaderboardOptIn } from "@/data/profile";
 import { useLeaderboard, type Period, type Scope } from "@/features/community/api";
@@ -102,7 +104,7 @@ function OptInSheet({ visible, onJoin, onWatch }: { visible: boolean; onJoin: ()
   const check = (on: boolean, label: string) => (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <View style={{ width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: on ? C.ink : "transparent", borderWidth: on ? 0 : 1, borderColor: K.dashed }}>
-        <Text style={{ fontSize: 9, color: on ? C.card : K.inactive }}>{on ? "✓" : "✕"}</Text>
+        {on ? <CheckIcon size={10} stroke={C.card} /> : <CrossIcon size={8} stroke={K.inactive} />}
       </View>
       <Text style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 12, color: on ? C.ink : C.faint }}>{label}</Text>
     </View>

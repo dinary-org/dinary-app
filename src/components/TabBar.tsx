@@ -1,6 +1,7 @@
 import { useRouter, type Tabs } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalendarIcon, CameraIcon, CompassIcon, MapPinIcon, PeopleIcon, RingsIcon } from "./icons";
 import { useActiveBook } from "@/data/books";

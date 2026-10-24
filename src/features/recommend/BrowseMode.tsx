@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Text } from "@/components/Text";
 import { formatDistance } from "@/lib/distance";
 import { courseTitle, pctOf, recCategoryOf, statLine, type Course, type PlaceStat } from "@/lib/recommend";
 import { C, F } from "@/theme";

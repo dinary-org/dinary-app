@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Circle, Polyline, Text as SvgText } from "react-native-svg";
 import { regionFromAddress } from "@/lib/regions";
 import { coverPhoto } from "@/lib/types";

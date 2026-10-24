@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View, type TextStyle } from "react-native";
+import { Pressable, StyleSheet, View, type TextStyle } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { REGION_TIERS } from "@/lib/labels";
 import { pinColor } from "@/lib/types";

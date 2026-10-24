@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { useAccount } from "@/data/profile";
 import { C, F } from "@/theme";

@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { Pressable, Text, View, type GestureResponderEvent } from "react-native";
+import { Pressable, View, type GestureResponderEvent } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";
 import { C, F } from "@/theme";
 import { HI, pad2, pickFresh, playerNames, Players } from "./party";

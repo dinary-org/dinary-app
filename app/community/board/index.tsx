@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
 import { SearchLineIcon } from "@/components/icons";
 import { usePersonalRows } from "@/data/queries";
 import { setState, useAppState, type BoardTab } from "@/data/store";

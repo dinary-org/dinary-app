@@ -1,7 +1,8 @@
 import { useSession } from "@/data/session";
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, View } from "react-native";
+import { ANDROID_TEXT, Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { MapPinIcon } from "@/components/icons";
@@ -264,12 +265,12 @@ function ModeTitle({ label, on, onPress }: { label: string; on: boolean; onPress
   };
   return (
     <Pressable onPress={onPress} disabled={on} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={label} hitSlop={8}>
-      <Animated.Text style={style}>{label}</Animated.Text>
+      <Animated.Text style={[ANDROID_TEXT, style]}>{label}</Animated.Text>
       <Animated.Text
         aria-hidden
         importantForAccessibility="no-hide-descendants"
         accessibilityElementsHidden
-        style={[style, { position: "absolute", left: THICK, top: 0 }]}
+        style={[ANDROID_TEXT, style, { position: "absolute", left: THICK, top: 0 }]}
       >
         {label}
       </Animated.Text>

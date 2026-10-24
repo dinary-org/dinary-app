@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "@/components/Text";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
 import Svg, { Circle, Polygon } from "react-native-svg";
 import { BURST_POINTS } from "@/components/icons";

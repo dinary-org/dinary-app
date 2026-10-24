@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, FlatList, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ANDROID_TEXT, Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Eyebrow } from "@/components/ui";
 import { useActiveBook, useAnniversaryPicks } from "@/data/books";
@@ -244,7 +245,7 @@ export default function CalendarTab() {
           </Animated.View>
         </View>
         <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Animated.Text style={[{ fontFamily: F.sans, fontSize: 12, color: C.faint }, flipStyle(flipMonth)]}>이 달 기록 {countThisMonth}건</Animated.Text>
+          <Animated.Text style={[ANDROID_TEXT, { fontFamily: F.sans, fontSize: 12, color: C.faint }, flipStyle(flipMonth)]}>이 달 기록 {countThisMonth}건</Animated.Text>
           <Pressable
             onPress={() => setShowWishes((v) => !v)}
             style={[s.toggle, showWishes && { borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: C.brickSoft }]}

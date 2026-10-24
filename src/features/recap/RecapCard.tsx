@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { C, F } from "@/theme";
 import type { RecapSummary } from "./compute";
 import { quarterLabel, seasonOf } from "./seasons";

@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef } from "react";
 import { Animated, Platform, Pressable, View, type ScrollView, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import { ANDROID_TEXT } from "@/components/Text";
 import { C, F } from "@/theme";
 
 const ROW = 40;
@@ -75,6 +76,7 @@ export function Wheel({
               <Animated.Text
                 numberOfLines={1}
                 style={{
+                  ...ANDROID_TEXT,
                   fontFamily: mono ? F.mono : F.sansMd,
                   fontSize: 16,
                   color: C.ink,

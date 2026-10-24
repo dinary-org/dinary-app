@@ -1,7 +1,8 @@
 import * as Haptics from "expo-haptics";
 import { useIsFocused, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, AppState, Linking, PanResponder, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Animated, AppState, Linking, PanResponder, Pressable, ScrollView, View } from "react-native";
+import { Text } from "@/components/Text";
 import { PaperMap } from "@/components/PaperMap";
 import { setState, type RecHere } from "@/data/store";
 import { formatDistance } from "@/lib/distance";

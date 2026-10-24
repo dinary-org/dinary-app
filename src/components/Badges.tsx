@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Text } from "@/components/Text";
 import Svg, { Circle, G, Path } from "react-native-svg";
 import type { EarnedLabel } from "@/lib/labels";
 import { C, F } from "@/theme";

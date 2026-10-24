@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useCallback, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { useActiveBook } from "@/data/books";
 import { Pair } from "@/features/couple/Avatars";

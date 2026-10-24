@@ -1,4 +1,5 @@
-import { Text, View, type ViewStyle } from "react-native";
+import { View, type ViewStyle } from "react-native";
+import { Text } from "@/components/Text";
 import { EMPTY_AVATAR, ME_COLOR, PARTNER_COLOR, type BookMember } from "@/data/books";
 import { C, F } from "@/theme";
 

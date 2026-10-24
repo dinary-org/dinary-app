@@ -1,6 +1,7 @@
 import { useRouter, type Tabs } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BoardIcon, CameraIcon, GridIcon, PeopleIcon, RankBarsIcon } from "./icons";
 import { setState, type CommunityTab } from "@/data/store";

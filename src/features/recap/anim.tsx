@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react";
-import { Text, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { type StyleProp, type TextStyle, type ViewStyle } from "react-native";
+import { Text } from "@/components/Text";
 import Animated, { Easing, useAnimatedReaction, useAnimatedStyle, useDerivedValue, type SharedValue } from "react-native-reanimated";
 import Svg, { Path, Polygon } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";

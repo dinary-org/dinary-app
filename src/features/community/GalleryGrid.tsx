@@ -1,7 +1,9 @@
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { FlatList, Pressable, Text, useWindowDimensions, View } from "react-native";
+import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
+import { Text } from "@/components/Text";
+import { CheckIcon } from "@/components/icons";
 import { SignedImage } from "@/lib/signedPhoto";
 import { C, F } from "@/theme";
 import type { GalleryPhoto } from "./api";
@@ -57,7 +59,7 @@ export function GalleryGrid({
             <SignedImage uri={p.photo_ref} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
             {p.verified && !on && (
               <View style={{ position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: 9, backgroundColor: C.card, alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontFamily: F.sansBd, fontSize: 10, color: C.brick, marginTop: -1 }}>✓</Text>
+                <CheckIcon size={11} stroke={C.brick} />
               </View>
             )}
             {on && (

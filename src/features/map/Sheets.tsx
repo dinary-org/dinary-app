@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Modal, Text, View } from "react-native";
+import { Modal, View } from "react-native";
+import { Text } from "@/components/Text";
 import Animated, { FadeIn, SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { BookmarkIcon } from "@/components/icons";
 import { BottomSheetModal, Button, Chip, Eyebrow, PhotoBox, Toggle } from "@/components/ui";

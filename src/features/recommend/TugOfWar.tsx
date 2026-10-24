@@ -1,6 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, Text, View, type GestureResponderEvent } from "react-native";
+import { Animated, Pressable, View, type GestureResponderEvent } from "react-native";
+import { Text } from "@/components/Text";
 import { C, F } from "@/theme";
 import { REC, type GameOption } from "./ui";
 

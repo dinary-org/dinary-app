@@ -2,7 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Text } from "@/components/Text";
+import { CheckIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePersonalRows } from "@/data/queries";
 import {
@@ -276,7 +278,7 @@ export default function BoardCompose() {
         {editId == null && isAdmin && (
           <Pressable onPress={() => setPinned((v) => !v)} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <View style={{ width: 20, height: 20, borderRadius: 6, borderWidth: pinned ? 0 : 1.5, borderColor: K.dashed, backgroundColor: pinned ? C.brick : "transparent", alignItems: "center", justifyContent: "center" }}>
-              {pinned && <Text style={{ fontSize: 11, color: C.card }}>✓</Text>}
+              {pinned && <CheckIcon size={12} stroke={C.card} />}
             </View>
             <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.ink }}>공지로 고정 · DINARY 운영으로 올라갑니다</Text>
           </Pressable>

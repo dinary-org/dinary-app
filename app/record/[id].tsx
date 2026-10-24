@@ -421,7 +421,7 @@ export default function RecordRoute() {
             {canEdit && <View style={{ flexDirection: "row", gap: 8 }}>
               <Button style={{ flex: 1, borderColor: "#e4dfd3" }} kind="line" label="기록 수정" onPress={() => router.push({ pathname: "/record/edit", params: { id: String(record.id) } })} />
               <Pressable onPress={remove} disabled={busy} style={{ flex: 1, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#e4dfd3", alignItems: "center", justifyContent: "center", opacity: busy ? 0.5 : 1 }}>
-                <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>지우기</Text>
+                <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>기록 삭제</Text>
               </Pressable>
             </View>}
           </View>}

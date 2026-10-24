@@ -300,7 +300,7 @@ function StampCard({ stamps, bowls, titleId, isNew, onOpen, onLongPress }: {
                     ...(now && { boxShadow: "0 0 0 4px #f2e0d5" }),
                   }}
                 >
-                  {l.earned && <Text style={{ fontFamily: F.serif, fontSize: 12, lineHeight: 15, color: "#fff", textShadowColor: "#fff", textShadowRadius: 0.5 }}>D</Text>}
+                  {l.earned && <Text style={{ fontFamily: F.serif, fontSize: 10, lineHeight: 13, color: "#fff", textShadowColor: "#fff", textShadowRadius: 1 }}>D</Text>}
                 </View>
                 <Text numberOfLines={1} style={{ marginTop: 6, width: 34, textAlign: "center", fontFamily: F.mono, fontSize: 10, color: now ? C.brick : l.earned ? C.ink : "#a8a196" }}>{l.need}</Text>
               </Pressable>

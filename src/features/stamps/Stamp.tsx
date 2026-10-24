@@ -17,13 +17,13 @@ export function Stamp({ size = 44, ring }: { size?: number; ring?: boolean }) {
         <Polygon points={BURST_POINTS} fill={C.brick} />
         {ring && <Circle cx={50} cy={50} r={36} fill="none" stroke="#fff" strokeOpacity={0.7} strokeWidth={1.5} strokeDasharray="4 3.5" />}
       </Svg>
-      <Text style={{ fontFamily: F.serif, fontSize: size * (ring ? 0.3 : 0.36), lineHeight: size * (ring ? 0.36 : 0.43), color: "#fff", ...WHITE_BOLD }}>D</Text>
+      <Text style={{ fontFamily: F.serif, fontSize: size * (ring ? 0.27 : 0.31), lineHeight: size * (ring ? 0.33 : 0.38), color: "#fff", ...WHITE_BOLD }}>D</Text>
     </View>
   );
 }
 
 /** 고운돋움은 굵기가 하나라 흰 그림자를 둘러 700 처럼 보이게. */
-const WHITE_BOLD = { textShadowColor: "#fff", textShadowRadius: 0.8, textShadowOffset: { width: 0, height: 0 } };
+const WHITE_BOLD = { textShadowColor: "#fff", textShadowRadius: 1.4, textShadowOffset: { width: 0, height: 0 } };
 
 /** 빈 칸 — 점선 원. label 이 있으면 가운데 Mono 다음 번호. */
 export function EmptySlot({ size = 44, label }: { size?: number; label?: number }) {

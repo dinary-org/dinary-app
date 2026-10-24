@@ -6,8 +6,8 @@ import { Character } from "@/components/Character";
 import { useAccount } from "@/data/profile";
 import { useFriends, useIsAdmin, useLeaderboard, type Period, type RankRow, type Scope } from "@/features/community/api";
 import { RankAdminSheet } from "@/features/community/RankAdminSheet";
-import { boardMeta, periodLabel, PERIODS, SCOPES } from "@/features/community/boards";
-import { Avatar, CommunityHeader, K, MiniSegment, PeriodTabs, TitleBlock, titleName } from "@/features/community/ui";
+import { boardMeta, periodLabel, SCOPES } from "@/features/community/boards";
+import { Avatar, CommunityHeader, K, MiniSegment, TitleBlock, titleName } from "@/features/community/ui";
 import { useTourDefs } from "@/features/recommend/api";
 import { DEFAULT_CHARACTER, isCharacterId } from "@/lib/characters";
 import { C, F } from "@/theme";
@@ -17,11 +17,12 @@ const VISIBLE = 30;
 
 /** 랭킹 상세(3c) — 순위 · 얼굴 · 닉네임 + 대표 캐릭터, 그 아래 칭호, 오른쪽에 숫자. */
 export default function RankingDetail() {
-  const params = useLocalSearchParams<{ board: string; period?: Period; scope?: Scope }>();
+  const params = useLocalSearchParams<{ board: string; scope?: Scope }>();
   const router = useRouter();
   const board = boardMeta(params.board);
   useTourDefs(); // 투어 칭호 이름
-  const [period, setPeriod] = useState<Period>(params.period ?? "month");
+  // 랭킹은 주 단위로만 잽니다.
+  const period: Period = "week";
   const [scope, setScope] = useState<Scope>(params.scope ?? "friends");
   const { data: account } = useAccount();
   const { data: fr } = useFriends();
@@ -82,7 +83,6 @@ export default function RankingDetail() {
         ListHeaderComponent={
           <View style={{ marginHorizontal: -20, marginBottom: 8 }}>
             <TitleBlock eyebrow={`RANKING · ${board.en}`} title={board.name} sub={sub} />
-            {board.perPeriod && <View style={{ marginTop: 14, paddingHorizontal: 20 }}><PeriodTabs value={period} options={PERIODS} onChange={setPeriod} /></View>}
           </View>
         }
         ListEmptyComponent={isPending ? null : <Text style={{ paddingVertical: 36, textAlign: "center", fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>아직 이 랭킹에 오른 사람이 없습니다.</Text>}

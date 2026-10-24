@@ -155,23 +155,6 @@ export function FilterChips<T extends string>({ value, options, onChange, traili
   );
 }
 
-/** 기간 탭 — 이번 주 · 이번 달 · 이번 분기. 켜진 것은 먹색 500 + 벽돌 밑줄 2px. */
-export function PeriodTabs<T extends string>({ value, options, onChange }: { value: T; options: { id: T; label: string }[]; onChange: (v: T) => void }) {
-  return (
-    <View style={{ flexDirection: "row", gap: 16 }}>
-      {options.map((o) => {
-        const on = o.id === value;
-        return (
-          <Pressable key={o.id} onPress={() => { Haptics.selectionAsync(); onChange(o.id); }} hitSlop={6}
-            style={{ paddingBottom: 3, borderBottomWidth: 2, borderBottomColor: on ? C.brick : "transparent" }}>
-            <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 12.5, color: on ? C.ink : C.faint }}>{o.label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 const AVATAR_BG = ["#e9d6c8", "#d9e0cf", "#d8dbe4", "#ecdcb8", "#e4dfd3"];
 const tint = (seed: string) => AVATAR_BG[[...seed].reduce((n, ch) => n + ch.charCodeAt(0), 0) % AVATAR_BG.length];
 

@@ -7,11 +7,13 @@ import { CheckIcon, CrossIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAccount, useSetLeaderboardOptIn } from "@/data/profile";
 import { useLeaderboard, type Period, type Scope } from "@/features/community/api";
-import { BOARDS, CATEGORY_BOARDS, PERIODS, SCOPES, type BoardMeta } from "@/features/community/boards";
-import { CommunityHeader, K, MiniSegment, PeriodTabs, Pill, TitleBlock } from "@/features/community/ui";
-import { C, F, TAB_BAR_H } from "@/theme";
+import { BOARDS, periodLabel, SCOPES, type BoardMeta } from "@/features/community/boards";
+import { CommunityHeader, K, MiniSegment, Pill, TitleBlock } from "@/features/community/ui";
+import { C, F, FAINT_BOLD, TAB_BAR_H } from "@/theme";
 
 const ASKED_KEY = "community.ranking.asked";
+/** 랭킹은 주 단위로만 잽니다. */
+const PERIOD: Period = "week";
 
 /** 랭킹 — 참여한 사람끼리만, 숫자만(핸드오프 §7 · 3a · 3b). */
 export default function RankingScreen() {
@@ -19,10 +21,8 @@ export default function RankingScreen() {
   const insets = useSafeAreaInsets();
   const { data: account } = useAccount();
   const setOptIn = useSetLeaderboardOptIn();
-  const [period, setPeriod] = useState<Period>("month");
   const [scope, setScope] = useState<Scope>("friends");
   const [asking, setAsking] = useState(false);
-  const [byKind, setByKind] = useState(false);
   const optIn = account?.leaderboardOptIn ?? false;
 
   // 처음 들어올 때 한 번만 묻습니다(기본은 구경만).
@@ -37,7 +37,7 @@ export default function RankingScreen() {
     if (account && on !== account.leaderboardOptIn) await setOptIn(account.userId, on).catch(() => {});
   }
 
-  const open = (b: BoardMeta) => router.push({ pathname: "/community/ranking/[board]", params: { board: b.id, period, scope } });
+  const open = (b: BoardMeta) => router.push({ pathname: "/community/ranking/[board]", params: { board: b.id, scope } });
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>
@@ -55,19 +55,11 @@ export default function RankingScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: TAB_BAR_H + insets.bottom + 24 }}>
         <TitleBlock eyebrow="COMMUNITY · RANKING" title="랭킹" />
         <View style={{ marginTop: 14, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <PeriodTabs value={period} options={PERIODS} onChange={setPeriod} />
+          <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.ink }}>{periodLabel(PERIOD)}</Text>
           <MiniSegment value={scope} options={SCOPES} onChange={setScope} />
         </View>
         <View style={{ marginTop: 14, paddingHorizontal: 16, gap: 8 }}>
-          {BOARDS.map((b) => <BoardCard key={b.id} board={b} period={period} scope={scope} me={optIn ? account?.userId : undefined} onPress={() => open(b)} />)}
-          <Pressable
-            onPress={() => setByKind((v) => !v)}
-            style={{ borderRadius: 18, borderWidth: 1, borderStyle: "dashed", borderColor: K.dashed, paddingVertical: 12, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
-          >
-            <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 12.5, color: K.text2 }}>종류별 · {CATEGORY_BOARDS.slice(0, 4).map((b) => b.name).join(" · ")}</Text>
-            <Text style={{ fontSize: 13, color: K.inactive, transform: [{ rotate: byKind ? "90deg" : "0deg" }] }}>›</Text>
-          </Pressable>
-          {byKind && CATEGORY_BOARDS.map((b) => <BoardCard key={b.id} board={b} period={period} scope={scope} me={optIn ? account?.userId : undefined} onPress={() => open(b)} />)}
+          {BOARDS.map((b) => <BoardCard key={b.id} board={b} period={PERIOD} scope={scope} me={optIn ? account?.userId : undefined} onPress={() => open(b)} />)}
         </View>
       </ScrollView>
 
@@ -85,14 +77,14 @@ function BoardCard({ board, period, scope, me, onPress }: { board: BoardMeta; pe
     <Pressable onPress={onPress} style={{ borderRadius: 18, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingVertical: 11, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
       <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
         <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
-          <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>{board.name}</Text>
+          <Text style={[{ fontFamily: F.serif, fontSize: 15, color: C.ink }, FAINT_BOLD]}>{board.name}</Text>
           <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 11, color: C.faint }}>{board.rule}</Text>
         </View>
         <Text numberOfLines={1} style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 0.3, color: C.muted }}>{isPending ? " " : top || "아직 아무도 없습니다"}</Text>
       </View>
       <View style={{ alignItems: "flex-end" }}>
         <Text style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: 1.6, color: K.inactive }}>나</Text>
-        <Text style={{ fontFamily: F.serif, fontSize: 19, color: mine ? C.brick : K.dashed }}>{mine ? `${mine.rank}위` : "—"}</Text>
+        <Text style={[{ fontFamily: F.serif, fontSize: 19, color: mine ? C.brick : K.dashed }, mine && { ...FAINT_BOLD, textShadowColor: C.brick }]}>{mine ? `${mine.rank}위` : "—"}</Text>
       </View>
     </Pressable>
   );

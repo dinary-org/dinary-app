@@ -14,7 +14,7 @@ import { usePersonalRows } from "@/data/queries";
 import { EmptySlot, Stamp, StampingIn } from "@/features/stamps/Stamp";
 import { computeLabelRecap, type LabelRecap, type Line } from "@/features/stamps/labelRecap";
 import { useSeenLabels } from "@/lib/labelSeen";
-import { stampTilt, type LabelDef } from "@/lib/labels";
+import type { LabelDef } from "@/lib/labels";
 import { SignedImage } from "@/lib/signedPhoto";
 import { dottedDate, type Restaurant } from "@/lib/types";
 import { WEB_BASE } from "@/lib/web";
@@ -123,9 +123,9 @@ export default function LabelRecapScreen() {
 
 const LAST = 2;
 
-/** 라벨 모양 — 그릇 수는 단계 숫자를 찍은 도장, 이야기는 라벨첩의 로제트 메달. animate 면 찍히듯 내려앉습니다. */
+/** 라벨 모양 — 도장 수는 D 도장(표지의 큰 도장은 안쪽 점선 원), 이야기는 라벨첩의 로제트 메달. animate 면 찍히듯 내려앉습니다. */
 function LabelMark({ def, size, animate }: { def: LabelDef; size: number; animate?: boolean }) {
-  if (def.group === "bowl") return animate ? <StampingIn n={def.need} size={size} /> : <Stamp n={def.need} size={size} tilt={-8} />;
+  if (def.group === "bowl") return animate ? <StampingIn><Stamp size={size} ring /></StampingIn> : <Stamp size={size} />;
   const badge = <LabelBadge label={{ ...def, have: def.need, earned: true }} size={size} />;
   return animate ? <StampingIn>{badge}</StampingIn> : badge;
 }
@@ -180,7 +180,7 @@ function JourneySlide({ recap }: { recap: LabelRecap }) {
   );
 }
 
-/** 라벨까지의 한 장 — 받은 라벨 · 무엇을 해냈는지 · 숫자 셋 · 사진 · (그릇 수 라벨만) 다음 단계. 공유 카드도 이 장을 따릅니다. */
+/** 라벨까지의 한 장 — 받은 라벨 · 무엇을 해냈는지 · 숫자 셋 · 사진 · (도장 수 라벨만) 다음 단계. 공유 카드도 이 장을 따릅니다. */
 function SummarySlide({ recap, onShare, onClose }: { recap: LabelRecap; onShare?: () => void; onClose?: () => void }) {
   const { width: W } = useWindowDimensions();
   const n = recap.next;
@@ -211,7 +211,7 @@ function SummarySlide({ recap, onShare, onClose }: { recap: LabelRecap; onShare?
             const uri = photoOf(j.row);
             return (
               <View key={j.row.id} style={{ width: tile, height: tile, borderRadius: 12, overflow: "hidden", backgroundColor: "#ece7dc", alignItems: "center", justifyContent: "center" }}>
-                {uri ? <SignedImage uri={uri} style={StyleSheet.absoluteFill} /> : <Stamp n={j.no} size={tile * 0.42} tilt={stampTilt(j.no)} />}
+                {uri ? <SignedImage uri={uri} style={StyleSheet.absoluteFill} /> : <Stamp size={tile * 0.42} />}
                 <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingVertical: 4, paddingHorizontal: 7, backgroundColor: "rgba(20,18,16,.55)" }}>
                   <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 10, color: PAPER }}>{j.row.name}</Text>
                 </View>
@@ -298,7 +298,7 @@ function ShareCard({ recap, photos }: { recap: LabelRecap; photos: boolean }) {
       ) : (
         <View style={{ marginTop: 22, alignSelf: "center", width: 36 * 5 + 10 * 4, flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
           {Array.from({ length: 10 }, (_, k) => last10[k]).map((j, k) =>
-            j ? <Stamp key={k} n={j.no} size={36} tilt={stampTilt(k)} /> : <EmptySlot key={k} size={36} />
+            j ? <Stamp key={k} size={36} /> : <EmptySlot key={k} size={36} />
           )}
         </View>
       )}

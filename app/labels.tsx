@@ -11,16 +11,16 @@ import { refreshAll } from "@/data/invalidate";
 import { usePersonalRows } from "@/data/queries";
 import { useTourDefs } from "@/features/recommend/api";
 import { useAccount } from "@/data/profile";
-import { EmptySlot, Stamp } from "@/features/stamps/Stamp";
+import { EmptySlot, Stamp, StampBoard } from "@/features/stamps/Stamp";
 import { useSeenLabels } from "@/lib/labelSeen";
-import { earnedLabels, regionTitles, stampTilt, tourTitles, type EarnedLabel } from "@/lib/labels";
+import { currentBoard, earnedLabels, regionTitles, stampRows, STAMPS_PER_BOARD, tourTitles, type EarnedLabel } from "@/lib/labels";
 import { supabase } from "@/lib/supabase";
 import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
 /**
- * 라벨첩(지시서 3 §E-4) — 그릇 수 8단계 타일 · 이야기 목록 · 동네 칭호 칩 · 투어 칭호 칩(누르면 그 투어).
- * 그릇 수 타일을 누르면 리캡, 이야기 줄을 누르면 메달 · 도장 · 채운 가게 시트(「기록 보기」로 리캡).
+ * 라벨첩(지시서 4 §4) — 도장판 카드(아래 도장 수 8단계 이정표) · 이야기 목록 · 동네 칭호 칩 · 투어 칭호 칩(누르면 그 투어).
+ * 받은 이정표 점을 누르면 리캡, 이야기 줄을 누르면 메달 · 도장 · 채운 가게 시트(「기록 보기」로 리캡).
  * 받은 라벨 · 투어 칭호를 길게 누르면 닉네임 옆 대표 라벨로 붙습니다.
  */
 export default function Labels() {
@@ -36,6 +36,7 @@ export default function Labels() {
   const titleId = account?.titleLabelId ?? null;
   const labels = earnedLabels(rows);
   const bowls = labels.filter((l) => l.group === "bowl");
+  const stamps = stampRows(rows).length;
   const stories = labels.filter((l) => l.group === "story");
   const seen = useSeenLabels(account?.userId, labels.filter((l) => l.earned).map((l) => l.id), isSuccess);
   // 인증 기록이 한 건이라도 있는 구는 모두 — 칭호를 받기 전이면 회색으로 다음 칭호까지 보여 줍니다.
@@ -107,31 +108,14 @@ export default function Labels() {
           )}
         </View>
 
-        <SectionHead title="그릇" right={`${bowls.filter((l) => l.earned).length} / ${bowls.length}`} />
-        <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
-          {bowls.map((l) => {
-            const fresh = l.earned && seen.isNew(l.id);
-            return (
-              <View key={l.id} style={{ width: "25%", padding: 4 }}>
-                <Pressable
-                  onPress={() => open(l)}
-                  onLongPress={() => toggleTitle(l)}
-                  disabled={!l.earned}
-                  accessibilityLabel={`${l.name}${l.earned ? "" : " · 아직"}`}
-                  style={{
-                    aspectRatio: 1, borderRadius: 16, alignItems: "center", justifyContent: "center", gap: 4,
-                    ...(l.earned
-                      ? { backgroundColor: fresh ? C.brick : C.brickSoft, borderWidth: l.id === titleId ? 1.5 : 1, borderColor: l.id === titleId ? C.ink : fresh ? C.brick : "rgba(180,85,45,.2)" }
-                      : { borderWidth: 1.5, borderStyle: "dashed", borderColor: "#d6c4b8" }),
-                  }}
-                >
-                  <Text style={{ fontFamily: F.mono, fontSize: 17, color: fresh ? C.card : l.earned ? C.brick : "#c9b5a7" }}>{l.need}</Text>
-                  <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 10, color: fresh ? C.card : l.earned ? C.ink : C.faint }}>{l.name}</Text>
-                </Pressable>
-              </View>
-            );
-          })}
-        </View>
+        <StampCard
+          stamps={stamps}
+          bowls={bowls}
+          titleId={titleId}
+          isNew={seen.isNew}
+          onOpen={open}
+          onLongPress={toggleTitle}
+        />
 
         <SectionHead title="이야기" right={`${stories.filter((l) => l.earned).length} / ${stories.length}`} />
         <View style={{ marginTop: 10, borderRadius: 18, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, overflow: "hidden" }}>
@@ -249,7 +233,7 @@ function LabelSheet({ label, rows, isTitle, onClose, onRecap }: {
 
         <View style={{ marginTop: 18, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", width: size * 5 + gap * 4, rowGap: gap, columnGap: gap }}>
           {Array.from({ length: label.need }, (_, i) =>
-            i < contrib.length ? <Stamp key={i} n={i + 1} size={size} tilt={stampTilt(i)} /> : <EmptySlot key={i} size={size} label={i + 1} />,
+            i < contrib.length ? <Stamp key={i} size={size} /> : <EmptySlot key={i} size={size} label={i + 1} />,
           )}
         </View>
 
@@ -266,6 +250,65 @@ function LabelSheet({ label, rows, isTitle, onClose, onRecap }: {
       </ScrollView>
       {label.earned && <Button style={{ marginTop: 14 }} label="기록 보기" onPress={onRecap} />}
     </BottomSheetModal>
+  );
+}
+
+/**
+ * 도장판 카드 — 지금 채우는 판 5×2, 아래 도장 수 8단계 이정표(값과 상관없이 같은 간격).
+ * 받은 단계는 D 점(마지막으로 받은 단계엔 바깥 링), 선은 마지막으로 받은 점까지 벽돌색.
+ */
+function StampCard({ stamps, bowls, titleId, isNew, onOpen, onLongPress }: {
+  stamps: number; bowls: EarnedLabel[]; titleId: string | null; isNew: (id: string) => boolean;
+  onOpen: (l: EarnedLabel) => void; onLongPress: (l: EarnedLabel) => void;
+}) {
+  const { width } = useWindowDimensions();
+  const board = currentBoard(stamps);
+  // 화면 여백 22 · 카드 안쪽 18 · 테두리 1 을 빼고 5칸 · 간격 8.
+  const size = Math.min(48, Math.floor((width - 44 - 38 - 8 * 4) / 5));
+  const last = bowls.reduce((at, l, i) => (l.earned ? i : at), -1);
+  return (
+    <View style={{ marginTop: 24, borderRadius: 22, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 18 }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
+        <Text style={{ fontFamily: F.serif, fontSize: 16, color: C.ink }}>도장판</Text>
+        <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{board.board}장째 · {board.filled} / {STAMPS_PER_BOARD}</Text>
+      </View>
+      <View style={{ marginTop: 14, alignItems: "center" }}>
+        <StampBoard filled={board.filled} firstNo={(board.board - 1) * STAMPS_PER_BOARD + 1} size={size} gap={8} numberEmpty />
+      </View>
+
+      <View style={{ marginTop: 20, paddingTop: 18, borderTopWidth: 1, borderTopColor: C.lineSoft }}>
+        <View pointerEvents="none" style={{ position: "absolute", top: 18 + 10, left: 11, right: 11, height: 2, backgroundColor: C.lineSoft }}>
+          {last > 0 && <View style={{ width: `${(last / (bowls.length - 1)) * 100}%`, height: 2, backgroundColor: C.brick }} />}
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          {bowls.map((l, i) => {
+            const now = i === last;
+            return (
+              <Pressable
+                key={l.id}
+                onPress={() => onOpen(l)}
+                onLongPress={() => onLongPress(l)}
+                disabled={!l.earned}
+                hitSlop={8}
+                accessibilityLabel={`${l.name}${l.earned ? (l.id === titleId ? " · 대표" : "") + (isNew(l.id) ? " · 새로" : "") : " · 아직"}`}
+                style={{ width: 22, alignItems: "center" }}
+              >
+                <View
+                  style={{
+                    width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center",
+                    ...(l.earned ? { backgroundColor: C.brick } : { backgroundColor: C.card, borderWidth: 1.5, borderColor: "#d6cfc2" }),
+                    ...(now && { boxShadow: "0 0 0 4px #f2e0d5" }),
+                  }}
+                >
+                  {l.earned && <Text style={{ fontFamily: F.serif, fontSize: 12, lineHeight: 15, color: "#fff", textShadowColor: "#fff", textShadowRadius: 0.5 }}>D</Text>}
+                </View>
+                <Text numberOfLines={1} style={{ marginTop: 6, width: 34, textAlign: "center", fontFamily: F.mono, fontSize: 10, color: now ? C.brick : l.earned ? C.ink : "#a8a196" }}>{l.need}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    </View>
   );
 }
 

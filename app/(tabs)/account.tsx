@@ -9,14 +9,14 @@ import { Row, Stat } from "@/components/AccountRows";
 import { Character } from "@/components/Character";
 import { Eyebrow, Toggle } from "@/components/ui";
 import { useActiveBook } from "@/data/books";
-import { useAccount, useOwnedCharacters, useSetCharacter, useSetLeaderboardOptIn, useTickets } from "@/data/profile";
+import { useAccount, useOwnedCharacters, useSetCharacter, useSetLeaderboardOptIn } from "@/data/profile";
 import { refreshAll } from "@/data/invalidate";
 import { usePersonalRows, usePersonalWishes } from "@/data/queries";
 import { useTourDefs } from "@/features/recommend/api";
 import CoupleAccount from "@/features/couple/CoupleAccount";
 import { apiFetch } from "@/lib/api";
 import { CHARACTERS } from "@/lib/characters";
-import { StampBoard } from "@/features/stamps/Stamp";
+import { Stamp } from "@/features/stamps/Stamp";
 import { useSeenLabels } from "@/lib/labelSeen";
 import { currentBoard, earnedLabels, nextBowl, stampRows, STAMPS_PER_BOARD, tourTitles } from "@/lib/labels";
 import { uploadPhoto } from "@/lib/photos";
@@ -53,7 +53,6 @@ export function MyAccount() {
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [labelBusy, setLabelBusy] = useState(false);
   const { data: owned = [] } = useOwnedCharacters();
-  const { tickets } = useTickets();
   const setCharacter = useSetCharacter();
   const setLeaderboardOptIn = useSetLeaderboardOptIn();
   const [error, setError] = useState("");
@@ -202,35 +201,21 @@ export function MyAccount() {
         <Stat value={places} label="식당" border />
       </View>
 
-      {/* 도장판 — 인증 1건 = 도장 1개, 10칸을 채울 때마다 뽑기권 1장 */}
-      <View style={{ marginTop: 14, borderRadius: 20, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingVertical: 16, paddingHorizontal: 16 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-          <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>도장판</Text>
-          <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint }}>{board.board}장째 · {board.filled} / {STAMPS_PER_BOARD}</Text>
+      {/* 도장 한 줄(지시서 4 §3) — 인증 1건 = 도장 1개. 누르면 라벨첩 */}
+      <Pressable
+        onPress={() => router.push("/labels")}
+        accessibilityLabel="라벨첩 열기"
+        style={{ marginTop: 14, borderRadius: 22, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingVertical: 16, paddingHorizontal: 18, flexDirection: "row", alignItems: "center", gap: 14 }}
+      >
+        <Stamp size={40} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>도장판 {board.board}장째 · {board.filled} / {STAMPS_PER_BOARD}</Text>
+          <Text style={{ marginTop: 3, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>
+            {bowl ? <>다음 라벨 {bowl.tier.name}까지 <Text style={{ fontFamily: F.mono, color: C.brick }}>{bowl.left}</Text></> : "모든 도장 라벨을 받았어요"}
+          </Text>
         </View>
-        <View style={{ marginTop: 14, alignItems: "center" }}>
-          <StampBoard filled={board.filled} firstNo={(board.board - 1) * STAMPS_PER_BOARD + 1} size={42} gap={11} numberEmpty />
-        </View>
-        <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>채운 판 {board.done}장 · 뽑기권 {tickets}</Text>
-          <Pressable onPress={() => router.push("/draw")} disabled={tickets < 1} style={{ minHeight: 36, borderRadius: 13, backgroundColor: C.ink, paddingHorizontal: 13, justifyContent: "center", opacity: tickets < 1 ? 0.4 : 1 }}>
-            <Text style={{ fontFamily: F.sansMd, fontSize: 12, color: C.card }}>밥솥 열러 가기</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {bowl && (
-        <View style={{ marginTop: 10, borderRadius: 20, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingVertical: 14, paddingHorizontal: 16 }}>
-          <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>{bowl.tier.name}까지 <Text style={{ color: C.brick }}>{bowl.left}</Text></Text>
-          <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{bowl.from}</Text>
-            <View style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: "#ece7dc", overflow: "hidden" }}>
-              <View style={{ width: `${((stamps - bowl.from) / (bowl.tier.need - bowl.from)) * 100}%`, height: 5, borderRadius: 3, backgroundColor: C.brick }} />
-            </View>
-            <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{bowl.tier.need}</Text>
-          </View>
-        </View>
-      )}
+        <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>라벨첩 ›</Text>
+      </Pressable>
 
       <View style={{ marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
         <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>내 캐릭터</Text>
@@ -261,7 +246,6 @@ export function MyAccount() {
         <>
           <View style={{ marginTop: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
             <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>모은 라벨</Text>
-            <Pressable onPress={() => router.push("/labels")}><Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{got.length} / {labels.length + tours.length} ›</Text></Pressable>
           </View>
           <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>탭하면 닉네임 옆 대표 라벨로 붙습니다</Text>
           <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>

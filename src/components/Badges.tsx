@@ -16,7 +16,7 @@ function scallopPath(n = 16, r = 44, peak = 56) {
 const SCALLOP = scallopPath();
 
 /**
- * 라벨 로제트 메달(그릇 수 라벨이 생기기 전 라벨첩의 모양) — 얻었으면 라벨 색 테두리에 아이콘, 아니면 회색으로 잠겨 있습니다.
+ * 라벨 로제트 메달(도장 수 라벨이 생기기 전 라벨첩의 모양) — 얻었으면 라벨 색 테두리에 아이콘, 아니면 회색으로 잠겨 있습니다.
  * 대표 라벨이면 아래에 「대표」 알약이 붙습니다.
  */
 export function LabelBadge({ label, selected, size = 80 }: { label: EarnedLabel; selected?: boolean; size?: number }) {

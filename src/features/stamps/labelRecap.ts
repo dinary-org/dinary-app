@@ -102,7 +102,7 @@ function howOf(def: LabelDef, journey: Restaurant[]): Line {
   }
 }
 
-/** 다음 그릇 수 단계 — 그릇 수 라벨에만 보여 줍니다(이야기 라벨은 다음 라벨을 안내하지 않음). 다 받았으면 null. */
+/** 다음 도장 수 단계 — 도장 수 라벨에만 보여 줍니다(이야기 라벨은 다음 라벨을 안내하지 않음). 다 받았으면 null. */
 function nextOf(rows: Restaurant[]): LabelRecap["next"] {
   const stamps = stampRows(rows).length;
   const bowl = nextBowl(stamps);
@@ -116,7 +116,7 @@ export function computeLabelRecap(id: string, rows: Restaurant[]): LabelRecap | 
   if (!by) return null;
   const contrib = def.contrib(rows);
   const stamps = stampRows(rows);
-  // 그릇 수는 도장 번호 그대로, 이야기는 1부터.
+  // 도장 수는 도장 번호 그대로, 이야기는 1부터.
   const journey = contrib.map((row, i) => ({ no: def.group === "bowl" ? stamps.indexOf(row) + 1 : i + 1, row }));
   const dates = contrib.map(dateOf).filter(validDay).sort();
   const cats = new Map<string, number>();

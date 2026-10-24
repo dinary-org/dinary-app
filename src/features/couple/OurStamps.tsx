@@ -4,7 +4,7 @@ import { Alert, Pressable, Text, View } from "react-native";
 import Svg, { ClipPath, Defs, Path, Rect } from "react-native-svg";
 import { EmptySlot } from "@/features/stamps/Stamp";
 import { ME_COLOR, PARTNER_COLOR, type BookMember, type RecordNote } from "@/data/books";
-import { currentBoard, nextBowl, stampRows, stampTilt, STAMPS_PER_BOARD } from "@/lib/labels";
+import { currentBoard, nextBowl, stampRows, STAMPS_PER_BOARD } from "@/lib/labels";
 import { iGa } from "@/lib/josa";
 import { dottedDate, type Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
@@ -20,11 +20,11 @@ export function wroteLine(r: Restaurant, userId: string | null | undefined, note
 }
 
 /** 하트 도장 — 왼쪽 반은 나, 오른쪽 반은 상대. 쓰지 않은 쪽은 쓴 쪽 색의 점선 테두리. */
-export function HeartStamp({ me, partner, size = 44, tilt = 0, n }: { me: boolean; partner: boolean; size?: number; tilt?: number; n?: number }) {
+export function HeartStamp({ me, partner, size = 44, n }: { me: boolean; partner: boolean; size?: number; n?: number }) {
   const id = `h${size}${me ? 1 : 0}${partner ? 1 : 0}`;
   const dashColor = me && !partner ? ME_COLOR : partner && !me ? PARTNER_COLOR : "#d6c4b8";
   return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center", transform: [{ rotate: `${tilt}deg` }] }}>
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: "absolute" }}>
         <Defs>
           <ClipPath id={`${id}l`}><Rect x="0" y="0" width="50" height="100" /></ClipPath>
@@ -47,7 +47,7 @@ type Stamp = { row: Restaurant; no: number; me: boolean; partner: boolean };
 /**
  * 연인계정 「우리 도장」(지시서 3 §F) — 연인 기록장의 인증 기록 1건 = 하트 도장 1개.
  * 둘 다 한 줄을 쓰면 하트가 다 차고, 한 사람만 쓰면 반쪽. 칸을 누르면 아래 띠에 가게 · 날짜 · 상태.
- * 아래 「함께 ○○ 그릇까지」는 둘 다 쓴 기록만 셉니다.
+ * 아래 「함께 N번째 도장까지」는 둘 다 쓴 기록만 셉니다.
  */
 export function OurStamps({ rows, notes, me, partner, bookId, readOnly }: {
   rows: Restaurant[]; notes: RecordNote[]; me: BookMember | null; partner: BookMember | null; bookId: string; readOnly: boolean;
@@ -91,7 +91,7 @@ export function OurStamps({ rows, notes, me, partner, bookId, readOnly }: {
             s ? (
               <Pressable key={k} onPress={() => setPicked((v) => (v === s.no ? null : s.no))} accessibilityLabel={`${s.no}번째 도장 · ${s.row.name}`}
                 style={{ borderRadius: 12, backgroundColor: picked === s.no ? C.brickSoft : "transparent" }}>
-                <HeartStamp me={s.me} partner={s.partner} n={s.no} size={SIZE} tilt={stampTilt(k)} />
+                <HeartStamp me={s.me} partner={s.partner} n={s.no} size={SIZE} />
               </Pressable>
             ) : (
               <EmptySlot key={k} size={SIZE} />

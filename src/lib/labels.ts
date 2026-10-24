@@ -4,8 +4,8 @@ import type { Restaurant } from "@/lib/types";
  * 도장 · 라벨(지시서 3 §E-1).
  *
  *  · 도장 — 인증된 기록(verified, 보관함 아님) 1건 = 도장 1개. 10칸 = 도장판 1장, 판을 채울 때마다 뽑기권 1장.
- *  · 그릇 수 라벨 — 인증 기록 수 8단계(1 · 5 · 10 · 30 · 50 · 100 · 200 · 300).
- *  · 이야기 라벨 — 원래 있던 라벨 13개(첫 한 끼 · 백 그릇은 그릇 수 단계로, 만원의 행복은 뺌) + 새 라벨 5개.
+ *  · 도장 수 라벨 — 도장 수 8단계(1 · 5 · 10 · 30 · 50 · 100 · 200 · 300), 「첫 도장 / N번째 도장」(지시서 4 §1).
+ *  · 이야기 라벨 — 원래 있던 라벨 13개(첫 한 끼 · 백 그릇은 도장 수 단계로, 만원의 행복은 뺌) + 새 라벨 5개.
  *  · 동네 칭호(동 · 은 · 금)는 아래 REGION_TIERS 그대로.
  */
 export type LabelGroup = "bowl" | "story";
@@ -53,20 +53,17 @@ export const currentBoard = (count: number) => ({
   done: Math.floor(count / STAMPS_PER_BOARD),
 });
 
-/** 각 칸의 기울기 — -6° · 0° · 6° 번갈아. */
-export const stampTilt = (i: number) => [-6, 0, 6][i % 3];
-
 const BOWL_ICON = "M3.5 11.5h17a8.5 8 0 0 1-17 0Z M9 8c0-1.4 1-1.6 1-3 M14 8c0-1.4 1-1.6 1-3";
-/** 그릇 수 단계 — id 는 예전 「첫 한 끼(first)」 · 「백 그릇(hundred)」을 이어받아 대표 라벨이 풀리지 않게. */
+/** 도장 수 단계 — id 는 예전 「첫 한 끼(first)」 · 「백 그릇(hundred)」을 이어받아 대표 라벨이 풀리지 않게. word 는 리캡 「열 번이나」에 씁니다. */
 export const BOWL_TIERS = [
-  { need: 1, id: "first", name: "첫 기록", word: "첫" },
-  { need: 5, id: "bowl5", name: "다섯 그릇", word: "다섯" },
-  { need: 10, id: "bowl10", name: "열 그릇", word: "열" },
-  { need: 30, id: "bowl30", name: "서른 그릇", word: "서른" },
-  { need: 50, id: "bowl50", name: "쉰 그릇", word: "쉰" },
-  { need: 100, id: "hundred", name: "백 그릇", word: "백" },
-  { need: 200, id: "bowl200", name: "이백 그릇", word: "이백" },
-  { need: 300, id: "bowl300", name: "삼백 그릇", word: "삼백" },
+  { need: 1, id: "first", name: "첫 도장", word: "첫" },
+  { need: 5, id: "bowl5", name: "5번째 도장", word: "다섯" },
+  { need: 10, id: "bowl10", name: "10번째 도장", word: "열" },
+  { need: 30, id: "bowl30", name: "30번째 도장", word: "서른" },
+  { need: 50, id: "bowl50", name: "50번째 도장", word: "쉰" },
+  { need: 100, id: "hundred", name: "100번째 도장", word: "백" },
+  { need: 200, id: "bowl200", name: "200번째 도장", word: "이백" },
+  { need: 300, id: "bowl300", name: "300번째 도장", word: "삼백" },
 ] as const;
 
 const BOWLS: LabelDef[] = BOWL_TIERS.map((t) => ({
@@ -166,7 +163,7 @@ const story = (d: Omit<LabelDef, "group" | "count" | "contrib">, list: (rows: Re
   contrib: (rows) => list(rows).slice(0, d.need),
 });
 
-/** 이야기 라벨 — 그릇 수 라벨이 생기기 전부터 있던 라벨(첫 한 끼 · 백 그릇은 그릇 수로 옮겨 감). */
+/** 이야기 라벨 — 도장 수 라벨이 생기기 전부터 있던 라벨(첫 한 끼 · 백 그릇은 도장 수로 옮겨 감). */
 const STORIES: LabelDef[] = [
   story({ id: "verified", icon: "M6.5 12.5l3.5 3.5 7.5-8", color: "#b4552d", name: "프로기록러", desc: "인증 기록 40개", need: 40 }, stampRows),
   story({ id: "gold", icon: "M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9-4.3-4.1 5.9-.8Z", color: "#b58a2b", name: "오점 없는 사람", desc: "5.0을 준 집 열 곳", need: 10 }, goldRows),
@@ -191,7 +188,7 @@ const STORIES: LabelDef[] = [
 export const LABELS: LabelDef[] = [...BOWLS, ...STORIES];
 export const labelById = (id: string | null | undefined) => (id ? LABELS.find((l) => l.id === id) ?? null : null);
 
-/** 다음 그릇 수 단계 — 「서른 그릇까지 20」. 다 받았으면 null. */
+/** 다음 도장 수 단계 — 「30번째 도장까지 20」. 다 받았으면 null. */
 export function nextBowl(stamps: number) {
   const i = BOWL_TIERS.findIndex((t) => stamps < t.need);
   if (i < 0) return null;

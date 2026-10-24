@@ -100,7 +100,7 @@ export default function CoupleAccount() {
   const filled = filledAnniversaries(startedOn, picks, rows, today);
   const latestYear = [...past].reverse().find((m) => m.key.endsWith("y"))?.key ?? null;
 
-  // 연인 그릇 수 라벨은 둘 다 한 줄을 쓴 인증 기록만 셉니다.
+  // 연인 도장 수 라벨은 둘 다 한 줄을 쓴 인증 기록만 셉니다.
   const bothWrote = rows.filter((r) => r.verified && wroteLine(r, meId, notes) && wroteLine(r, partnerId, notes)).length;
   const labels = earnedCoupleLabels({ rows, startedOn, picks, sharedNotes, bothWrote, meId, partnerId, today });
   const got = labels.filter((l) => l.earned);

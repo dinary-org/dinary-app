@@ -2,14 +2,16 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BookmarkIcon } from "@/components/icons";
 import { PaperMap } from "@/components/PaperMap";
+import { useWishes } from "@/data/queries";
 import { report } from "@/features/community/api";
-import { K } from "@/features/community/ui";
 import { useAddWish, type WishResult } from "@/features/community/useAddWish";
 import { useMyTours, useRecPoint, useTourDetail, useTourWeekly, type Tour, type TourPlace } from "@/features/recommend/api";
 import { BackPill, HereMarker, NumberMarker, REC, Stamp } from "@/features/recommend/ui";
 import { metersBetweenLL } from "@/lib/geo";
 import { pctOf } from "@/lib/recommend";
+import { matchWish } from "@/lib/types";
 import { C, F } from "@/theme";
 
 const dotted = (iso: string) => {
@@ -36,6 +38,7 @@ export default function TourDetail() {
   const [mapOpen, setMapOpen] = useState(false);
   const { add: addWish, sheet: wishSheet } = useAddWish();
   const [wished, setWished] = useState<Record<string, WishResult>>({});
+  const { data: wishes = [] } = useWishes();
 
   // 가까운 순 — 자리를 모르면 받은 순서 그대로.
   const sorted = useMemo(() => {
@@ -98,6 +101,7 @@ export default function TourDetail() {
         <Text style={{ marginTop: 22, fontFamily: F.serif, fontSize: 16, color: C.ink }}>후보 {t.total}곳</Text>
         <View style={{ marginTop: 6 }}>
           {sorted.map((p, i) => {
+            const inWish = !!wished[p.place] || !!matchWish(wishes, p.name);
             const before = trend && t.aired_at && p.my_first_at && p.my_first_at.slice(0, 10) < t.aired_at;
             return (
               <View key={p.place} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: i < sorted.length - 1 ? 1 : 0, borderColor: C.lineSoft }}>
@@ -118,12 +122,8 @@ export default function TourDetail() {
                     <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.brick }}>✓ {dotted(p.my_first_at)}</Text>
                   </View>
                 ) : (
-                  <Pressable
-                    disabled={!!wished[p.place]}
-                    onPress={() => wish(p)}
-                    style={{ minHeight: 30, borderRadius: 15, borderWidth: 1, borderColor: K.brickLine, paddingHorizontal: 11, justifyContent: "center", backgroundColor: wished[p.place] ? C.brickSoft : "transparent" }}
-                  >
-                    <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>{wished[p.place] === "added" ? "✓ 위시에 담음" : wished[p.place] === "exists" ? "이미 담아둔 곳" : "+ 위시에 담기"}</Text>
+                  <Pressable disabled={inWish} onPress={() => wish(p)} hitSlop={10} accessibilityRole="button" accessibilityLabel={inWish ? "위시에 담김" : "위시에 담기"} style={{ padding: 4 }}>
+                    {inWish ? <BookmarkIcon size={17} stroke={C.brick} fill={C.brick} /> : <BookmarkIcon size={17} stroke={C.faint} strokeWidth={1.6} />}
                   </Pressable>
                 )}
               </View>

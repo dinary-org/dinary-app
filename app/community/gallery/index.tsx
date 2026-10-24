@@ -5,9 +5,8 @@ import { Text } from "@/components/Text";
 import { SearchLineIcon } from "@/components/icons";
 import { usePersonalRows } from "@/data/queries";
 import { useGalleryFeed, useGalleryToday, useIsAdmin, type GallerySort } from "@/features/community/api";
-import { guLabel, guOf } from "@/features/community/BoardPost";
 import { GalleryGrid } from "@/features/community/GalleryGrid";
-import { CommunityHeader, FilterChips, K, RoundButton, TitleBlock } from "@/features/community/ui";
+import { CommunityHeader, FilterChips, RoundButton, TitleBlock } from "@/features/community/ui";
 import { C, F } from "@/theme";
 
 const MIN_VERIFIED = 5;
@@ -22,17 +21,12 @@ export default function GalleryHome() {
   const { data: isAdmin } = useIsAdmin();
   const { data: today = 0 } = useGalleryToday();
   const [sort, setSort] = useState<GallerySort>("latest");
-  const [nearOnly, setNearOnly] = useState(false);
 
-  // my_verified_count 와 같은 기준 · 내 동네는 가장 최근 인증 기록의 구(게시판과 같게).
+  // my_verified_count 와 같은 기준.
   const verified = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null), [rows]);
-  const myGu = useMemo(() => {
-    const latest = [...verified].filter((r) => r.verified_at && guOf(r.address)).sort((a, b) => (a.verified_at! < b.verified_at! ? 1 : -1))[0];
-    return latest ? guOf(latest.address) : null;
-  }, [verified]);
   const canPost = verified.length >= MIN_VERIFIED || !!isAdmin;
 
-  const { data: photos = [], refetch, isRefetching } = useGalleryFeed({ sort, gu: nearOnly ? myGu : null });
+  const { data: photos = [], refetch, isRefetching } = useGalleryFeed({ sort });
 
   const header = (
     <View style={{ paddingBottom: 14 }}>
@@ -45,15 +39,6 @@ export default function GalleryHome() {
         value={sort}
         onChange={setSort}
         options={[{ id: "latest", label: "최신" }, { id: "popular", label: "이번 주 인기" }, { id: "friends", label: "친구" }]}
-        trailing={myGu ? (
-          <Pressable
-            onPress={() => setNearOnly((v) => !v)}
-            accessibilityState={{ selected: nearOnly }}
-            style={{ height: 32, borderRadius: 16, paddingHorizontal: 13, justifyContent: "center", borderWidth: 1, borderStyle: nearOnly ? "solid" : "dashed", borderColor: nearOnly ? C.brick : K.dashed, backgroundColor: nearOnly ? C.brickSoft : "transparent" }}
-          >
-            <Text style={{ fontFamily: F.sans, fontSize: 12, color: nearOnly ? C.brick : C.muted }}>{nearOnly ? `${guLabel(myGu)}만 ✕` : `${guLabel(myGu)}만`}</Text>
-          </Pressable>
-        ) : undefined}
       />
     </View>
   );

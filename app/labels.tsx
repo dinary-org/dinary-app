@@ -37,8 +37,13 @@ export default function Labels() {
   const labels = earnedLabels(rows);
   const bowls = labels.filter((l) => l.group === "bowl");
   const stamps = stampRows(rows).length;
-  const stories = labels.filter((l) => l.group === "story");
   const seen = useSeenLabels(account?.userId, labels.filter((l) => l.earned).map((l) => l.id), isSuccess);
+  // 이야기 — 받은 것 먼저(새로 받은 것 맨 위), 그다음 많이 채운 순. 처음엔 STORY_FOLD 개만, 나머지는 「더 보기」.
+  const stories = labels
+    .filter((l) => l.group === "story")
+    .sort((a, b) => Number(b.earned) - Number(a.earned) || Number(b.earned && seen.isNew(b.id)) - Number(a.earned && seen.isNew(a.id)) || b.have / b.need - a.have / a.need);
+  const [allStories, setAllStories] = useState(false);
+  const shownStories = allStories ? stories : stories.slice(0, STORY_FOLD);
   // 인증 기록이 한 건이라도 있는 구는 모두 — 칭호를 받기 전이면 회색으로 다음 칭호까지 보여 줍니다.
   const districts = regionTitles(rows);
   // 투어 칭호 — 받은 것 먼저, 그다음 진행 중인 투어. 받지 못한 채 끝난 투어는 숨깁니다.
@@ -119,7 +124,7 @@ export default function Labels() {
 
         <SectionHead title="이야기" right={`${stories.filter((l) => l.earned).length} / ${stories.length}`} />
         <View style={{ marginTop: 10, borderRadius: 18, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, overflow: "hidden" }}>
-          {stories.map((l, i) => {
+          {shownStories.map((l, i) => {
             const fresh = l.earned && seen.isNew(l.id);
             return (
               <Pressable
@@ -149,6 +154,12 @@ export default function Labels() {
             );
           })}
         </View>
+
+        {stories.length > STORY_FOLD && (
+          <Pressable onPress={() => setAllStories((v) => !v)} hitSlop={6} style={{ marginTop: 10, alignSelf: "center", paddingVertical: 6, paddingHorizontal: 14 }}>
+            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>{allStories ? "접기 ⌃" : `${stories.length - STORY_FOLD}개 더 보기 ⌄`}</Text>
+          </Pressable>
+        )}
 
         <SectionHead title="동네 칭호" right={`${districts.filter((t) => t.tier).length}`} />
         {districts.length > 0 ? (
@@ -311,6 +322,8 @@ function StampCard({ stamps, bowls, titleId, isNew, onOpen, onLongPress }: {
     </View>
   );
 }
+
+const STORY_FOLD = 8;
 
 const SectionHead = ({ title, right }: { title: string; right: string }) => (
   <View style={{ paddingTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>

@@ -29,6 +29,7 @@ const dateOf = (r: Restaurant) => (recordTime(r) ?? "").slice(0, 10);
 const dayOf = (d: string) => Date.parse(`${d}T00:00:00Z`);
 const validDay = (d: string) => /^\d{4}-\d{2}-\d{2}$/.test(d) && Number.isFinite(dayOf(d));
 const dayDiff = (a: string, b: string) => Math.round((dayOf(b) - dayOf(a)) / 86400000);
+const dottedDay = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8, 10))}일`;
 const placeKey = (r: Restaurant) => r.place_key ?? `${r.name}|${r.address ?? ""}`.toLowerCase();
 
 /**
@@ -63,6 +64,9 @@ function bragOf(def: LabelDef, journey: Restaurant[]): Line {
     case "weeks": return [{ t: `${n}주 연속`, em: true }, { t: " 매주 기록했어요" }];
     case "explorer": return [{ t: "서로 다른 가게 " }, { t: `${n}곳`, em: true }, { t: "을 찾아냈어요" }];
     case "december": return [{ t: "12월 기록 " }, { t: `${n}개`, em: true }, { t: "를 채웠어요" }];
+    case "shortform": return [{ t: "릴스 · 쇼츠에서 보고 담은 곳 " }, { t: `${n}곳`, em: true }, { t: "을 다녀왔어요" }];
+    case "threemeals": return [{ t: "하루에 " }, { t: `${n}끼`, em: true }, { t: "를 기록했어요" }];
+    case "feast": return [{ t: "메뉴를 세 개 이상 적은 기록 " }, { t: `${n}개`, em: true }, { t: "를 채웠어요" }];
     default: return [{ t: def.desc, em: true }, { t: `${josa(def.desc, eulReul)} 달성했어요` }];
   }
 }
@@ -98,6 +102,9 @@ function howOf(def: LabelDef, journey: Restaurant[]): Line {
     case "weeks": return [{ t: `${n} 주`, em: true }, { t: " 연속으로 매주 기록을 남기셨네요?" }];
     case "explorer": return [{ t: "서로 다른 가게를 " }, ...many(`${n} 곳`), { t: " 찾아내셨네요?" }];
     case "december": return [{ t: "12월에 남긴 기록이 " }, ...many(`${n} 개`), { t: " 되네요?" }];
+    case "shortform": return [{ t: "릴스 · 쇼츠에서 보고 담은 곳을 " }, ...many(`${n} 곳`), { t: " 다녀오셨네요?" }];
+    case "threemeals": return [{ t: `${journey[0]?.visited_at ? dottedDay(journey[0].visited_at) : "하루"}에 ` }, { t: `${n} 끼`, em: true }, { t: "를 다 기록하셨네요!" }];
+    case "feast": return [{ t: "메뉴를 세 개 이상 적은 기록이 " }, ...many(`${n} 개`), { t: " 되네요?" }];
     default: return [{ t: def.desc, em: true }, { t: `${josa(def.desc, eulReul)} 채우셨네요!` }];
   }
 }

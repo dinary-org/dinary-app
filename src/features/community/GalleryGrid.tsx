@@ -10,7 +10,7 @@ const GAP = 3;
 
 /**
  * 갤러리 3칸 격자(HANDOFF-gallery 01) — 사진만, 칸 사이 3px, 정사각. 인증 기록 사진은 오른쪽 위 ✓.
- * 처음 누르면 그 칸에 정보(가게 · 메뉴 · ♥ · 댓글 · 보기 ›), 같은 칸을 한 번 더 누르면 사진 보기.
+ * 처음 누르면 그 칸에 정보(가게 · 메뉴 · ♥ · 댓글 · 보기 ›), 같은 칸을 한 번 더 누르면 정보를 닫고 사진만 — 자세히는 「보기 ›」로.
  * 다른 칸을 누르면 정보가 그 칸으로 옮겨 가고(한 번에 한 칸), 스크롤하면 닫힙니다.
  */
 export function GalleryGrid({
@@ -47,12 +47,11 @@ export function GalleryGrid({
         return (
           <Pressable
             onPress={() => {
-              if (on) { open(p.id); return; }
               Haptics.selectionAsync();
-              setPicked(p.id);
+              setPicked(on ? null : p.id);
             }}
             accessibilityLabel={`${p.place_name}${p.menu ? ` · ${p.menu}` : ""}`}
-            accessibilityHint={on ? "한 번 더 누르면 사진을 엽니다" : "누르면 가게 · 메뉴가 보입니다"}
+            accessibilityHint={on ? "한 번 더 누르면 정보를 닫습니다" : "누르면 가게 · 메뉴가 보입니다"}
             style={{ width: size, height: size, backgroundColor: "#ece7dc" }}
           >
             <SignedImage uri={p.photo_ref} style={{ width: "100%", height: "100%" }} resizeMode="cover" />

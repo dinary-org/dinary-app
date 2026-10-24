@@ -558,7 +558,10 @@ export default function MapTab() {
       )}
 
       <View style={s.countRow}>
-        <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>{`${filtered.length}곳 기록 ${visitCount}`}</Text>
+        <View style={{ flexShrink: 1, flexDirection: "row", gap: 10 }}>
+          <Text numberOfLines={1} style={s.count}>{`${KINDS.find((o) => o.value === kind)?.label} ${filtered.length}곳`}</Text>
+          <Text numberOfLines={1} style={s.count}>{`기록 ${visitCount}`}</Text>
+        </View>
         <Pressable onPress={() => setSortOpen(true)} accessibilityLabel={`정렬: ${sortLabel}`} hitSlop={{ top: 12, bottom: 12, left: 8 }} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
           <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.ink }}>{sortLabel}</Text>
           <ChevronDownIcon />
@@ -889,6 +892,7 @@ const s = StyleSheet.create({
   },
   headRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 4, paddingBottom: 14 },
   countRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 4, paddingBottom: 10 },
+  count: { fontFamily: F.sans, fontSize: 12.5, color: C.faint },
   compactRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
   h: { fontFamily: F.serif, fontSize: 21, color: C.ink },
   iconBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card, alignItems: "center", justifyContent: "center" },

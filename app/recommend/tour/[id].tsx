@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PaperMap } from "@/components/PaperMap";
 import { report } from "@/features/community/api";
 import { useMyTours, useRecPoint, useTourDetail, useTourWeekly, type Tour, type TourPlace } from "@/features/recommend/api";
-import { BackPill, HereMarker, KakaoLink, NumberMarker, REC, Stamp } from "@/features/recommend/ui";
+import { BackPill, HereMarker, NumberMarker, REC, Stamp } from "@/features/recommend/ui";
 import { metersBetweenLL } from "@/lib/geo";
 import { formatDistance } from "@/lib/distance";
 import { pctOf } from "@/lib/recommend";
@@ -70,9 +70,6 @@ export default function TourDetail() {
           <Text style={{ flex: 1, fontFamily: F.serif, fontSize: 24, color: C.ink }}>{t.title}</Text>
           <Text style={{ fontFamily: F.mono, fontSize: 20, fontWeight: "700", color: C.brick }}>{done}/{t.need}</Text>
         </View>
-        <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 12.5, lineHeight: 19, color: C.muted }}>
-          {t.region ? `${t.region} ` : ""}후보 {t.total}곳 중 아무 곳이나 {t.need}곳을 인증하면 완주예요.
-        </Text>
 
         {/* 도장 */}
         <View style={{ marginTop: 16, borderRadius: 20, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 16, flexDirection: "row", alignItems: "center", gap: 14 }}>
@@ -106,7 +103,7 @@ export default function TourDetail() {
                       </View>
                     )}
                   </View>
-                  {!!p.place_url && <KakaoLink url={p.place_url} />}
+                  {!!p.address && <Text numberOfLines={1} style={{ marginTop: 2, fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>{p.address}</Text>}
                 </View>
                 {p.my_first_at ? (
                   <View style={{ borderRadius: 12, borderWidth: 1.2, borderStyle: "dashed", borderColor: C.brick, paddingHorizontal: 8, paddingVertical: 3 }}>
@@ -122,16 +119,12 @@ export default function TourDetail() {
           })}
         </View>
 
-        <Text style={{ marginTop: 16, fontFamily: F.sans, fontSize: 11.5, lineHeight: 18, color: C.faint }}>
-          {trend ? (
-            <>
-              방송 출연 정보는 외부 자료예요. 틀린 곳은{" "}
-              <Text onPress={flag} style={{ color: C.brick, textDecorationLine: "underline" }}>알려 주세요</Text>. 후보 선정에 유료 입점은 받지 않습니다.
-            </>
-          ) : (
-            `어느 ${t.need}곳을 갈지는 내가 고릅니다. 후보는 인증 데이터로만 고르고 유료 입점을 받지 않습니다.`
-          )}
-        </Text>
+        {trend && (
+          <Text style={{ marginTop: 16, fontFamily: F.sans, fontSize: 11.5, lineHeight: 18, color: C.faint }}>
+            방송 출연 정보는 외부 자료예요. 틀린 곳은{" "}
+            <Text onPress={flag} style={{ color: C.brick, textDecorationLine: "underline" }}>알려 주세요</Text>. 후보 선정에 유료 입점은 받지 않습니다.
+          </Text>
+        )}
       </ScrollView>
 
       <View style={{ paddingHorizontal: 22, paddingTop: 10, paddingBottom: insets.bottom + 12, borderTopWidth: 1, borderColor: C.lineSoft }}>

@@ -105,18 +105,18 @@ export const tourTone = (t: Pick<Tour, "kind" | "done" | "need">) =>
 /** 「2월까지」 */
 const untilOf = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8, 10))}일까지`;
 
-/** 투어 · 인증마크 모으기(§6-2) — 208px 카드 가로 스크롤. */
+/** 투어(§6-2) — 208px 카드 가로 스크롤. */
 function Tours({ tours }: { tours: Tour[] }) {
   const router = useRouter();
   return (
     <View>
-      <SectionHead title="투어 · 인증마크 모으기" right={`전체 ${tours.length}`} />
+      <SectionHead title="투어" right={`전체 ${tours.length}`} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10, marginHorizontal: -22 }} contentContainerStyle={{ paddingHorizontal: 22, gap: 10 }}>
         {tours.map((t) => {
           const tone = tourTone(t);
           const foot = t.kind === "trend" && t.revisit_rate != null
             ? `방송 후 재방문율 ${pctOf(t.revisit_rate)}%`
-            : t.finishers != null ? `완주 ${t.finishers.toLocaleString()}명` : "완주자를 기다리는 중";
+            : t.finishers != null ? `완주 ${t.finishers.toLocaleString()}명` : "완주 0명";
           return (
             <Pressable
               key={t.id}

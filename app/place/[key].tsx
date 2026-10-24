@@ -84,11 +84,13 @@ export default function PlaceRoute() {
           )}
 
           <View style={{ marginTop: 20, gap: 8 }}>
-            <Button label="기록 추가" onPress={revisit} />
-            <Pressable onPress={addWish} style={{ minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center" }}>
-              <BookmarkIcon size={14} fill={C.brick} stroke={C.brick} />
-              <Text style={{ fontFamily: F.sans, fontSize: 13.5, color: C.ink }}>또 갈 예정으로 담기</Text>
-            </Pressable>
+            {/* 기록 추가 옆에 「또 갈 예정으로 담기」를 책갈피 단추로 */}
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Button style={{ flex: 1 }} label="기록 추가" onPress={revisit} />
+              <Pressable onPress={addWish} accessibilityLabel="또 갈 예정으로 담기" style={{ width: 50, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", alignItems: "center", justifyContent: "center" }}>
+                <BookmarkIcon size={18} fill={C.brick} stroke={C.brick} />
+              </Pressable>
+            </View>
           </View>
 
           <View style={{ marginTop: 26, paddingTop: 18, borderTopWidth: 1, borderTopColor: "#ded8cb", flexDirection: "row", justifyContent: "space-between" }}>

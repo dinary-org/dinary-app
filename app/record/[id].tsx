@@ -411,14 +411,16 @@ export default function RecordRoute() {
           {!!error && <Text style={{ marginTop: 16, fontFamily: F.sans, fontSize: 12, color: "#a8412a" }}>{error}</Text>}
 
           {!readOnly && <View style={{ marginTop: 20, gap: 8 }}>
-            <Button label="기록 추가" onPress={revisit} />
-            <Pressable onPress={addWish} style={{ minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center" }}>
-              <BookmarkIcon size={14} fill={C.brick} stroke={C.brick} />
-              <Text style={{ fontFamily: F.sans, fontSize: 13.5, color: C.ink }}>또 갈 예정으로 담기</Text>
-            </Pressable>
+            {/* 기록 추가 옆에 「또 갈 예정으로 담기」를 책갈피 단추로 */}
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Button style={{ flex: 1 }} label="기록 추가" onPress={revisit} />
+              <Pressable onPress={addWish} accessibilityLabel="또 갈 예정으로 담기" style={{ width: 50, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", alignItems: "center", justifyContent: "center" }}>
+                <BookmarkIcon size={18} fill={C.brick} stroke={C.brick} />
+              </Pressable>
+            </View>
             {canEdit && <View style={{ flexDirection: "row", gap: 8 }}>
               <Button style={{ flex: 1, borderColor: "#e4dfd3" }} kind="line" label="기록 수정" onPress={() => router.push({ pathname: "/record/edit", params: { id: String(record.id) } })} />
-              <Pressable onPress={remove} disabled={busy} style={{ minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#e4dfd3", paddingHorizontal: 18, justifyContent: "center", opacity: busy ? 0.5 : 1 }}>
+              <Pressable onPress={remove} disabled={busy} style={{ flex: 1, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#e4dfd3", alignItems: "center", justifyContent: "center", opacity: busy ? 0.5 : 1 }}>
                 <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>지우기</Text>
               </Pressable>
             </View>}

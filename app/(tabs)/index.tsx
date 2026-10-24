@@ -757,7 +757,7 @@ export default function MapTab() {
           ListHeaderComponent={header}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
-          renderItem={({ item }: { item: Place }) => <PlaceCard place={item} onOpen={() => openPlace(item)} couple={coupleInfo(item)} />}
+          renderItem={({ item }: { item: Place }) => <PlaceCard place={item} onOpen={() => openPlace(item)} couple={coupleInfo(item)} noComment />}
           ListEmptyComponent={
             <Text style={{ paddingHorizontal: 20, paddingVertical: 44, textAlign: "center", fontFamily: F.sans, fontSize: 12.5, lineHeight: 22, color: C.faint }}>
               {"조건에 맞는 기록이 없습니다.\n필터를 지우거나 다른 낱말로 찾아보세요."}

@@ -23,8 +23,8 @@ const badgeText: TextStyle = { lineHeight: 13, ...(Platform.OS === "android" ? {
 /** Android 는 lineHeight 가 없으면 Noto Sans KR 의 큰 글꼴 여백(약 2.9배)을 줄마다 더해 줄 사이가 벌어집니다 — 줄 높이를 고정하고 여백을 끕니다. */
 const tight: TextStyle | null = Platform.OS === "android" ? { includeFontPadding: false } : null;
 
-/** 같은 이름의 방문 기록을 하나로 묶은 카드. onShare 를 주면 오른쪽 아래에 공유 단추(그날 화면). */
-export default function PlaceCard({ place, onOpen, couple, onShare }: { place: Place; onOpen: () => void; couple?: CoupleCardInfo; onShare?: () => void }) {
+/** 같은 이름의 방문 기록을 하나로 묶은 카드. onShare 를 주면 오른쪽 아래에 공유 단추(그날 화면). noComment 면 한 줄평을 빼고(지도 시트). */
+export default function PlaceCard({ place, onOpen, couple, onShare, noComment }: { place: Place; onOpen: () => void; couple?: CoupleCardInfo; onShare?: () => void; noComment?: boolean }) {
   // 리뷰 맨 앞에 적힌 「재방문.」은 이름 옆 배지와 겹치니 빼고 한 줄평만 보입니다.
   const comment = place.latest.review?.replace(/^재방문\s*[.·,:]\s*/, "") || "기록을 아직 쓰지 않았습니다";
   return (
@@ -78,7 +78,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare }: { place: P
             <Pair me={couple.me} partner={couple.partner} size={20} overlap={6} meEmpty={!couple.meWrote} partnerEmpty={!couple.partnerWrote} />
             <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 11, color: couple.meWrote && couple.partnerWrote ? C.muted : C.faint }}>{coupleStatus(couple)}</Text>
           </View>
-        ) : (
+        ) : !noComment && (
           <Text numberOfLines={2} style={{ marginTop: 3, fontFamily: F.serif, fontSize: 11.5, lineHeight: 17, color: "#4d4842" }}>{comment}</Text>
         )}
       </View>

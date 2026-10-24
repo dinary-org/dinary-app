@@ -4,10 +4,11 @@ import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Text, View } fr
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PaperMap } from "@/components/PaperMap";
 import { report } from "@/features/community/api";
+import { K } from "@/features/community/ui";
+import { useAddWish, type WishResult } from "@/features/community/useAddWish";
 import { useMyTours, useRecPoint, useTourDetail, useTourWeekly, type Tour, type TourPlace } from "@/features/recommend/api";
 import { BackPill, HereMarker, NumberMarker, REC, Stamp } from "@/features/recommend/ui";
 import { metersBetweenLL } from "@/lib/geo";
-import { formatDistance } from "@/lib/distance";
 import { pctOf } from "@/lib/recommend";
 import { C, F } from "@/theme";
 
@@ -33,6 +34,8 @@ export default function TourDetail() {
   const trend = t?.kind === "trend";
   const { data: weekly = [] } = useTourWeekly(id, trend);
   const [mapOpen, setMapOpen] = useState(false);
+  const { add: addWish, sheet: wishSheet } = useAddWish();
+  const [wished, setWished] = useState<Record<string, WishResult>>({});
 
   // 가까운 순 — 자리를 모르면 받은 순서 그대로.
   const sorted = useMemo(() => {
@@ -54,6 +57,11 @@ export default function TourDetail() {
   const done = Math.min(t.done, t.need);
   const crowd = [t.finishers != null && `완주 ${t.finishers.toLocaleString()}명`, t.in_progress != null && `진행 중 ${t.in_progress.toLocaleString()}명`].filter(Boolean).join(" · ");
   const label = trend ? `TOUR · 화제${t.aired_at ? ` · ${airedOf(t.aired_at)}` : ""}` : `TOUR${t.region ? ` · ${t.region}` : ""}`;
+
+  async function wish(p: TourPlace) {
+    const res = await addWish({ name: p.name, where_text: p.address, category: p.category, lat: p.lat, lng: p.lng, source: t ? `${t.title} 투어` : "투어" }).catch(() => null);
+    if (res) setWished((w) => ({ ...w, [p.place]: res }));
+  }
 
   const flag = () =>
     Alert.alert("틀린 곳 알려 주기", "방송 출연 정보가 틀렸거나 문을 닫은 곳이 있나요?", [
@@ -110,9 +118,13 @@ export default function TourDetail() {
                     <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.brick }}>✓ {dotted(p.my_first_at)}</Text>
                   </View>
                 ) : (
-                  <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.muted }}>
-                    {[p.distance != null && formatDistance(p.distance), p.revisit_rate != null && `재방문 ${pctOf(p.revisit_rate)}%`].filter(Boolean).join(" · ")}
-                  </Text>
+                  <Pressable
+                    disabled={!!wished[p.place]}
+                    onPress={() => wish(p)}
+                    style={{ minHeight: 30, borderRadius: 15, borderWidth: 1, borderColor: K.brickLine, paddingHorizontal: 11, justifyContent: "center", backgroundColor: wished[p.place] ? C.brickSoft : "transparent" }}
+                  >
+                    <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>{wished[p.place] === "added" ? "✓ 위시에 담음" : wished[p.place] === "exists" ? "이미 담아둔 곳" : "+ 위시에 담기"}</Text>
+                  </Pressable>
                 )}
               </View>
             );
@@ -134,6 +146,7 @@ export default function TourDetail() {
       </View>
 
       <TourMap visible={mapOpen} places={sorted} onClose={() => setMapOpen(false)} />
+      {wishSheet}
     </View>
   );
 }

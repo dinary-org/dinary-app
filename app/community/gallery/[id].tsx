@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Alert, Animated, KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChatIcon, HeartIcon } from "@/components/icons";
 import {
@@ -105,7 +105,7 @@ export default function GalleryPhotoScreen() {
   const preview = flat.slice(-2);
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: C.paper }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper }}>
       {header}
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
         <Pressable onPress={tapPhoto} accessibilityLabel="사진 · 두 번 누르면 좋아요" style={{ width, height: width, backgroundColor: "#ece7dc" }}>

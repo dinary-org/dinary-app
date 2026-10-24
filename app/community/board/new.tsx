@@ -156,7 +156,7 @@ export default function BoardCompose() {
   );
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: C.paper }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper }}>
       <View style={{ paddingTop: Platform.OS === "ios" ? 10 : insets.top + 8, paddingHorizontal: 20 }}>
         {Platform.OS === "ios" && <View style={{ alignSelf: "center", width: 36, height: 4, borderRadius: 2, backgroundColor: C.line }} />}
         <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>

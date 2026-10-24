@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackButton, Button, Eyebrow, fieldStyle } from "@/components/ui";
 import { cleanCode, joinBook, peekInvite, useActiveBook, type InvitePeek } from "@/data/books";
@@ -54,7 +54,7 @@ export default function CoupleJoin() {
   const inviterName = peek?.inviter.nickname?.trim() || "상대";
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.paper }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.paper }} behavior="padding">
       <View style={{ paddingTop: insets.top + 6, paddingHorizontal: 14 }}>
         <BackButton />
       </View>

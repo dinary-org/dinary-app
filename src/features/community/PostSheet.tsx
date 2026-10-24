@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Modal, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { FlatList, KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { CameraIcon } from "@/components/icons";
@@ -259,9 +259,10 @@ export default function PostSheet({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(28,26,23,.42)" }}>
+      {/* 키보드가 올라오면 시트를 그 위로 줄여 「한 줄」 칸이 가려지지 않게 — BottomSheetModal 과 같은 방식. */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(28,26,23,.42)" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="닫기" />
-        <View style={[{ height: sheetH, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: insets.bottom + 16 }, SHADOW.sheet]}>
+        <View style={[{ height: sheetH, flexShrink: 1, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: insets.bottom + 16 }, SHADOW.sheet]}>
           <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: "#d6d0c4" }} />
           <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
             {step === 2 && startRecordId == null && (
@@ -293,7 +294,7 @@ export default function PostSheet({
             </View>
           )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
       <CloseFriendsSheet
         visible={editingClose}
         friends={friends}

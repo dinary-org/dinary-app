@@ -1,4 +1,4 @@
-import { Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
+import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, type TextStyle, View, type ViewStyle } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VerifiedMark } from "./icons";
@@ -138,17 +138,18 @@ export function BottomSheetModal({
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: `rgba(28,26,23,${dim})` }}>
+      {/* 키보드가 올라오면 시트도 그 위로 — 모달은 창이 줄지 않아(안드로이드 edge-to-edge 포함) 직접 띄웁니다. 키가 크면 시트가 상태줄 아래까지 줄어듭니다. */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: "flex-end", paddingTop: insets.top, backgroundColor: `rgba(28,26,23,${dim})` }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="닫기" />
         <View
           style={[
-            { backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18, paddingBottom: insets.bottom + 20 },
+            { flexShrink: 1, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18, paddingBottom: insets.bottom + 20 },
             SHADOW.sheet,
           ]}
         >
           {children}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -1,7 +1,7 @@
 import { useSession } from "@/data/session";
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Linking, Pressable, ScrollView, Text, View } from "react-native";
+import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { MapPinIcon } from "@/components/icons";
@@ -194,9 +194,13 @@ export default function RecommendTab() {
         )}
       </View>
 
+      {/* 게임의 입력칸(칸 더하기 · 참가자 이름)이 키보드에 가리지 않게 — iOS 는 스크롤 여백, 안드로이드는 키보드만큼 줄입니다. */}
+      <KeyboardAvoidingView behavior={Platform.OS === "android" ? "padding" : undefined} style={{ flex: 1 }}>
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1, paddingTop: 14, paddingHorizontal: 22, paddingBottom: TAB_BAR_H + insets.bottom + 18 }}
         showsVerticalScrollIndicator={false}
         scrollEnabled={!mapTouch}
@@ -227,6 +231,7 @@ export default function RecommendTab() {
           <BrowseMode courses={courses} tours={tours} revisits={revisits} />
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <PointSheet
         visible={pointSheet}

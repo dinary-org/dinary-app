@@ -299,7 +299,7 @@ export default function EditRoute() {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.paper }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.paper }} behavior="padding">
       <View style={[s.bar, { paddingTop: insets.top + 6 }]}>
         <Pressable onPress={() => router.back()} style={s.barBtn}><Text style={[s.barText, { color: C.faint }]}>취소</Text></Pressable>
         <Text style={s.barTitle}>{isNew ? "NEW RECORD" : "EDIT RECORD"}</Text>

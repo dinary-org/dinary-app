@@ -63,7 +63,7 @@ export function PointSheet({
 
   return (
     <BottomSheetModal visible={visible} onClose={onClose} dim={0.38}>
-      <ScrollView style={{ maxHeight: Dimensions.get("window").height * 0.72 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flexShrink: 1, maxHeight: Dimensions.get("window").height * 0.72 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={{ fontFamily: F.serif, fontSize: 20, color: C.ink }}>언제 · 어디서 드세요?</Text>
         <Pressable onPress={() => { setDraftPlace(null); setDraftAt(null); }} hitSlop={10} accessibilityRole="button">

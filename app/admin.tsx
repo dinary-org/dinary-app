@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   adminCreateNotice, adminDeleteNotice, adminHideComment, adminHideGalleryComment, adminHideGalleryPhoto, adminHidePost, adminRankUnban, adminResolveReport, adminSanction, adminSaveTheme, adminUpdateNotice, createPost,
@@ -23,7 +23,7 @@ export default function AdminScreen() {
   const [section, setSection] = useState<Section>(tab ?? "reports");
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: C.paper }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper }}>
       <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", gap: 10 }}>
         <Pressable onPress={() => router.back()} hitSlop={10} accessibilityLabel="뒤로"><Text style={{ fontFamily: F.sans, fontSize: 20, color: C.muted }}>‹</Text></Pressable>
         <Text style={{ fontFamily: F.serif, fontSize: 20, color: C.ink }}>운영</Text>

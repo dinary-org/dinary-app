@@ -109,7 +109,7 @@ export default function WishGroupRoute() {
   const strip = sourceStrip({ url: draft.url, kind: draft.kind, title: draft.title, author: draft.author });
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.paper }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.paper }} behavior="padding">
       <ScrollView scrollEnabled={scrollOn} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 30 }}>
         <View style={{ height: 44, justifyContent: "center" }}>
           <Pressable onPress={() => router.back()} hitSlop={8} style={{ position: "absolute", left: 0, paddingVertical: 8, zIndex: 1 }}>

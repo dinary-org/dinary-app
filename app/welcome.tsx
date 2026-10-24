@@ -2,7 +2,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { refreshAll } from "@/data/invalidate";
 import { uploadPhoto } from "@/lib/photos";
@@ -72,7 +72,7 @@ export default function Welcome() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: C.paper, paddingHorizontal: 30, paddingTop: insets.top + 54, paddingBottom: insets.bottom + 20 }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper, paddingHorizontal: 30, paddingTop: insets.top + 54, paddingBottom: insets.bottom + 20 }}>
       <Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 1.8, color: C.faint }}>STEP 1 / 1</Text>
       <Text style={{ marginTop: 12, fontFamily: F.serif, fontSize: 24, color: C.ink }}>어떻게 부를까요?</Text>
       <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12.5, lineHeight: 22, color: C.faint }}>기록장 맨 위에 쓰입니다. 나중에 바꿀 수 있습니다.</Text>

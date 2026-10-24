@@ -34,3 +34,15 @@ export function useIosKeyboardHeight(active = true) {
   }, [active]);
   return height;
 }
+
+/** 키보드가 떠 있는지 — 시트 아래 여백(홈 표시줄 몫)을 키보드가 있을 땐 줄일 때 씁니다. iOS 는 will, 안드로이드는 did 이벤트. */
+export function useKeyboardOpen(active = true) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!active) return;
+    const [show, hide] = Platform.OS === "ios" ? (["keyboardWillShow", "keyboardWillHide"] as const) : (["keyboardDidShow", "keyboardDidHide"] as const);
+    const subs = [Keyboard.addListener(show, () => setOpen(true)), Keyboard.addListener(hide, () => setOpen(false))];
+    return () => { subs.forEach((s) => s.remove()); setOpen(false); };
+  }, [active]);
+  return open;
+}

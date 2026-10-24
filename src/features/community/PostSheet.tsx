@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { CameraIcon } from "@/components/icons";
 import { BottomSheetModal, fieldStyle } from "@/components/ui";
-import { useIosKeyboardHeight } from "@/lib/keyboard";
+import { useIosKeyboardHeight, useKeyboardOpen } from "@/lib/keyboard";
 import { usePersonalRows } from "@/data/queries";
 import { photosOf } from "@/lib/record";
 import { coverPhoto, type Restaurant } from "@/lib/types";
@@ -128,6 +128,7 @@ export default function PostSheet({
   const closeFriends = friends.filter((f) => closeIds.includes(f.id));
   const sheetH = Math.min(690, winH - insets.top - 12);
   const iosKb = useIosKeyboardHeight(visible);
+  const kbOpen = useKeyboardOpen(visible);
   const tile = Math.floor((winW - 40 - 16) / 3);
 
   const stepOne = records.length === 0 ? (
@@ -265,7 +266,7 @@ export default function PostSheet({
       {/* 키보드가 올라오면 시트를 그 위로 줄여 「한 줄」 칸이 가려지지 않게 — BottomSheetModal 과 같은 방식. */}
       <KeyboardAvoidingView behavior="padding" enabled={Platform.OS === "android"} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(28,26,23,.42)" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="닫기" />
-        <View style={[{ height: sheetH, flexShrink: 1, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: iosKb ? 12 : insets.bottom + 16 }, SHADOW.sheet]}>
+        <View style={[{ height: sheetH, flexShrink: 1, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: kbOpen ? 6 : insets.bottom + 16 }, SHADOW.sheet]}>
           <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: "#d6d0c4" }} />
           <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
             {step === 2 && startRecordId == null && (

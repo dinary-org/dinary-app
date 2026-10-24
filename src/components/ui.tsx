@@ -1,6 +1,6 @@
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, type TextStyle, View, type ViewStyle } from "react-native";
 import { Text } from "@/components/Text";
-import { useIosKeyboardHeight } from "@/lib/keyboard";
+import { useIosKeyboardHeight, useKeyboardOpen } from "@/lib/keyboard";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VerifiedMark } from "./icons";
@@ -139,6 +139,8 @@ export function BottomSheetModal({
 }: { visible: boolean; onClose: () => void; children: React.ReactNode; dim?: number }) {
   const insets = useSafeAreaInsets();
   const iosKb = useIosKeyboardHeight(visible);
+  // 키보드가 떠 있으면 시트 바닥을 키보드에 바짝 — 홈 표시줄 몫 여백은 키보드가 가립니다.
+  const kbOpen = useKeyboardOpen(visible);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       {/* 키보드가 올라오면 시트도 그 위로 — 모달은 창이 줄지 않아(안드로이드 edge-to-edge 포함) 직접 띄웁니다. 키가 크면 시트가 상태줄 아래까지 줄어듭니다.
@@ -147,7 +149,7 @@ export function BottomSheetModal({
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="닫기" />
         <View
           style={[
-            { flexShrink: 1, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18, paddingBottom: iosKb ? 16 : insets.bottom + 20 },
+            { flexShrink: 1, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18, paddingBottom: kbOpen ? 6 : insets.bottom + 20 },
             SHADOW.sheet,
           ]}
         >

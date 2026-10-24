@@ -10,7 +10,7 @@ import type { RecResult, Relax } from "@/lib/rec/pipeline";
 import type { Scored } from "@/lib/rec/score";
 import type { MealSlot } from "@/lib/rec/time";
 import type { RecFilter } from "@/lib/recommend";
-import { C, F } from "@/theme";
+import { C, F, FAINT_BOLD } from "@/theme";
 import { openDirections } from "./api";
 import { logRec, rememberShown, type RecSession } from "./log";
 import { HereLegend, HereMarker, NumberMarker, REC } from "./ui";
@@ -279,7 +279,7 @@ function PickPage({ p, n, width, session }: { p: Scored; n: number; width: numbe
         <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: C.brick, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ fontFamily: F.mono, fontSize: 10, color: "#ffffff" }}>{n}</Text>
         </View>
-        <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.serif, fontSize: 22, color: C.ink }}>{p.c.name}</Text>
+        <Text numberOfLines={1} style={[FAINT_BOLD, { flex: 1, fontFamily: F.serif, fontSize: 22, color: C.ink }]}>{p.c.name}</Text>
         <Pressable onPress={go} accessibilityRole="button" style={{ height: 34, borderRadius: 17, backgroundColor: C.brick, paddingHorizontal: 13, justifyContent: "center" }}>
           <Text style={{ fontFamily: F.sansMd, fontSize: 12, color: C.card }}>여기로 갈게요</Text>
         </Pressable>

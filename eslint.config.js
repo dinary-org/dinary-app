@@ -11,5 +11,5 @@ module.exports = defineConfig([
     'react-hooks/set-state-in-effect': 'warn',
     'react-hooks/preserve-manual-memoization': 'warn',
   } },
-  { ignores: ['node_modules/**', '.expo/**'] },
+  { ignores: ['node_modules/**', '.expo/**', 'marketing/**'] },
 ]);

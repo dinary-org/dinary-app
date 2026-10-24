@@ -107,7 +107,7 @@ export default function Labels() {
           )}
         </View>
 
-        <SectionHead title="그릇 수" right={`${bowls.filter((l) => l.earned).length} / ${bowls.length}`} />
+        <SectionHead title="그릇" right={`${bowls.filter((l) => l.earned).length} / ${bowls.length}`} />
         <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
           {bowls.map((l) => {
             const fresh = l.earned && seen.isNew(l.id);
@@ -271,7 +271,7 @@ function LabelSheet({ label, rows, isTitle, onClose, onRecap }: {
 
 const SectionHead = ({ title, right }: { title: string; right: string }) => (
   <View style={{ paddingTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
-    <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>{title} · <Text style={{ fontFamily: F.mono, fontSize: 13 }}>{right}</Text></Text>
+    <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>{title} <Text style={{ fontFamily: F.mono, fontSize: 13 }}>{right}</Text></Text>
   </View>
 );
 

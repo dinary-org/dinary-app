@@ -85,7 +85,7 @@ export function OurStamps({ rows, notes, me, partner, bookId, readOnly }: {
       <View style={{ marginTop: 14, borderRadius: 20, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingVertical: 16, paddingHorizontal: 16 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
           <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>우리 도장</Text>
-          <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint }}>{board.board}장째 · {board.filled} / {STAMPS_PER_BOARD}</Text>
+          <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint }}>{board.total}그릇 · {board.filled} / {STAMPS_PER_BOARD}</Text>
         </View>
         <View style={{ marginTop: 14, alignSelf: "center", width: SIZE * 5 + GAP * 4, flexDirection: "row", flexWrap: "wrap", gap: GAP }}>
           {Array.from({ length: STAMPS_PER_BOARD }, (_, k) => onBoard[k]).map((s, k) =>

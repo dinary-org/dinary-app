@@ -46,8 +46,9 @@ export const stampRows = (rows: Restaurant[]) => live(rows).filter((r) => r.veri
 /** 도장 n번(1부터)이 찍힌 판 · 칸. 10번은 1장의 10칸. */
 export const stampSlot = (n: number) => ({ board: Math.ceil(n / STAMPS_PER_BOARD), slot: ((n - 1) % STAMPS_PER_BOARD) + 1 });
 
-/** 지금 채우는 판 — 도장 수 count 일 때 「N장째 · x / 10」과 채운 판 수. */
+/** 지금 채우는 판 — 도장 수 count 일 때 「N그릇 · x / 10」과 채운 판 수. */
 export const currentBoard = (count: number) => ({
+  total: count,
   board: Math.floor(count / STAMPS_PER_BOARD) + 1,
   filled: count % STAMPS_PER_BOARD,
   done: Math.floor(count / STAMPS_PER_BOARD),

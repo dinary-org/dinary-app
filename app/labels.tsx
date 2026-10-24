@@ -283,7 +283,7 @@ function StampCard({ stamps, bowls, titleId, isNew, onOpen, onLongPress }: {
     <View style={{ marginTop: 24, borderRadius: 22, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 18 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
         <Text style={{ fontFamily: F.serif, fontSize: 16, color: C.ink }}>도장판</Text>
-        <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{board.board}장째 · {board.filled} / {STAMPS_PER_BOARD}</Text>
+        <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{board.total}그릇 · {board.filled} / {STAMPS_PER_BOARD}</Text>
       </View>
       <View style={{ marginTop: 14, alignItems: "center" }}>
         <StampBoard filled={board.filled} firstNo={(board.board - 1) * STAMPS_PER_BOARD + 1} size={size} gap={8} numberEmpty />

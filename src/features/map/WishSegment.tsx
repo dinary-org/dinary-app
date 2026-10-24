@@ -162,7 +162,7 @@ export function WishRow({ item }: { item: WishItem }) {
           {!!meta && <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>{meta}</Text>}
         </View>
         {dated ? (
-          <Text style={{ borderRadius: 9, borderWidth: 1, borderStyle: "dashed", borderColor: C.brick, paddingHorizontal: 8, paddingVertical: 1, fontFamily: F.mono, fontSize: 10.5, color: C.brick, overflow: "hidden" }}>{monthDot(w.plan_date)}</Text>
+          datePill(w.plan_date)
         ) : (
           <Pressable onPress={() => setDating(true)} hitSlop={8}>
             <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.muted }}>날짜 정하기</Text>
@@ -186,7 +186,7 @@ export function WishRow({ item }: { item: WishItem }) {
 }
 
 const datePill = (d: string | null) => (
-  <Text style={{ borderRadius: 9, borderWidth: 1, borderStyle: "dashed", borderColor: C.brick, paddingHorizontal: 8, paddingVertical: 1, fontFamily: F.mono, fontSize: 10.5, color: C.brick, overflow: "hidden" }}>{monthDot(d)}</Text>
+  <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.brick }}>{monthDot(d)}</Text>
 );
 
 /**

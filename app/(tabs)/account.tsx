@@ -210,7 +210,7 @@ export function MyAccount() {
       >
         <Stamp size={40} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>도장판 {board.board}장째 · {board.filled} / {STAMPS_PER_BOARD}</Text>
+          <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>도장판 · {board.total}그릇 · {board.filled} / {STAMPS_PER_BOARD}</Text>
           <Text style={{ marginTop: 3, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>
             {bowl ? <>다음 라벨 {bowl.tier.name}까지 <Text style={{ fontFamily: F.mono, color: C.brick }}>{bowl.left}</Text></> : "모든 도장 라벨을 받았어요"}
           </Text>

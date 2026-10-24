@@ -97,13 +97,13 @@ export default function Labels() {
                   {account?.nickname || "나"}
                   <Text style={{ color: title.color }}> · {title.name}</Text>
                 </Text>
-                <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>받은 라벨 · 투어 칭호를 길게 누르면 대표 라벨이 바뀌어요</Text>
+                <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>라벨을 길게 누르면 대표 라벨이 바뀌어요</Text>
               </View>
             </>
           ) : (
             <>
               <View style={{ width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderStyle: "dashed", borderColor: "#cfc7b6" }} />
-              <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>받은 라벨 · 투어 칭호를 길게 누르면 대표 라벨로 붙어요</Text>
+              <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>라벨을 길게 누르면 대표 라벨로 붙어요</Text>
             </>
           )}
         </View>

@@ -213,10 +213,10 @@ export default function RecordRoute() {
   }
 
   function remove() {
-    Alert.alert(`"${record!.name}" 기록을 지울까요?`, undefined, [
+    Alert.alert(`"${record!.name}" 기록을 삭제할까요?`, undefined, [
       { text: "취소", style: "cancel" },
       {
-        text: "지우기",
+        text: "삭제",
         style: "destructive",
         onPress: async () => {
           setBusy(true);

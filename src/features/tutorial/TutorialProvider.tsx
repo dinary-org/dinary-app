@@ -2,10 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Dimensions } from "react-native";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { getUserItem, setUserItem, userKey } from "@/lib/userStore";
 import { STEPS, TUTORIAL_KEYS, type Step, type TutorialKey } from "./steps";
 
 /**
- * 첫 실행 튜토리얼 — 자리(ref) 등록부, 지금 보이는 튜토리얼 · 단계, 본 기록(AsyncStorage `tutorial.seen.<key>`).
+ * 첫 실행 튜토리얼 — 자리(ref) 등록부, 지금 보이는 튜토리얼 · 단계, 본 기록(계정마다 AsyncStorage `tutorial.seen.<key>:<userId>`).
  * 화면은 useTutorialTarget(id) 로 자리를 등록하고 useTabTutorial(key) 로 처음 들어왔을 때 띄워 달라고 합니다.
  * 그림은 뿌리의 CoachOverlay 가 그립니다.
  */
@@ -45,8 +46,8 @@ const measure = (node: Measurable) =>
     try { node.measureInWindow((x, y, w, h) => resolve(w > 0 && h > 0 && y < H - 40 && y + h > 40 ? { x, y, w, h } : null)); } catch { resolve(null); }
   });
 
-/** enabled — 로그인 · 닉네임까지 끝나고 부팅 화면이 걷혔을 때만 띄웁니다. couple — 연인 기록장이면 단계 글을 연인용으로. */
-export function TutorialProvider({ enabled, couple, children }: { enabled: boolean; couple: boolean; children: ReactNode }) {
+/** enabled — 로그인 · 닉네임까지 끝나고 부팅 화면이 걷혔을 때만 띄웁니다. couple — 연인 기록장이면 단계 글을 연인용으로. userId — 본 기록은 계정마다 따로. */
+export function TutorialProvider({ enabled, couple, userId, children }: { enabled: boolean; couple: boolean; userId: string | null; children: ReactNode }) {
   const router = useRouter();
   const targets = useRef(new Map<string, Measurable>());
   const [seen, setSeen] = useState<Set<TutorialKey> | null>(null);
@@ -56,11 +57,20 @@ export function TutorialProvider({ enabled, couple, children }: { enabled: boole
   const [measured, setMeasured] = useState<{ at: Active; holes: Hole[] } | null>(null);
   const holes = measured?.holes ?? null;
 
+  // 계정이 바뀌면(탈퇴 뒤 새 가입 · 다른 계정) 그 계정의 본 기록을 다시 읽습니다.
+  const userRef = useRef(userId);
   useEffect(() => {
-    void AsyncStorage.multiGet(TUTORIAL_KEYS.map(storeKey))
-      .then((pairs) => setSeen(new Set(TUTORIAL_KEYS.filter((_, i) => pairs[i]?.[1]))))
-      .catch(() => setSeen(new Set()));
-  }, []);
+    userRef.current = userId;
+    setSeen(null);
+    setActive(null);
+    setMeasured(null);
+    if (!userId) return;
+    let alive = true;
+    void Promise.all(TUTORIAL_KEYS.map((k) => getUserItem(userId, storeKey(k))))
+      .then((vals) => { if (alive) setSeen(new Set(TUTORIAL_KEYS.filter((_, i) => vals[i]))); })
+      .catch(() => { if (alive) setSeen(new Set()); });
+    return () => { alive = false; };
+  }, [userId]);
 
   const coupleRef = useRef(couple);
   useEffect(() => { coupleRef.current = couple; }, [couple]);
@@ -68,7 +78,8 @@ export function TutorialProvider({ enabled, couple, children }: { enabled: boole
     // 연인 기록장에서 본 지도 튜토리얼은 「다른 탭」에서 연인 탭까지 짚으니, 연인 안내도 본 것으로.
     const keys: TutorialKey[] = k === "map" && coupleRef.current ? ["map", "couple"] : [k];
     setSeen((s) => { const n = new Set(s ?? []); keys.forEach((x) => n.add(x)); return n; });
-    keys.forEach((x) => void AsyncStorage.setItem(storeKey(x), "1").catch(() => {}));
+    const uid = userRef.current;
+    if (uid) keys.forEach((x) => void setUserItem(uid, storeKey(x), "1").catch(() => {}));
   }, []);
 
   // 처음 들어온 화면의 튜토리얼 — 다른 튜토리얼(특히 지도)이 떠 있으면 띄우지 않습니다.
@@ -127,7 +138,8 @@ export function TutorialProvider({ enabled, couple, children }: { enabled: boole
   }, [active, step, next]);
 
   const restart = useCallback(() => {
-    void AsyncStorage.multiRemove(TUTORIAL_KEYS.map(storeKey)).catch(() => {});
+    const uid = userRef.current;
+    if (uid) void AsyncStorage.multiRemove(TUTORIAL_KEYS.map((k) => userKey(uid, storeKey(k)))).catch(() => {});
     setSeen(new Set());
     setActive(null);
     setMeasured(null);

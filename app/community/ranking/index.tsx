@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
@@ -12,6 +11,7 @@ import { CommunityHeader, K, MiniSegment, Pill, TitleBlock } from "@/features/co
 import { C, F, FAINT_BOLD, TAB_BAR_H } from "@/theme";
 import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 import { COMMUNITY_DELAY } from "@/features/tutorial/steps";
+import { getUserItem, setUserItem } from "@/lib/userStore";
 
 const ASKED_KEY = "community.ranking.asked";
 /** 랭킹은 주 단위로만 잽니다. */
@@ -31,15 +31,15 @@ export default function RankingScreen() {
   const listSpot = useTutorialTarget("community.ranking.list");
   const joinSpot = useTutorialTarget("community.ranking.join");
 
-  // 처음 들어올 때 한 번만 묻습니다(기본은 구경만).
+  // 계정마다 처음 들어올 때 한 번만 묻습니다(기본은 구경만).
   useEffect(() => {
     if (!account || account.leaderboardOptIn) return;
-    AsyncStorage.getItem(ASKED_KEY).then((v) => { if (!v) setAsking(true); }).catch(() => setAsking(true));
+    getUserItem(account.userId, ASKED_KEY).then((v) => { if (!v) setAsking(true); }).catch(() => setAsking(true));
   }, [account]);
 
   async function answer(on: boolean) {
     setAsking(false);
-    AsyncStorage.setItem(ASKED_KEY, "1").catch(() => {});
+    if (account) setUserItem(account.userId, ASKED_KEY, "1").catch(() => {});
     if (account && on !== account.leaderboardOptIn) await setOptIn(account.userId, on).catch(() => {});
   }
 

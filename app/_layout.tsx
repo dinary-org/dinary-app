@@ -227,7 +227,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   if (!fontsLoaded || session === undefined) return null;
 
   return (
-    <TutorialProvider enabled={signedIn && !showBoot} couple={isCouple}>
+    <TutorialProvider enabled={signedIn && !showBoot} couple={isCouple} userId={userId ?? null}>
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.paper } }}>
       <Stack.Screen name="(tabs)" />
       {/* 커뮤니티 — 들어갈 때는 전환 판이 덮고, 나갈 때(‹ 내 기록 · 밀기)는 판 없이 아래로 내려갑니다. */}

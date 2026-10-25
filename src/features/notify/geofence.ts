@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { AppState, Linking, Platform } from "react-native";
 import { showDialog } from "@/components/Dialog";
@@ -7,6 +6,8 @@ import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { metersBetweenLL } from "@/lib/geo";
+import { supabase } from "@/lib/supabase";
+import { getUserItem, setUserItem } from "@/lib/userStore";
 import { WISH_NEAR_M, type Wish } from "@/lib/types";
 import { CHANNEL, ensureChannel } from "./channel";
 
@@ -20,10 +21,16 @@ const MAX_REGIONS = 20;
 const SEP = "|";
 const DISCLOSURE_KEY = "wish-background-location-consent:v1";
 
+/** 근처 알림 안내에 「계속」을 누른 계정인지 — 계정마다 따로. 백그라운드에서도 저장된 세션으로 읽습니다. */
+async function consented() {
+  const uid = (await supabase.auth.getSession()).data.session?.user.id;
+  return !!uid && (await getUserItem(uid, DISCLOSURE_KEY)) === "accepted";
+}
+
 // 이 파일을 앱 진입점(루트 레이아웃)에서 import 해야 백그라운드에서도 태스크가 정의됩니다.
 TaskManager.defineTask<{ eventType: Location.GeofencingEventType; region: Location.LocationRegion }>(TASK, async ({ data, error }) => {
   if (error || !data) return;
-  if (await AsyncStorage.getItem(DISCLOSURE_KEY) !== "accepted") return;
+  if (!(await consented().catch(() => false))) return;
   if (data.eventType !== Location.GeofencingEventType.Enter) return;
   const [wishId, ...rest] = (data.region.identifier ?? "").split(SEP);
   const name = rest.join(SEP);
@@ -58,7 +65,9 @@ export async function askWishPermissions(): Promise<boolean> {
       [{ text: "취소", style: "cancel", onPress: () => resolve(false) }, { text: "계속", onPress: () => resolve(true) }],
     ));
     if (!consent) return false;
-    await AsyncStorage.setItem(DISCLOSURE_KEY, "accepted");
+    const uid = (await supabase.auth.getSession()).data.session?.user.id;
+    if (!uid) return false;
+    await setUserItem(uid, DISCLOSURE_KEY, "accepted");
     await ensureChannel();
     let n = await Notifications.getPermissionsAsync();
     if (!n.granted && n.canAskAgain) n = await Notifications.requestPermissionsAsync();
@@ -86,7 +95,7 @@ function explainDenied(): false {
 }
 
 async function hasGeofencePermissions() {
-  if (await AsyncStorage.getItem(DISCLOSURE_KEY) !== "accepted") return false;
+  if (!(await consented())) return false;
   const [n, fg, bg] = await Promise.all([
     Notifications.getPermissionsAsync(),
     Location.getForegroundPermissionsAsync(),

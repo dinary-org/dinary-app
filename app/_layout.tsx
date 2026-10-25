@@ -33,6 +33,7 @@ import { clearMonthWidget, syncMonthWidget } from "@/lib/widget";
 import { C } from "@/theme";
 import CoachOverlay from "@/features/tutorial/CoachOverlay";
 import { TutorialProvider } from "@/features/tutorial/TutorialProvider";
+import TestReplayButton from "@/features/tutorial/TestReplayButton";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -211,6 +212,8 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     {showBoot && <BootScreen key={bootOwner ?? "signed-out"} state={bootStatus} characterId={account && account.userId === userId ? account.characterId : undefined}
       fetching={books.isFetching} onRetry={() => { void books.refetch(); }}
       onCapture={session && account && account.userId === userId && account.nickname && account.termsAgreed ? () => { setCaptureEscape(true); router.push("/capture"); } : undefined} onHidden={hideBoot} />}
+    {/* TEMP(테스트용) 튜토리얼 다시 보기 단추 — 로그인 뒤 모든 화면 왼쪽 가운데 */}
+    {signedIn && !showBoot && <TestReplayButton />}
     {/* 첫 실행 튜토리얼 — 탭 · 시트 · 전환 판보다 위 */}
     <CoachOverlay />
     </TutorialProvider>

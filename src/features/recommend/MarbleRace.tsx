@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Dimensions, Pressable, View } from "react-native";
 import { Text } from "@/components/Text";
 import { C, F } from "@/theme";
 import { REC, type GameOption } from "./ui";
@@ -23,9 +23,14 @@ const SUBSTEPS = 4;
 const RELEASE_MS = 110;
 const AFTER_MS = 2500;
 const MAX_MS = 25000;
+/** 마지막 관문 슬로우모션 — 아직 아무도 안 들어왔을 때 앞선 구슬이 이 높이를 넘으면 시간을 이만큼 느리게. */
+const SLOW_Y = 440;
+const SLOW = 0.3;
 
 /** 구슬 색 — 앱 톤(벽돌 · 살구 · 겨자 · 올리브 · 청록 · 남색 · 자두 · 장미 · 모래 · 밤 · 하늘 · 먹). */
 const MARBLES = ["#b4552d", "#e08a63", "#d9a441", "#7d8a4a", "#4f7f7a", "#4f6b7a", "#7a4f6b", "#c9727d", "#c8ab83", "#6b4a33", "#8fb0c4", "#3b3733"];
+/** i 번째 칸의 구슬 색 — 칸 이름 옆 점도 같은 색. */
+export const marbleColor = (i: number) => MARBLES[i % MARBLES.length];
 
 type Pt = { x: number; y: number };
 type Seg = { a: Pt; b: Pt };
@@ -156,7 +161,6 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
   const [, setFrame] = useState(0);
   const [running, setRunning] = useState(false);
   const [winner, setWinner] = useState<number | null>(null);
-  const [rank, setRank] = useState<number[]>([]);
   const simT = useRef(0);
   const raf = useRef<number | null>(null);
 
@@ -169,7 +173,6 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
     simT.current = 0;
     setRunning(false);
     setWinner(null);
-    setRank([]);
     setFrame((f) => f + 1);
   }, [sig]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { if (raf.current != null) cancelAnimationFrame(raf.current); }, []);
@@ -183,7 +186,6 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
     balls.current = options.map(() => ({ x: CW / 2 + (Math.random() - 0.5) * 120, y: -BALL_R * 2, vx: (Math.random() - 0.5) * 60, vy: 0, on: false, done: false, still: 0 }));
     simT.current = 0;
     setWinner(null);
-    setRank([]);
     setRunning(true);
     onStart();
 
@@ -191,7 +193,9 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
     let firstAt: number | null = null;
     let last = performance.now();
     const tick = (now: number) => {
-      const dtMs = Math.min(33, now - last);
+      // 마지막 관문 앞 — 첫 구슬이 들어오기 전까지 느리게.
+      const slow = finished.length === 0 && balls.current.some((b) => b.on && !b.done && b.y > SLOW_Y);
+      const dtMs = Math.min(33, now - last) * (slow ? SLOW : 1);
       last = now;
       simT.current += dtMs;
       const t = simT.current;
@@ -213,7 +217,6 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             onDone(options[i]);
           } else Haptics.selectionAsync();
-          setRank([...finished]);
         }
       });
       const allDone = finished.length === bs.length;
@@ -245,13 +248,14 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
   const pegs = useMemo(() => PEGS.map((p, i) => (
     <View key={`p${i}`} style={{ position: "absolute", left: (p.x - PEG_R) * k, top: (p.y - PEG_R) * k, width: PEG_R * 2 * k, height: PEG_R * 2 * k, borderRadius: PEG_R * k, backgroundColor: "#d9cfc0" }} />
   )), [k]);
-  const place = (i: number) => rank.indexOf(i);
+  // 판이 화면 높이의 절반 남짓만 차지하게 폭을 줄입니다 — 칸 · 판 · 결과가 한 화면에.
+  const maxW = Math.min(320, (Dimensions.get("window").height * 0.52 * CW) / (CH + 14) + PAD * 2);
 
   return (
     <View style={{ alignItems: "center" }}>
       <View
-        onLayout={(e) => setW(Math.min(320, e.nativeEvent.layout.width))}
-        style={{ width: "100%", maxWidth: 320, borderRadius: 26, backgroundColor: C.ink, padding: PAD, shadowColor: C.ink, shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
+        onLayout={(e) => setW(Math.min(maxW, e.nativeEvent.layout.width))}
+        style={{ width: "100%", maxWidth: maxW, borderRadius: 26, backgroundColor: C.ink, padding: PAD, shadowColor: C.ink, shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
       >
         <View style={{ height: 10, flexDirection: "row", justifyContent: "space-evenly", alignItems: "center", marginBottom: 6 }}>
           {Array.from({ length: 11 }, (_, i) => (
@@ -291,37 +295,26 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
                   <View style={{ position: "absolute", left: 2.5 * k, top: 2 * k, width: 3.5 * k, height: 3.5 * k, borderRadius: 2 * k, backgroundColor: "rgba(255,255,255,.55)" }} />
                 </View>
               ))}
+              {/* 출발 — 판 가운데 위에. 달리는 동안은 숨깁니다. */}
+              {!running && (
+                <View pointerEvents="box-none" style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, alignItems: "center", justifyContent: "center" }}>
+                  <Pressable
+                    onPress={race}
+                    disabled={!ready || busy}
+                    accessibilityRole="button"
+                    style={{ height: 48, borderRadius: 24, paddingHorizontal: 26, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: ready ? REC.paper : "#a8a196", shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 }}
+                  >
+                    <View style={{ flexDirection: "row", gap: 2 }}>
+                      {[0, 1, 2].map((i) => <View key={i} style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: MARBLES[i * 2] }} />)}
+                    </View>
+                    <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>{winner != null ? "다시 출발" : "출발"}</Text>
+                  </Pressable>
+                </View>
+              )}
             </>
           )}
         </View>
       </View>
-
-      {/* 누가 어느 색인지 · 들어온 순서 */}
-      <View style={{ marginTop: 12, maxWidth: 320, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 }}>
-        {options.map((o, i) => {
-          const r = place(i);
-          const won = winner === i;
-          return (
-            <View key={o.key} style={{ height: 26, borderRadius: 13, paddingHorizontal: 9, flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderColor: won ? C.brick : C.lineSoft, backgroundColor: won ? C.brickSoft : C.card }}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: MARBLES[i % MARBLES.length] }} />
-              <Text numberOfLines={1} style={{ maxWidth: 90, fontFamily: won ? F.sansMd : F.sans, fontSize: 11, color: C.ink }}>{o.label}</Text>
-              {r >= 0 && <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: won ? C.brick : C.faint }}>{r + 1}</Text>}
-            </View>
-          );
-        })}
-      </View>
-
-      <Pressable
-        onPress={race}
-        disabled={!ready || busy || running}
-        accessibilityRole="button"
-        style={{ marginTop: 14, height: 44, borderRadius: 22, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: ready ? C.ink : "#a8a196" }}
-      >
-        <View style={{ flexDirection: "row", gap: 2 }}>
-          {[0, 1, 2].map((i) => <View key={i} style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: MARBLES[i * 2] }} />)}
-        </View>
-        <Text style={{ fontFamily: F.serif, fontSize: 14, color: REC.paper }}>{running ? "달리는 중…" : "출발"}</Text>
-      </Pressable>
     </View>
   );
 }

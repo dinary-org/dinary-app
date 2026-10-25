@@ -7,7 +7,7 @@ import { REC_CATEGORIES, type RecCategory } from "@/lib/recommend";
 import type { Scored } from "@/lib/rec/score";
 import { C, F } from "@/theme";
 import { FrenchFries } from "./FrenchFries";
-import { MarbleRace } from "./MarbleRace";
+import { marbleColor, MarbleRace } from "./MarbleRace";
 import { PLAYERS0 } from "./party";
 import { PizzaDough } from "./PizzaDough";
 import { TugOfWar } from "./TugOfWar";
@@ -191,8 +191,10 @@ export function RandomGames({ picks, exclude, onPlace, onCategory, onDrawTouch }
 
         {/* 칸 — 옆의 − 로 빼고, 끝의 + 로 더합니다(적어 넣거나 뺐던 칸 되살리기). */}
         <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-          {live.map((o) => (
-            <View key={o.key} style={{ height: 32, borderRadius: 16, paddingLeft: 12, paddingRight: 4, flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: C.line, backgroundColor: C.card }}>
+          {live.map((o, i) => (
+            <View key={o.key} style={{ height: 32, borderRadius: 16, paddingLeft: mode === "marble" ? 9 : 12, paddingRight: 4, flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderColor: C.line, backgroundColor: C.card }}>
+              {/* 구슬 경주 — 이 칸의 구슬 색 */}
+              {mode === "marble" && <View style={{ width: 11, height: 11, borderRadius: 5.5, backgroundColor: marbleColor(i) }} />}
               <Text numberOfLines={1} style={{ maxWidth: 140, fontFamily: F.sansMd, fontSize: 12, color: C.ink }}>{o.label}</Text>
               <Pressable onPress={() => removeOption(o)} disabled={spinning} hitSlop={6} accessibilityLabel={`${o.label} 빼기`} style={s.minus}>
                 <Text style={{ fontFamily: F.sansMd, fontSize: 13, lineHeight: 15, color: C.muted }}>−</Text>

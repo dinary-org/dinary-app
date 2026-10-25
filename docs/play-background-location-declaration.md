@@ -29,7 +29,7 @@ Nearby alert for saved restaurants (optional, off by default). When the user tur
    - 「눌러서 사진을 찍으면 방문이 인증됩니다.」 — *Tap to take a photo and verify your visit.*
 6. Tapping the notification opens the camera to verify the visit.
 
-## Demo video checklist (30–60 s, YouTube unlisted)
+## Demo video checklist (≤ 30 s recommended, YouTube unlisted)
 
 - [ ] Wish detail → tap bell
 - [ ] Disclosure dialog fully readable → tap 「계속」
@@ -45,21 +45,19 @@ A real screen recording is strongest. Without a phone: Android Studio emulator +
 Attach the real app screenshots (wish detail, disclosure dialog, bell on, notification, camera) before sending.
 
 ```
-Make a 40–50 second vertical (1080×1920, 30fps) app walkthrough video for a Google Play background-location declaration. The app is DINARY, a Korean restaurant diary. Use ONLY the attached real app screenshots for app screens — do not redesign, restyle or invent UI. You may add a plain phone frame, a tap indicator (soft circle), simple transitions (crossfade/slide, 0.3s), and short English captions at the top of the frame. Keep everything honest: this is a walkthrough of real screens, not a fake live recording, so start with a title card: "DINARY — Nearby alert walkthrough (screens from the app)".
+Make a 28–30 second vertical (1080×1920, 30fps) app walkthrough video for a Google Play background-location declaration. Google recommends 30 seconds maximum, so keep it tight. The app is DINARY, a Korean restaurant diary. Use ONLY the attached real app screenshots for app screens — do not redesign, restyle or invent UI. You may add a plain phone frame, a tap indicator (soft circle), quick crossfades (0.2s), and short English captions at the top. Keep it honest: a walkthrough of real screens, not a fake live recording.
 
 Scenes, in order:
-1. (3s) Title card on ivory #f6f3ec, brick #b4552d text: "DINARY — Nearby alert for saved restaurants".
-2. (5s) Wish detail screenshot. Tap indicator on the bell button next to 「여기 왔어요」. Caption: "User turns on the optional nearby alert for a saved restaurant."
-3. (8s) Disclosure dialog screenshot 「근처 알림을 켤까요?」 — hold long enough to read; slowly zoom 110% on the body text. Caption: "Prominent disclosure before any permission request: location is used in the background, checked on-device, not sent to the server. Optional."
-   Tap indicator on 「계속」.
-4. (6s) Android permission screens (notification, location "While using the app", then location settings with "Allow all the time" selected). Use the attached screenshots if provided; if not, show a caption-only card: "Android asks for notification and location permissions, then the user selects 'Allow all the time'." Do not draw fake system dialogs.
-5. (4s) Wish detail with the bell turned on (brick red). Caption: "Alert on. A 50 m geofence is registered on the device (max 20 places)."
-6. (3s) Caption card: "Later — the app is closed. The user walks near the saved restaurant."
-7. (6s) Notification screenshot: 「{restaurant}, 지금 앞에 계신가요?」 / 「눌러서 사진을 찍으면 방문이 인증됩니다.」 Caption: "Notification while the app is closed or not in use."
-8. (5s) Tap the notification → camera screenshot. Caption: "Tapping opens the camera to verify the visit."
-9. (4s) End card: "Background location is used only for this optional feature. It can be turned off in the app or in Android settings."
+1. (2s) Title card, ivory #f6f3ec, brick #b4552d text: "DINARY — Nearby alert (walkthrough of app screens)".
+2. (3s) Wish detail screenshot, tap indicator on the bell next to 「여기 왔어요」. Caption: "User turns on the optional nearby alert."
+3. (7s) Disclosure dialog 「근처 알림을 켤까요?」 — hold so it can be read; slow zoom to 110% on the body. Caption: "Disclosure BEFORE any permission prompt: location is used in the background, even when the app is closed. Checked on-device, not sent to the server." Then tap indicator on 「계속」.
+4. (5s) Android permission screenshots (notification, location, "Allow all the time"). If not attached, a caption-only card: "Then Android asks for permissions; the user selects 'Allow all the time'." Never draw fake system dialogs.
+5. (3s) Wish detail with the bell on (brick red). Caption: "Alert on — 50 m geofence registered on the device."
+6. (5s) Notification screenshot 「{restaurant}, 지금 앞에 계신가요?」. Caption: "App closed: notification when the user comes near the saved restaurant."
+7. (3s) Camera screenshot. Caption: "Tap → camera opens to verify the visit."
+8. (2s) End card: "Optional. Can be turned off anytime."
 
-Style: calm, clean, no music needed (or very quiet), captions in Noto Sans 40–48px, white rounded caption box with 90% opacity, safe margins 64px. Export MP4 (H.264).
+Style: calm, clean, no music, captions Noto Sans 44px in a white rounded box (90% opacity), 64px safe margins. Export MP4 (H.264).
 ```
 
 Note: Google expects the video to show the feature working in the real app. A screenshot walkthrough may be accepted, but if review asks for a real recording, record on a phone or emulator.

@@ -1,7 +1,5 @@
-import { View } from "react-native";
 import Svg, { Circle, Path, Polygon, Rect } from "react-native-svg";
-import { C, F } from "@/theme";
-import { Text } from "./Text";
+import { C } from "@/theme";
 
 type P = { size?: number; stroke?: string; strokeWidth?: number; fill?: string };
 
@@ -130,32 +128,18 @@ export const LocateIcon = ({ size = 22, stroke = "#b4552d", strokeWidth = 1.7 }:
   </Svg>
 );
 
-/**
- * 인증 마크 = 도장판의 도장 — 24각 톱니 seal 안에 흰 「D」(지시서 4 §2). 숫자는 넣지 않고, 기울이지도 않습니다.
- * ring 이면 안쪽에 흰 점선 원(리캡 표지의 큰 도장) — 그만큼 D 를 조금 작게.
- * heavy(인증 마크 기본) — D 를 상하좌우로 조금씩 겹쳐 찍어 더 두껍게. 도장판의 도장(Stamp)은 heavy 없이.
- */
-export const VerifiedMark = ({ size = 52, ring, heavy = true }: { size?: number; ring?: boolean; heavy?: boolean }) => {
-  const d = { fontFamily: F.serif, fontSize: size * (ring ? 0.27 : 0.31), lineHeight: size * (ring ? 0.33 : 0.38), color: "#fff", ...WHITE_BOLD };
-  const o = Math.max(0.4, size * 0.014);
-  return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-      <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: "absolute" }}>
-        <Polygon points={BURST_POINTS} fill={C.brick} />
-        {ring && <Circle cx={50} cy={50} r={36} fill="none" stroke="#fff" strokeOpacity={0.7} strokeWidth={1.5} strokeDasharray="4 3.5" />}
-      </Svg>
-      <View>
-        <Text style={d}>D</Text>
-        {heavy && [[-o, 0], [o, 0], [0, -o], [0, o]].map(([x, y]) => (
-          <Text key={`${x},${y}`} style={[d, { position: "absolute", left: x, top: y }]}>D</Text>
-        ))}
-      </View>
-    </View>
-  );
-};
+/** 앱 아이콘의 「D」(assets/icon.png 1024 판에서 그대로 딴 윤곽) — 가운데 (514, 505), 높이 513. */
+const ICON_D =
+  "M287 249L460 249C640 249 755 340 755 498C755 660 640 762 455 762L278 762Q270 762 273 748L276 735Q278 729 286 728C313 725 327 711 327 670L327 334C327 302 318 289 286 287Q278 286 279 279L283 256Q284 249 290 249Z" +
+  "M427 292L465 292C610 292 685 372 685 497C685 640 602 718 465 718L432 718C406 718 398 707 398 680L398 332C398 303 406 292 427 292Z";
 
-/** 고운돋움은 굵기가 하나라 흰 그림자를 둘러 700 처럼 보이게. */
-const WHITE_BOLD = { textShadowColor: "#fff", textShadowRadius: 1.4, textShadowOffset: { width: 0, height: 0 } };
+/** 인증 마크 — 앱 아이콘을 뒤집은 모양: 벽돌색 둥근 사각 안에 흰 「D」. 글자가 아니라 도형이라 작아도 굵기가 같습니다. */
+export const VerifiedMark = ({ size = 52 }: { size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 100 100">
+    <Rect width="100" height="100" rx="24" fill={C.brick} />
+    <Path d={ICON_D} fill="#fff" fillRule="evenodd" transform="translate(50 50) scale(0.135) translate(-514 -505)" />
+  </Svg>
+);
 
 /* ── 커뮤니티 (design_handoff_community · 21px · 1.6) ── */
 

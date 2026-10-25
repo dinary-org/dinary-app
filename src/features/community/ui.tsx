@@ -2,6 +2,7 @@ import { useNavigation, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { Pressable, ScrollView, View, type ViewStyle } from "react-native";
 import { Text } from "@/components/Text";
+import { HeartIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { useTourDefs } from "@/features/recommend/api";
@@ -202,6 +203,29 @@ export function TitleChip({ id }: { id: string | null | undefined }) {
 }
 
 /** 「✓ 인증」 점선 칩. */
+/** 좋아요 — 하트 + 수(갤러리와 같은 모양). 누른 것만 빨갛게 채움. onPress 가 없으면(내 것) 수만 보여 줍니다. */
+export function LikeButton({ on, count, onPress, disabled }: { on: boolean; count: number; onPress?: () => void; disabled?: boolean }) {
+  const body = (
+    <>
+      <HeartIcon size={17} stroke={on ? C.heart : C.muted} fill={on ? C.heart : "none"} strokeWidth={1.8} />
+      <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 12, color: on ? C.heart : C.muted }}>{count}</Text>
+    </>
+  );
+  if (!onPress) return <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>{body}</View>;
+  return (
+    <Pressable
+      onPress={() => { Haptics.selectionAsync(); onPress(); }}
+      disabled={disabled}
+      hitSlop={8}
+      accessibilityLabel={on ? "좋아요 취소" : "좋아요"}
+      accessibilityState={{ selected: on }}
+      style={{ minHeight: 28, flexDirection: "row", alignItems: "center", gap: 4 }}
+    >
+      {body}
+    </Pressable>
+  );
+}
+
 export const VerifiedChip = ({ label = "✓ 인증" }: { label?: string }) => (
   <Text style={{ borderRadius: 9, borderWidth: 1, borderStyle: "dashed", borderColor: C.brick, paddingHorizontal: 7, fontFamily: F.mono, fontSize: 10, color: C.brick, overflow: "hidden" }}>{label}</Text>
 );

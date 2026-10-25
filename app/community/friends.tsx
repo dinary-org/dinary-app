@@ -20,7 +20,7 @@ import { useAlarmDot } from "@/features/community/alarms";
 import CommentsSheet from "@/features/community/Comments";
 import PostSheet from "@/features/community/PostSheet";
 import { useAddWish, type WishResult } from "@/features/community/useAddWish";
-import { Avatar, CommunityHeader, K, metaLine, monthDay, PhotoOrStripes, RoundButton, Segmented, shortAddr, timeAgo, TitleBlock, VerifiedChip } from "@/features/community/ui";
+import { Avatar, CommunityHeader, K, LikeButton, metaLine, monthDay, PhotoOrStripes, RoundButton, Segmented, shortAddr, timeAgo, TitleBlock, VerifiedChip } from "@/features/community/ui";
 import { formatDistance, metersBetween } from "@/features/capture/logic";
 import { FriendMarker, friendPinSize } from "@/features/map/Markers";
 import { matchWish, type Wish } from "@/lib/types";
@@ -379,13 +379,7 @@ const FeedCard = memo(function FeedCard({ p, who, mine, social, onComments, onMe
       {!!meta && <Text style={{ marginTop: 3, fontFamily: F.sans, fontSize: 11, color: C.faint }}>{meta}</Text>}
       {!!p.note && <Text style={{ marginTop: 8, fontFamily: F.serif, fontSize: 12.5, lineHeight: 21, color: K.text2 }}>{p.note}</Text>}
       <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 14 }}>
-        {mine ? (
-          <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>공감 {social?.cheers ?? 0}</Text>
-        ) : (
-          <Pressable onPress={() => { Haptics.selectionAsync(); toggleCheer(qc, p.record_id, !social?.mine); }} hitSlop={8}>
-            <Text style={{ fontFamily: social?.mine ? F.sansMd : F.sans, fontSize: 11.5, color: social?.mine ? C.brick : C.muted }}>공감 {social?.cheers ?? 0}</Text>
-          </Pressable>
-        )}
+        <LikeButton on={!!social?.mine} count={social?.cheers ?? 0} onPress={mine ? undefined : () => toggleCheer(qc, p.record_id, !social?.mine)} />
         <Pressable onPress={onComments} hitSlop={8}>
           <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>댓글 {social?.comments ?? 0}</Text>
         </Pressable>

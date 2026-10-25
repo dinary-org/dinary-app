@@ -8,7 +8,8 @@ import * as MediaLibrary from "expo-media-library/legacy";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, BackHandler, FlatList, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, BackHandler, FlatList, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -365,7 +366,7 @@ export default function Capture() {
       }
 
       // 아직 못 올렸습니다 — 큐에 남아 있으니 닫아도 이어서 올라갑니다.
-      Alert.alert(
+      showDialog(
         "인증은 저장했어요",
         "연결되면 사진이 올라갑니다. 앱을 닫아도 이어서 올라가고, 보관함에서 상태를 볼 수 있어요.",
         [{ text: "확인", onPress: () => { if (!writeNow) void askDraftReminderPermission(); router.back(); } }]
@@ -711,6 +712,7 @@ export default function Capture() {
           </View>
         </Modal>
       )}
+      <DialogHost />
     </View>
   );
 }

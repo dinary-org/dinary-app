@@ -1,6 +1,7 @@
 import { useRouter, type Tabs } from "expo-router";
 import * as Haptics from "expo-haptics";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalendarIcon, CameraIcon, CompassIcon, MapPinIcon, PeopleIcon, RingsIcon } from "./icons";
@@ -106,7 +107,7 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
         style={s.shutter}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          if (readOnly) return Alert.alert("연결이 끊긴 기록장이에요", "읽기만 할 수 있어요. 지도 ≡ 메뉴에서 다른 기록장을 골라 주세요.");
+          if (readOnly) return showDialog("연결이 끊긴 기록장이에요", "읽기만 할 수 있어요. 지도 ≡ 메뉴에서 다른 기록장을 골라 주세요.");
           router.push("/capture");
         }}
       >

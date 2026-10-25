@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BellIcon, BookmarkIcon, CameraIcon, ExternalIcon } from "@/components/icons";
@@ -59,7 +60,7 @@ export default function WishSheetRoute() {
   }
 
   function remove() {
-    Alert.alert(`"${wish!.name}" 을(를) 위시리스트에서 삭제할까요?`, undefined, [
+    showDialog(`"${wish!.name}" 을(를) 위시리스트에서 삭제할까요?`, undefined, [
       { text: "취소", style: "cancel" },
       { text: "삭제", style: "destructive", onPress: async () => { setBusy(true); await supabase.from("wishes").delete().eq("id", wish!.id); if (wish!.capture_path) void removePhotoObjects([wish!.capture_path]); setBusy(false); await refreshAll(qc); router.back(); } },
     ]);
@@ -125,6 +126,7 @@ export default function WishSheetRoute() {
           <Pressable onPress={remove} disabled={busy} style={{ padding: 6 }}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>삭제</Text></Pressable>
         </View>
       </View>
+      <DialogHost />
     </View>
   );
 }

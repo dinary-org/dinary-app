@@ -3,7 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import { Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import Animated, { SlideInLeft } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -103,17 +104,17 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
   async function changeDate(d: Date) {
     if (!couple) return;
     const iso = isoOf(d);
-    if (iso > todayIso()) return Alert.alert("오늘 이후 날짜는 고를 수 없어요");
+    if (iso > todayIso()) return showDialog("오늘 이후 날짜는 고를 수 없어요");
     try {
       await updateStartedOn(qc, couple.id, iso);
     } catch (e) {
-      Alert.alert("사귄 날을 바꾸지 못했어요", e instanceof Error ? e.message : undefined);
+      showDialog("사귄 날을 바꾸지 못했어요", e instanceof Error ? e.message : undefined);
     }
   }
 
   function disconnect() {
     if (!couple) return;
-    Alert.alert(
+    showDialog(
       "연결을 끊을까요?",
       "끊은 뒤에는 두 사람 모두 이 기록장을 읽기만 할 수 있어요. 개인 기록은 그대로입니다.",
       [
@@ -127,7 +128,7 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
               await closeBook(qc, couple.id);
               if (personal) setActiveBook(personal.id);
             } catch (e) {
-              Alert.alert("연결을 끊지 못했어요", e instanceof Error ? e.message : undefined);
+              showDialog("연결을 끊지 못했어요", e instanceof Error ? e.message : undefined);
             } finally {
               setBusy(false);
             }
@@ -254,6 +255,7 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
           </Animated.View>
         )}
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="기록장 메뉴 닫기" />
+        <DialogHost />
       </View>
     </Modal>
   );

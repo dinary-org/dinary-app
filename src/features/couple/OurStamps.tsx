@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import Svg, { ClipPath, Defs, Path, Rect } from "react-native-svg";
 import { EmptySlot } from "@/features/stamps/Stamp";
@@ -74,7 +75,7 @@ export function OurStamps({ rows, notes, me, partner, bookId, readOnly }: {
       await sendPoke(bookId, s.row.id, partner.userId);
       setSent((v) => new Set(v).add(s.row.id));
     } catch (e) {
-      Alert.alert("콕 찌르지 못했어요", e instanceof Error ? e.message : undefined);
+      showDialog("콕 찌르지 못했어요", e instanceof Error ? e.message : undefined);
     }
   }
 

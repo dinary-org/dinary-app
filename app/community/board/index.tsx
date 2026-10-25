@@ -6,7 +6,7 @@ import { SearchLineIcon } from "@/components/icons";
 import { usePersonalRows } from "@/data/queries";
 import { setState, useAppState, type BoardTab } from "@/data/store";
 import {
-  useBoardFeed, useCourseStops, useCurrentTheme, useIsAdmin, useLastTheme, usePopularTags, type PostType,
+  useBoardFeed, useCourseStops, useCurrentTheme, useIsAdmin, useLastTheme, type PostType,
 } from "@/features/community/api";
 import { NoticeRow, PostCard } from "@/features/community/BoardPost";
 import { CommunityHeader, FilterChips, K, RoundButton, TitleBlock } from "@/features/community/ui";
@@ -35,7 +35,6 @@ export default function BoardHome() {
 
   const { data: theme } = useCurrentTheme();
   const { data: lastTheme } = useLastTheme();
-  const { data: hotTags = [] } = usePopularTags(3);
   const type: PostType | null = tab === "all" ? null : tab;
   const { data: posts = [], refetch, isRefetching } = useBoardFeed({
     type,
@@ -101,12 +100,8 @@ export default function BoardHome() {
           (tab === "food" || tab === "cafe") && toggleChip("✓ 인증만", verifiedOnly, () => setVerifiedOnly((v) => !v))
         }
       />
-      {tab === "free" && (hotTags.length > 0 || tag) && (
-        <View style={{ marginTop: 10, paddingHorizontal: 20, flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-          {(tag && !hotTags.includes(tag) ? [tag, ...hotTags] : hotTags).map((t) => toggleChip(`#${t}`, tag === t, () => setTag(tag === t ? null : t)))}
-        </View>
-      )}
-      {tab !== "free" && tag && <View style={{ marginTop: 10, paddingHorizontal: 20, flexDirection: "row" }}>{toggleChip(`#${tag}`, true, () => setTag(null))}</View>}
+      {/* 글의 #태그를 눌러 거른 때만 — 많이 쓰인 태그를 저절로 띄우지는 않습니다. */}
+      {tag && <View style={{ marginTop: 10, paddingHorizontal: 20, flexDirection: "row" }}>{toggleChip(`#${tag}`, true, () => setTag(null))}</View>}
 
       {tab === "theme" && (
         <View style={{ marginTop: 14, marginHorizontal: 16, gap: 8 }}>

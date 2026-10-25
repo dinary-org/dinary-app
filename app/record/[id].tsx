@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Image, Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Dimensions, Image, Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookmarkIcon, ShareIcon, ThumbIcon, VerifiedMark } from "@/components/icons";
@@ -182,7 +183,7 @@ export default function RecordRoute() {
 
   function deleteAt(i: number) {
     setSheetIdx(null);
-    Alert.alert(`사진 ${i + 1}을 지울까요?`, undefined, [
+    showDialog(`사진 ${i + 1}을 지울까요?`, undefined, [
       { text: "취소", style: "cancel" },
       {
         text: "지우기",
@@ -214,7 +215,7 @@ export default function RecordRoute() {
   }
 
   function remove() {
-    Alert.alert(`"${record!.name}" 기록을 삭제할까요?`, undefined, [
+    showDialog(`"${record!.name}" 기록을 삭제할까요?`, undefined, [
       { text: "취소", style: "cancel" },
       {
         text: "삭제",

@@ -7,13 +7,13 @@ import { Text } from "@/components/Text";
 import Svg, { Circle, Polyline, Text as SvgText } from "react-native-svg";
 import { regionFromAddress } from "@/lib/regions";
 import { coverPhoto } from "@/lib/types";
-import { C, F } from "@/theme";
+import { C, F, FAINT_BOLD } from "@/theme";
 import { setReaction, usePoll, votePoll, type BoardPost, type CourseStop, type PostType } from "./api";
 import { CourseMap } from "./CourseMap";
 import { MoreButton, type MenuTarget } from "./ItemMenu";
 import { useOpenProfile } from "./ProfileSheet";
 import { useAddWish } from "./useAddWish";
-import { Avatar, K, metaLine, monthDay, PhotoOrStripes, shortAddr, timeAgo, TitleChip } from "./ui";
+import { Avatar, K, LikeButton, metaLine, monthDay, PhotoOrStripes, shortAddr, timeAgo, TitleChip } from "./ui";
 
 /** 게시판 다섯 칸 이름. */
 export const BOARD_LABEL: Record<PostType, string> = { free: "자유", theme: "주제", food: "맛집", cafe: "카페", course: "코스" };
@@ -231,7 +231,7 @@ function QuickPoll({ post }: { post: BoardPost }) {
 /* ───────────── 반응 ───────────── */
 
 /**
- * 맛집 · 카페: 「가보고 싶어요」(위시에도 담김) · 「가봤어요」(누구나) / 코스: 「코스 통째로 담기」 / 주제: 「공감」 / 자유: 없음.
+ * 맛집 · 카페: ♡ 좋아요 · 「+ 위시에 담기」 / 코스: 「코스 통째로 담기」 / 주제: ♡ 좋아요 / 자유: 없음. 좋아요는 cheer 반응입니다.
  */
 export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop[] }) {
   const qc = useQueryClient();
@@ -242,7 +242,7 @@ export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop
   async function toggle(kind: "want" | "been" | "cheer", on: boolean, after?: () => Promise<unknown>) {
     if (busy) return;
     setBusy(true);
-    Haptics.selectionAsync();
+    if (kind !== "cheer") Haptics.selectionAsync();
     try {
       if (on && after) {
         const res = await after();
@@ -261,17 +261,14 @@ export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop
 
   if (post.type === "free") return null;
   return (
-    <View style={{ flexDirection: "row", gap: 6 }}>
-      {post.type === "theme" && chip(`공감 ${post.cheer_count}`, post.my_cheer, () => toggle("cheer", !post.my_cheer))}
-      {(post.type === "food" || post.type === "cafe") && (
-        <>
-          {chip(`가보고 싶어요 ${post.want_count}`, post.my_want, () =>
-            toggle("want", !post.my_want, post.place_name
-              ? () => add({ name: post.place_name!, where_text: post.address, category: post.category, lat: post.lat, lng: post.lng, source })
-              : undefined))}
-          {chip(`가봤어요 ${post.been_count}`, post.my_been, () => toggle("been", !post.my_been), false)}
-        </>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+      {(post.type === "theme" || post.type === "food" || post.type === "cafe") && (
+        <LikeButton on={post.my_cheer} count={post.cheer_count} disabled={busy} onPress={() => toggle("cheer", !post.my_cheer)} />
       )}
+      {(post.type === "food" || post.type === "cafe") && chip(post.my_want ? "✓ 위시에 담음" : "+ 위시에 담기", post.my_want, () =>
+        toggle("want", !post.my_want, post.place_name
+          ? () => add({ name: post.place_name!, where_text: post.address, category: post.category, lat: post.lat, lng: post.lng, source })
+          : undefined))}
       {post.type === "course" && chip(post.my_want ? `✓ 코스 담음 ${post.want_count}` : `코스 통째로 담기 ${post.want_count}`, post.my_want, () =>
         toggle("want", !post.my_want, stops?.length
           ? () => addMany(stops.map((s) => ({ name: s.name, where_text: s.address, category: s.category, lat: s.lat, lng: s.lng, source })))
@@ -353,7 +350,7 @@ export function PostCard({
         more={<MoreButton target={target} onEdit={onEdit} />}
       />
       <Pressable onPress={onOpen} style={{ gap: 6 }}>
-        {!!postTitle(post) && <Text numberOfLines={2} style={{ fontFamily: F.serif, fontSize: 15.5, lineHeight: 22, color: C.ink }}>{postTitle(post)}</Text>}
+        {!!postTitle(post) && <Text numberOfLines={2} style={[{ fontFamily: F.serif, fontSize: 15.5, lineHeight: 22, color: C.ink }, FAINT_BOLD]}>{postTitle(post)}</Text>}
         {!!post.body && <Text numberOfLines={2} style={{ fontFamily: F.sans, fontSize: 12.5, lineHeight: 19, color: K.text2 }}>{post.body}</Text>}
       </Pressable>
       {!!post.photo_refs?.length && <Pressable onPress={onOpen}><PostPhotos refs={post.photo_refs} compact /></Pressable>}

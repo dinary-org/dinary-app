@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VerifiedMark } from "@/components/icons";
@@ -74,7 +75,7 @@ export default function Drafts() {
                     <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.card }}>{failed ? "다시 올리기" : "지금 올리기"}</Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => Alert.alert("이 인증을 버릴까요?", "올라가지 않은 사진과 기록이 지워집니다.", [
+                    onPress={() => showDialog("이 인증을 버릴까요?", "올라가지 않은 사진과 기록이 지워집니다.", [
                       { text: "취소", style: "cancel" },
                       { text: "버리기", style: "destructive", onPress: async () => { await removeFromQueue(q.id, q.owner_id); removePhoto(q.photo_uri); (JSON.parse(q.extra_photos ?? "[]") as string[]).forEach(removePhoto); notifyQueue(); } },
                     ])}

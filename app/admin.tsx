@@ -2,7 +2,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, KeyboardAvoidingView, Pressable, ScrollView, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, ScrollView, TextInput, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -121,22 +122,22 @@ function NoticeForm() {
       else if (kind === "board") await createPost(qc, { type: "free", title, body, pinned: true });
       else await adminCreateNotice(qc, title, body, days);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert(edit ? "공지를 고쳤습니다" : kind === "board" ? "게시판에 공지를 올렸습니다" : "앱 공지를 걸었습니다");
+      showDialog(edit ? "공지를 고쳤습니다" : kind === "board" ? "게시판에 공지를 올렸습니다" : "앱 공지를 걸었습니다");
       reset();
     } catch (e) {
-      Alert.alert(edit ? "고치지 못했습니다" : "올리지 못했습니다", e instanceof Error ? e.message : "");
+      showDialog(edit ? "고치지 못했습니다" : "올리지 못했습니다", e instanceof Error ? e.message : "");
     }
     setBusy(false);
   }
 
   function remove(n: AppNotice) {
-    Alert.alert("이 공지를 지울까요?", n.title, [
+    showDialog("이 공지를 지울까요?", n.title, [
       { text: "취소", style: "cancel" },
       {
         text: "지우기", style: "destructive",
         onPress: () => adminDeleteNotice(qc, n.id)
           .then(() => { if (edit?.id === n.id) reset(); })
-          .catch((e) => Alert.alert("지우지 못했습니다", e instanceof Error ? e.message : "")),
+          .catch((e) => showDialog("지우지 못했습니다", e instanceof Error ? e.message : "")),
       },
     ]);
   }
@@ -271,7 +272,7 @@ function ReportCard({ r }: { r: ReportRow }) {
       await adminResolveReport(qc, r.id, note);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {
-      Alert.alert("처리하지 못했습니다", e instanceof Error ? e.message : "");
+      showDialog("처리하지 못했습니다", e instanceof Error ? e.message : "");
     }
     setBusy(false);
   }
@@ -279,7 +280,7 @@ function ReportCard({ r }: { r: ReportRow }) {
   function sanction() {
     if (!p?.authorId) return;
     const uid = p.authorId;
-    Alert.alert(`${p.authorName ?? "작성자"} 정지`, "글 · 댓글 쓰기만 막습니다.", [
+    showDialog(`${p.authorName ?? "작성자"} 정지`, "글 · 댓글 쓰기만 막습니다.", [
       { text: "7일", onPress: () => act(() => adminSanction(qc, uid, 7, r.reason ?? undefined), "sanction 7d") },
       { text: "30일", onPress: () => act(() => adminSanction(qc, uid, 30, r.reason ?? undefined), "sanction 30d") },
       { text: "영구", style: "destructive", onPress: () => act(() => adminSanction(qc, uid, null, r.reason ?? undefined), "sanction forever") },
@@ -361,9 +362,9 @@ function ThemeForm() {
     try {
       await adminSaveTheme(qc, { id: editId, title, description: desc, startsOn: starts, endsOn: ends });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert(editId ? "주제를 고쳤습니다" : "새 주제를 열었습니다");
+      showDialog(editId ? "주제를 고쳤습니다" : "새 주제를 열었습니다");
     } catch (e) {
-      Alert.alert("저장하지 못했습니다", e instanceof Error ? e.message : "");
+      showDialog("저장하지 못했습니다", e instanceof Error ? e.message : "");
     }
     setBusy(false);
   }
@@ -413,14 +414,14 @@ function RankBanRow({ b }: { b: RankBan }) {
   const until = b.until ? `${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" }).format(new Date(b.until))}까지 정지` : "영구 제외";
 
   function unban() {
-    Alert.alert(`${b.nickname ?? "이 사람"} 랭킹 정지를 풀까요?`, "바로 랭킹에 다시 나옵니다.", [
+    showDialog(`${b.nickname ?? "이 사람"} 랭킹 정지를 풀까요?`, "바로 랭킹에 다시 나옵니다.", [
       { text: "취소", style: "cancel" },
       {
         text: "풀기",
         onPress: async () => {
           setBusy(true);
           try { await adminRankUnban(qc, b.user_id); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); }
-          catch (e) { Alert.alert("풀지 못했습니다", e instanceof Error ? e.message : ""); }
+          catch (e) { showDialog("풀지 못했습니다", e instanceof Error ? e.message : ""); }
           setBusy(false);
         },
       },

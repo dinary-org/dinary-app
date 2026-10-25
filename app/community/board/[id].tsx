@@ -13,7 +13,7 @@ import {
 import { MoreButton } from "@/features/community/ItemMenu";
 import { CommentInput, CommentRow } from "@/features/community/CommentThread";
 import { K, Pill, timeAgo } from "@/features/community/ui";
-import { C, F } from "@/theme";
+import { C, F, FAINT_BOLD } from "@/theme";
 
 const HIDDEN_POST = "운영 정책에 따라 삭제된 글입니다.";
 
@@ -116,7 +116,7 @@ function PostContent({ post, stops, onMapTouch }: { post: BoardPost; stops: Para
   const hasRecord = !!post.place_name && post.type !== "course";
   return (
     <>
-      {!!postTitle(post) && <Text style={{ fontFamily: F.serif, fontSize: 20, lineHeight: 28, color: C.ink }}>{postTitle(post)}</Text>}
+      {!!postTitle(post) && <Text style={[{ fontFamily: F.serif, fontSize: 20, lineHeight: 28, color: C.ink }, FAINT_BOLD]}>{postTitle(post)}</Text>}
       {!!post.body && <Text selectable style={{ fontFamily: F.serif, fontSize: 13.5, lineHeight: 23, color: K.text2 }}>{post.body}</Text>}
       <PostPhotos refs={post.photo_refs} />
       <Tags tags={post.tags} />

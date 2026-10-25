@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookmarkIcon } from "@/components/icons";
@@ -68,9 +69,9 @@ export default function TourDetail() {
   }
 
   const flag = () =>
-    Alert.alert("틀린 곳 알려 주기", "방송 출연 정보가 틀렸거나 문을 닫은 곳이 있나요?", [
+    showDialog("틀린 곳 알려 주기", "방송 출연 정보가 틀렸거나 문을 닫은 곳이 있나요?", [
       { text: "취소", style: "cancel" },
-      { text: "알려 주기", onPress: () => report("tour", t.id, "투어 정보 오류").then(() => Alert.alert("고마워요", "살펴본 뒤 고칠게요.")).catch(() => {}) },
+      { text: "알려 주기", onPress: () => report("tour", t.id, "투어 정보 오류").then(() => showDialog("고마워요", "살펴본 뒤 고칠게요.")).catch(() => {}) },
     ]);
 
   return (

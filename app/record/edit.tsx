@@ -2,7 +2,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThumbIcon, VerifiedMark } from "@/components/icons";
@@ -111,13 +112,13 @@ export default function EditRoute() {
   function photoMenu(i: number) {
     const pic = pics[i];
     if (pic.ref === lockedRef) {
-      Alert.alert("인증 사진", i === cover ? "지금 대표 사진이에요. 인증 사진은 방문의 근거라 지울 수 없어요." : "인증 사진은 방문의 근거라 지울 수 없어요.", [
+      showDialog("인증 사진", i === cover ? "지금 대표 사진이에요. 인증 사진은 방문의 근거라 지울 수 없어요." : "인증 사진은 방문의 근거라 지울 수 없어요.", [
         ...(i === cover ? [] : [{ text: "대표 사진으로", onPress: () => setCover(i) }]),
         { text: "확인", style: "cancel" as const },
       ]);
       return;
     }
-    Alert.alert(`사진 ${i + 1}`, undefined, [
+    showDialog(`사진 ${i + 1}`, undefined, [
       ...(i === cover ? [] : [{ text: "대표 사진으로", onPress: () => setCover(i) }]),
       { text: "사진 지우기", style: "destructive" as const, onPress: () => removePic(i) },
       { text: "취소", style: "cancel" as const },
@@ -534,6 +535,7 @@ export default function EditRoute() {
           )}
         </Pressable>
       </ScrollView>
+      <DialogHost />
     </KeyboardAvoidingView>
   );
 }

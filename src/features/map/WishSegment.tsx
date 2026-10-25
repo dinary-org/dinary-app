@@ -4,6 +4,7 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Linking, Platform, Pressable, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { refreshAll } from "@/data/invalidate";
 import { setState, useAppState, type MapSegment } from "@/data/store";
@@ -218,7 +219,7 @@ function GroupRow({ item }: { item: Extract<WishItem, { t: "group" }> }) {
   }
 
   function rename() {
-    if (Platform.OS !== "ios") return Alert.alert("이름 바꾸기는 iOS 에서만 됩니다");
+    if (Platform.OS !== "ios") return showDialog("이름 바꾸기는 iOS 에서만 됩니다");
     Alert.prompt("그룹 이름 바꾸기", "20자까지", [
       { text: "취소", style: "cancel" },
       {
@@ -235,7 +236,7 @@ function GroupRow({ item }: { item: Extract<WishItem, { t: "group" }> }) {
 
   function menu() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(g.name, `${all.length}곳`, [
+    showDialog(g.name, `${all.length}곳`, [
       {
         text: "그룹 풀기",
         onPress: async () => {
@@ -246,7 +247,7 @@ function GroupRow({ item }: { item: Extract<WishItem, { t: "group" }> }) {
       {
         text: "그룹째 지우기",
         style: "destructive",
-        onPress: () => Alert.alert(`"${g.name}" ${all.length}곳을 위시리스트에서 지울까요?`, undefined, [
+        onPress: () => showDialog(`"${g.name}" ${all.length}곳을 위시리스트에서 지울까요?`, undefined, [
           { text: "취소", style: "cancel" },
           {
             text: "지우기",

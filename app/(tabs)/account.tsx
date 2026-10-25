@@ -3,7 +3,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, Share, View } from "react-native";
+import { Pressable, ScrollView, Share, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Row, Stat } from "@/components/AccountRows";
@@ -139,7 +140,7 @@ export function MyAccount() {
   }
 
   function withdraw() {
-    Alert.alert("회원 탈퇴", "탈퇴하면 계정과 모든 기록·사진이 되돌릴 수 없게 삭제됩니다. 계속할까요?", [
+    showDialog("회원 탈퇴", "탈퇴하면 계정과 모든 기록·사진이 되돌릴 수 없게 삭제됩니다. 계속할까요?", [
       { text: "취소", style: "cancel" },
       {
         text: "탈퇴", style: "destructive",

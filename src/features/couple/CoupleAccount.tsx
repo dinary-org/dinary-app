@@ -2,7 +2,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, Platform, Pressable, ScrollView, Share, View } from "react-native";
+import { Platform, Pressable, ScrollView, Share, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
@@ -113,11 +114,11 @@ export default function CoupleAccount() {
 
   async function changeDate(d: Date) {
     const iso = isoOf(d);
-    if (iso > todayIso()) return Alert.alert("오늘 이후 날짜는 고를 수 없어요");
+    if (iso > todayIso()) return showDialog("오늘 이후 날짜는 고를 수 없어요");
     try {
       await updateStartedOn(qc, book!.id, iso);
     } catch (e) {
-      Alert.alert("사귄 날을 바꾸지 못했어요", e instanceof Error ? e.message : undefined);
+      showDialog("사귄 날을 바꾸지 못했어요", e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -131,7 +132,7 @@ export default function CoupleAccount() {
   }
 
   function disconnect() {
-    Alert.alert(
+    showDialog(
       "연결을 끊을까요?",
       "끊은 뒤에는 두 사람 모두 이 기록장을 읽기만 할 수 있어요. 개인 기록은 그대로입니다.",
       [
@@ -145,7 +146,7 @@ export default function CoupleAccount() {
               await closeBook(qc, book!.id);
               if (personal) setActiveBook(personal.id);
             } catch (e) {
-              Alert.alert("연결을 끊지 못했어요", e instanceof Error ? e.message : undefined);
+              showDialog("연결을 끊지 못했어요", e instanceof Error ? e.message : undefined);
             } finally {
               setBusy(false);
             }

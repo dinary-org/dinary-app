@@ -1,4 +1,4 @@
-import { useEffect, useId, useSyncExternalStore } from "react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import { Modal, Pressable, View, useWindowDimensions } from "react-native";
 import { Text } from "@/components/Text";
 import { C, F, SHADOW } from "@/theme";
@@ -14,7 +14,10 @@ type Dialog = { id: number; title: string; message?: string; buttons: DialogButt
  *
  * iOS 는 Modal 을 가장 가까운 화면 컨트롤러에서 띄워서, 시트(BottomSheetModal)가 떠 있으면 앱 뿌리에서는 못 띄웁니다.
  * 그래서 뿌리와 시트마다 <DialogHost /> 를 두고, 가장 나중에 붙은(가장 안쪽) 하나만 창을 그립니다.
+ * 시트가 닫히며 그 안의 자리가 빠지면 잠깐(HOLD) 기다렸다 바깥 자리에서 — 내려가는 중인 시트 위로는 iOS 가 못 띄웁니다.
  */
+const HOLD = 420;
+let holdUntil = 0;
 let state: { queue: Dialog[]; hosts: string[] } = { queue: [], hosts: [] };
 let seq = 0;
 const listeners = new Set<() => void>();
@@ -34,10 +37,23 @@ export function DialogHost() {
 
   useEffect(() => {
     set({ hosts: [...state.hosts, hostId] });
-    return () => set({ hosts: state.hosts.filter((h) => h !== hostId) });
+    return () => {
+      holdUntil = Date.now() + HOLD;
+      set({ hosts: state.hosts.filter((h) => h !== hostId) });
+    };
   }, [hostId]);
 
-  const shown = hosts[hosts.length - 1] === hostId ? queue[0] : undefined;
+  const [, wake] = useState(0);
+  // eslint-disable-next-line react-hooks/purity -- 기다릴 시간은 그릴 때마다 다시 잽니다(타이머가 끝나면 wake 로 다시 그림)
+  const wait = holdUntil - Date.now();
+  const next = hosts[hosts.length - 1] === hostId ? queue[0] : undefined;
+  useEffect(() => {
+    if (!next || wait <= 0) return;
+    const t = setTimeout(() => wake((n) => n + 1), wait);
+    return () => clearTimeout(t);
+  }, [next, wait]);
+
+  const shown = wait > 0 ? undefined : next;
   if (!shown) return null;
 
   const close = (b?: DialogButton) => {

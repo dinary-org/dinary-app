@@ -5,7 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { logRec } from "@/features/recommend/log";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from "react-native";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinkIcon, PhotoIcon } from "@/components/icons";
@@ -193,7 +194,7 @@ export default function WishForm() {
         }
         router.replace({ pathname: "/wish/[id]", params: { id: dup.id } });
       };
-      return Alert.alert(
+      return showDialog(
         "이미 담은 가게예요",
         `「${dup.name}」${dup.group?.name ? `은(는) 「${dup.group.name}」에` : "은(는) 위시에"} 담겨 있어요. 다른 곳에서 또 봤다면 한 번 더 담을 수 있어요.`,
         [
@@ -428,6 +429,7 @@ export default function WishForm() {
           <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.card }}>{toast}</Text>
         </View>
       )}
+      <DialogHost />
     </KeyboardAvoidingView>
   );
 }

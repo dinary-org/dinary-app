@@ -1,7 +1,8 @@
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CheckIcon, SearchIcon } from "@/components/icons";
@@ -113,7 +114,7 @@ export default function WishLinkRoute() {
     if (!picked.length) return;
     if (picked.length === 1) return pickOne(picked[0]);
     if (p.from === "form" && p.note === "1") {
-      return Alert.alert("적던 내용은 담기지 않아요", "여러 곳은 그룹으로 담습니다. 위시 폼에 적던 메모는 버려집니다.", [
+      return showDialog("적던 내용은 담기지 않아요", "여러 곳은 그룹으로 담습니다. 위시 폼에 적던 메모는 버려집니다.", [
         { text: "취소", style: "cancel" },
         { text: "계속", onPress: toGroup },
       ]);
@@ -231,6 +232,7 @@ export default function WishLinkRoute() {
           <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.card }}>{toast}</Text>
         </View>
       )}
+      <DialogHost />
     </KeyboardAvoidingView>
   );
 }

@@ -3,7 +3,8 @@ import { requireOptionalNativeModule } from "expo";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, Share, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, Share, View } from "react-native";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BackButton, Button, Eyebrow } from "@/components/ui";
@@ -85,7 +86,7 @@ export default function CoupleNew() {
   useEffect(() => {
     if (!joined || !bookId) return;
     setActiveBook(bookId);
-    Alert.alert("함께 쓰기 시작했어요", "이제 연인 기록장이 열려요.", [{ text: "확인", onPress: () => router.dismissAll() }]);
+    showDialog("함께 쓰기 시작했어요", "이제 연인 기록장이 열려요.", [{ text: "확인", onPress: () => router.dismissAll() }]);
   }, [joined, bookId, router]);
 
   async function create() {
@@ -227,6 +228,7 @@ export default function CoupleNew() {
           </>
         )}
       </ScrollView>
+    <DialogHost />
     </View>
   );
 }

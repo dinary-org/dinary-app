@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BoardIcon, CameraIcon, GridIcon, PeopleIcon, RankBarsIcon } from "./icons";
 import { setState, type CommunityTab } from "@/data/store";
 import { C, F, TAB_BAR_H } from "@/theme";
+import { useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 
 const TABS: { name: CommunityTab; label: string; icon: (c: string) => React.ReactNode }[] = [
   { name: "friends", label: "친구", icon: (c) => <PeopleIcon stroke={c} /> },
@@ -25,6 +26,11 @@ export default function CommunityTabBar({ state, navigation }: BottomTabBarProps
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const current = state.routes[state.index]?.name;
+  // 첫 실행 튜토리얼(커뮤니티 메뉴)이 칸마다 구멍을 뚫습니다.
+  const spot: Partial<Record<CommunityTab, ReturnType<typeof useTutorialTarget>>> = {
+    friends: useTutorialTarget("community.tab.friends"), gallery: useTutorialTarget("community.tab.gallery"),
+    ranking: useTutorialTarget("community.tab.ranking"), board: useTutorialTarget("community.tab.board"),
+  };
 
   const item = (t: (typeof TABS)[number]) => {
     const route = state.routes.find((r) => r.name === t.name);
@@ -34,6 +40,7 @@ export default function CommunityTabBar({ state, navigation }: BottomTabBarProps
     return (
       <Pressable
         key={t.name}
+        ref={spot[t.name]}
         style={s.tab}
         accessibilityRole="button"
         accessibilityState={{ selected: active }}

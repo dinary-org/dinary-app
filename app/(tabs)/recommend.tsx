@@ -17,6 +17,7 @@ import { NowMode } from "@/features/recommend/NowMode";
 import { PointSheet } from "@/features/recommend/PointSheet";
 import { RandomGames } from "@/features/recommend/RandomGames";
 import { REC } from "@/features/recommend/ui";
+import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 import { todayIso } from "@/lib/anniversary";
 import { REC_CONFIG } from "@/lib/rec/config";
 import { recommend } from "@/lib/rec/pipeline";
@@ -157,12 +158,18 @@ export default function RecommendTab() {
 
   const revisits = useMemo(() => (browseQ.data ?? []).filter((s) => s.kind === "restaurant").slice(0, 10), [browseQ.data]);
 
+  // 첫 실행 튜토리얼 — 지금 뭐 먹지 카드(NowMode 안) · 위치 · 시간 · 둘러보기.
+  useTabTutorial("recommend");
+  const whereSpot = useTutorialTarget("recommend.where");
+  const browseSpot = useTutorialTarget("recommend.browse");
+
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>
       <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 22 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
           <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 2.2, color: REC.label }}>RECOMMEND</Text>
           <Pressable
+            ref={whereSpot}
             onPress={() => setPointSheet(true)}
             accessibilityRole="button"
             accessibilityLabel="추천 기준 위치 바꾸기"
@@ -180,7 +187,7 @@ export default function RecommendTab() {
         </View>
         <View style={{ marginTop: 6, flexDirection: "row", alignItems: "baseline", gap: 12 }}>
           {(Object.keys(REC_MODE_LABEL) as RecMode[]).map((m) => (
-            <ModeTitle key={m} label={REC_MODE_LABEL[m]} on={mode === m} onPress={() => { Haptics.selectionAsync(); setMode(m); }} />
+            <ModeTitle key={m} spot={m === "browse" ? browseSpot : undefined} label={REC_MODE_LABEL[m]} on={mode === m} onPress={() => { Haptics.selectionAsync(); setMode(m); }} />
           ))}
         </View>
         {denied && !recPlace && here?.fallback && (
@@ -256,7 +263,7 @@ export default function RecommendTab() {
  */
 const THICK = 0.7;
 
-function ModeTitle({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
+function ModeTitle({ label, on, onPress, spot }: { label: string; on: boolean; onPress: () => void; spot?: ReturnType<typeof useTutorialTarget> }) {
   const t = useRef(new Animated.Value(on ? 1 : 0)).current;
   useEffect(() => {
     Animated.timing(t, { toValue: on ? 1 : 0, duration: 300, easing: Easing.inOut(Easing.ease), useNativeDriver: false }).start();
@@ -267,7 +274,7 @@ function ModeTitle({ label, on, onPress }: { label: string; on: boolean; onPress
     color: t.interpolate({ inputRange: [0, 1], outputRange: [REC.quiet, REC.ink] }),
   };
   return (
-    <Pressable onPress={onPress} disabled={on} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={label} hitSlop={8}>
+    <Pressable ref={spot} onPress={onPress} disabled={on} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={label} hitSlop={8}>
       <Animated.Text style={[ANDROID_TEXT, style]}>{label}</Animated.Text>
       <Animated.Text
         aria-hidden

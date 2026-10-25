@@ -51,7 +51,7 @@ export default function PlacesAtSheet(p: Props) {
   );
 }
 
-type Info = (pl: PlaceAt) => { recs: Restaurant[]; count: number; wish: boolean };
+export type Info = (pl: PlaceAt) => { recs: Restaurant[]; count: number; wish: boolean };
 
 /* ── 머리 ──────────────────────────────────── */
 
@@ -114,7 +114,8 @@ function PlaceRow({ place, info, num, distance, onPick, last }: {
 
 /* ── 1b 건물 ───────────────────────────────── */
 
-function BuildingView({ data, info, onPick, onClose }: {
+/** 튜토리얼(길게 눌러 보기)도 이 그림을 그대로 씁니다. */
+export function BuildingView({ data, info, onPick, onClose }: {
   data: BuildingData;
   info: Info; onPick: Props["onPick"]; onClose: () => void;
 }) {

@@ -8,6 +8,8 @@ import { useGalleryFeed, useGalleryToday, useIsAdmin, type GallerySort } from "@
 import { GalleryGrid } from "@/features/community/GalleryGrid";
 import { CommunityHeader, FilterChips, RoundButton, TitleBlock } from "@/features/community/ui";
 import { C, F } from "@/theme";
+import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
+import { COMMUNITY_DELAY } from "@/features/tutorial/steps";
 
 const MIN_VERIFIED = 5;
 
@@ -21,6 +23,8 @@ export default function GalleryHome() {
   const { data: isAdmin } = useIsAdmin();
   const { data: today = 0 } = useGalleryToday();
   const [sort, setSort] = useState<GallerySort>("latest");
+  useTabTutorial("community.gallery", COMMUNITY_DELAY);
+  const gridSpot = useTutorialTarget("community.gallery.grid");
 
   // my_verified_count 와 같은 기준.
   const verified = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null), [rows]);
@@ -45,13 +49,15 @@ export default function GalleryHome() {
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>
       <CommunityHeader right={<RoundButton label="갤러리 찾기" onPress={() => router.push("/community/gallery/search")}><SearchLineIcon /></RoundButton>} />
-      <GalleryGrid
-        photos={photos}
-        header={header}
-        refreshing={isRefetching}
-        onRefresh={refetch}
-        empty={sort === "friends" ? "친구가 올린 사진이 아직 없습니다." : undefined}
-      />
+      <View ref={gridSpot} collapsable={false} style={{ flex: 1 }}>
+        <GalleryGrid
+          photos={photos}
+          header={header}
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          empty={sort === "friends" ? "친구가 올린 사진이 아직 없습니다." : undefined}
+        />
+      </View>
 
       {/* 사진 올리기 — 게시판 「+ 글쓰기」와 같은 자리 · 모양. 인증 기록 5건 전에는 안내 띠. */}
       {canPost ? (

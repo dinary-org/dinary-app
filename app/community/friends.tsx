@@ -27,6 +27,8 @@ import { FriendMarker, friendPinSize } from "@/features/map/Markers";
 import { matchWish, type Wish } from "@/lib/types";
 import { C, F, SHADOW, TAB_BAR_H } from "@/theme";
 import { SignedImage } from "@/lib/signedPhoto";
+import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
+import { COMMUNITY_DELAY } from "@/features/tutorial/steps";
 
 type View_ = "feed" | "map";
 type OnWish = (seed: WishSeed) => Promise<WishResult | null>;
@@ -41,6 +43,10 @@ export default function FriendsScreen() {
   const qc = useQueryClient();
   const insets = useSafeAreaInsets();
   const { communitySeenSince } = useAppState();
+  // 첫 실행 튜토리얼 — 커뮤니티 메뉴 · 친구 소식 줄 · 소식/친구 지도.
+  useTabTutorial("community.friends", COMMUNITY_DELAY);
+  const storySpot = useTutorialTarget("community.stories");
+  const segmentSpot = useTutorialTarget("community.segment");
   const { data: fr } = useFriends();
   const { data: account } = useAccount();
   const { data: posts = [] } = useFriendFeed();
@@ -157,13 +163,15 @@ export default function FriendsScreen() {
         eyebrow="FRIENDS"
         aside={<Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>친구 {friends.length}명 · 새 소식 {fresh.length}</Text>}
       />
-      <Segmented<View_>
-        value={view}
-        onChange={setView}
-        options={[{ id: "feed", label: "소식" }, { id: "map", label: "친구 지도" }]}
-        style={{ marginTop: 14, marginHorizontal: 20 }}
-      />
+      <View ref={segmentSpot} collapsable={false} style={{ marginTop: 14, marginHorizontal: 20 }}>
+        <Segmented<View_>
+          value={view}
+          onChange={setView}
+          options={[{ id: "feed", label: "소식" }, { id: "map", label: "친구 지도" }]}
+        />
+      </View>
       {view === "feed" && (
+        <View ref={storySpot} collapsable={false}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
           {me && (
             <MySlot
@@ -192,6 +200,7 @@ export default function FriendsScreen() {
             </Pressable>
           ))}
         </ScrollView>
+        </View>
       )}
     </View>
   );

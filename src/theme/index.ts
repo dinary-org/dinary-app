@@ -19,6 +19,9 @@ export const C = {
   mapPark: "#dfe4d6",
   /** 촬영 화면 배경 */
   dark: "#171614",
+  /** 첫 실행 튜토리얼 — 화면을 덮는 어둠 · 구멍 둘레 점선 */
+  coachDim: "rgba(20,18,15,0.76)",
+  coachRing: "#e2a585",
 } as const;
 
 export const F = {

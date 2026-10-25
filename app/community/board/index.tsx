@@ -10,6 +10,8 @@ import {
 import { NoticeRow, PostCard } from "@/features/community/BoardPost";
 import { CommunityHeader, FilterChips, K, RoundButton, TitleBlock } from "@/features/community/ui";
 import { C, F } from "@/theme";
+import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
+import { COMMUNITY_DELAY } from "@/features/tutorial/steps";
 
 /**
  * 게시판(HANDOFF-board-v2 01~05) — DINARY 사용자 모두가 봅니다. 자유 · 주제 · 맛집 · 카페 · 코스 다섯 칸,
@@ -19,6 +21,8 @@ export default function BoardHome() {
   const router = useRouter();
   const { author } = useLocalSearchParams<{ author?: string }>();
   const { boardTab: tab } = useAppState();
+  useTabTutorial("community.board", COMMUNITY_DELAY);
+  const chipsSpot = useTutorialTarget("community.board.chips");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [tag, setTag] = useState<string | null>(null);
   const [pastTheme, setPastTheme] = useState(false);
@@ -80,6 +84,7 @@ export default function BoardHome() {
           <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>한 사람의 글만 보는 중 ✕</Text>
         </Pressable>
       )}
+      <View ref={chipsSpot} collapsable={false}>
       <FilterChips<BoardTab>
         value={tab}
         onChange={pickTab}
@@ -91,6 +96,7 @@ export default function BoardHome() {
           (tab === "food" || tab === "cafe") && toggleChip("✓ 인증만", verifiedOnly, () => setVerifiedOnly((v) => !v))
         }
       />
+      </View>
       {/* 글의 #태그를 눌러 거른 때만 — 많이 쓰인 태그를 저절로 띄우지는 않습니다. */}
       {tag && <View style={{ marginTop: 10, paddingHorizontal: 20, flexDirection: "row" }}>{toggleChip(`#${tag}`, true, () => setTag(null))}</View>}
 

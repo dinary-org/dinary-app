@@ -10,6 +10,8 @@ import { useLeaderboard, type Period, type Scope } from "@/features/community/ap
 import { BOARDS, periodLabel, SCOPES, type BoardMeta } from "@/features/community/boards";
 import { CommunityHeader, K, MiniSegment, Pill, TitleBlock } from "@/features/community/ui";
 import { C, F, FAINT_BOLD, TAB_BAR_H } from "@/theme";
+import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
+import { COMMUNITY_DELAY } from "@/features/tutorial/steps";
 
 const ASKED_KEY = "community.ranking.asked";
 /** 랭킹은 주 단위로만 잽니다. */
@@ -24,6 +26,10 @@ export default function RankingScreen() {
   const [scope, setScope] = useState<Scope>("friends");
   const [asking, setAsking] = useState(false);
   const optIn = account?.leaderboardOptIn ?? false;
+  // 참여 묻는 창이 먼저 — 답한 뒤에 튜토리얼.
+  useTabTutorial("community.ranking", COMMUNITY_DELAY, !asking);
+  const listSpot = useTutorialTarget("community.ranking.list");
+  const joinSpot = useTutorialTarget("community.ranking.join");
 
   // 처음 들어올 때 한 번만 묻습니다(기본은 구경만).
   useEffect(() => {
@@ -43,6 +49,7 @@ export default function RankingScreen() {
     <View style={{ flex: 1, backgroundColor: C.paper }}>
       <CommunityHeader
         right={
+          <View ref={joinSpot} collapsable={false}>
           <Pill
             label={optIn ? "참여 중" : "구경 중"}
             accessibilityLabel={optIn ? "랭킹 참여 중 — 눌러서 그만두기" : "구경 중 — 눌러서 랭킹 참여"}
@@ -50,6 +57,7 @@ export default function RankingScreen() {
           >
             {optIn && <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.brick }} />}
           </Pill>
+          </View>
         }
       />
       <ScrollView contentContainerStyle={{ paddingBottom: TAB_BAR_H + insets.bottom + 24 }}>
@@ -58,7 +66,7 @@ export default function RankingScreen() {
           <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.ink }}>{periodLabel(PERIOD)}</Text>
           <MiniSegment value={scope} options={SCOPES} onChange={setScope} />
         </View>
-        <View style={{ marginTop: 14, paddingHorizontal: 16, gap: 8 }}>
+        <View ref={listSpot} collapsable={false} style={{ marginTop: 14, paddingHorizontal: 16, gap: 8 }}>
           {BOARDS.map((b) => <BoardCard key={b.id} board={b} period={PERIOD} scope={scope} me={optIn ? account?.userId : undefined} onPress={() => open(b)} />)}
         </View>
       </ScrollView>

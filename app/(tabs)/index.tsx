@@ -31,6 +31,7 @@ import PlaceSearch from "@/features/map/PlaceSearch";
 import { SegmentSwitch, useWishItems, WishRow, type WishItem } from "@/features/map/WishSegment";
 import RecapInvite from "@/features/recap/RecapInvite";
 import { FilterSheet as FilterSheetImpl, FoundSheet, SearchMissSheet, SortMenu, WishPinCard } from "@/features/map/Sheets";
+import { useTabTutorial, useTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 import { mealLabels } from "@/lib/anniversary";
 import type { Place as GeocodePlace } from "@/lib/geocode";
 import { findRecord, findWish, norm } from "@/lib/geo";
@@ -127,6 +128,18 @@ export default function MapTab() {
     return sheetSnaps.reduce((best, y, i) => (Math.abs(y - target) < Math.abs(sheetSnaps[best] - target) ? i : best), 0);
   }, [sheetSnaps, layoutH, windowH]);
   const sheetIndex = useRef(sheetStartIndex);
+
+  // 첫 실행 튜토리얼 — 처음 로그인 · 온보딩 뒤 지도에 오면 한 번.
+  useTabTutorial("map", 600);
+  const plusSpot = useTutorialTarget("map.plus"), draftsSpot = useTutorialTarget("map.drafts"), bookSpot = useTutorialTarget("map.book");
+  const labelsSpot = useTutorialTarget("map.labels"), sheetSpot = useTutorialTarget("map.sheet"), openSpot = useTutorialTarget("map.open");
+  // 목록 시트 자리(윗변 ~ 탭바 위)와, 검색줄과 시트 사이 빈 지도 가운데 200px 원 — 시트를 따라 움직입니다.
+  const sheetTargetStyle = useAnimatedStyle(() => ({ top: sheetTop.value }));
+  const openTargetStyle = useAnimatedStyle(() => {
+    const top = insets.top + 62, room = sheetTop.value - top;
+    const d = Math.max(80, Math.min(200, room - 16));
+    return { top: top + room / 2 - d / 2, left: winW / 2 - d / 2, width: d, height: d };
+  });
 
   // 그룹으로 담고 돌아오면(wish/group) — 알림을 잠깐 띄우고, 펼친 그룹이 보이게 시트를 올립니다.
   useEffect(() => {
@@ -674,7 +687,7 @@ export default function MapTab() {
       {/* 검색 행 */}
       <View style={[s.searchRow, { top: insets.top + 8 }]}>
         {/* 기록장 메뉴 — 개인 기록이면 ≡, 연인 기록이면 두 아바타 + 작은 ≡ (§3-1) */}
-        <Pressable onPress={() => { Haptics.selectionAsync(); setDrawerOpen(true); }} accessibilityLabel="기록장 메뉴" style={[s.bookBtn, SHADOW.card]}>
+        <Pressable ref={bookSpot} onPress={() => { Haptics.selectionAsync(); setDrawerOpen(true); }} accessibilityLabel="기록장 메뉴" style={[s.bookBtn, SHADOW.card]}>
           {isCouple ? (
             <>
               <Pair me={meMember} partner={partner} size={30} overlap={9} />
@@ -685,7 +698,7 @@ export default function MapTab() {
           )}
         </Pressable>
         <PlaceSearch value={mapQuery} onChange={setMapQuery} onChoose={choosePlace} hasPicked={!!ghost} onClearPicked={() => setState({ ghost: null })} />
-        <Pressable onPress={() => router.push("/labels")} accessibilityLabel="라벨첩" style={[s.round, SHADOW.card]}>
+        <Pressable ref={labelsSpot} onPress={() => router.push("/labels")} accessibilityLabel="라벨첩" style={[s.round, SHADOW.card]}>
           <BurstIcon />
         </Pressable>
       </View>
@@ -735,7 +748,7 @@ export default function MapTab() {
 
       {/* 보관함 */}
       <Animated.View style={[s.floatRight, draftsStyle]}>
-        <Pressable onPress={() => router.push("/drafts")} accessibilityLabel="보관함" style={[s.drafts, SHADOW_FAB]}>
+        <Pressable ref={draftsSpot} onPress={() => router.push("/drafts")} accessibilityLabel="보관함" style={[s.drafts, SHADOW_FAB]}>
           <DraftsBoxIcon size={23} />
           {pendingRows.length > 0 && (
             <View style={s.badge}><Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.card }}>{pendingRows.length}</Text></View>
@@ -758,7 +771,7 @@ export default function MapTab() {
         </Animated.View>
       )}
       <Animated.View style={[s.floatPlus, plusStyle]}>
-        <Pressable onPress={() => { setAdminOpen(false); setPlusOpen((v) => !v); }} accessibilityLabel="기록·계획 추가" style={[s.plus, SHADOW_FAB, plusOpen && { backgroundColor: C.brick, borderWidth: 0 }]}>
+        <Pressable ref={plusSpot} onPress={() => { setAdminOpen(false); setPlusOpen((v) => !v); }} accessibilityLabel="기록·계획 추가" style={[s.plus, SHADOW_FAB, plusOpen && { backgroundColor: C.brick, borderWidth: 0 }]}>
           <View style={{ transform: [{ rotate: plusOpen ? "45deg" : "0deg" }] }}>
             <PlusIcon stroke={plusOpen ? C.card : C.ink} />
           </View>
@@ -800,6 +813,11 @@ export default function MapTab() {
         />
         )}
       </BottomSheet>
+
+      {/* 튜토리얼이 재는 자리 — 보이지도 눌리지도 않습니다 */}
+      <Animated.View ref={sheetSpot} collapsable={false} pointerEvents="none" style={[{ position: "absolute", left: 0, right: 0, bottom: 0 }, sheetTargetStyle]} />
+      <Animated.View ref={openSpot} collapsable={false} pointerEvents="none" style={[{ position: "absolute" }, openTargetStyle]} />
+      <TutorialSheetFocus sheetRef={sheetRef} snaps={sheetSnaps} height={layoutH || windowH} sheetIndex={sheetIndex} />
 
       <FilterSheetImpl
         visible={filtersOpen}
@@ -862,6 +880,29 @@ export default function MapTab() {
       )}
     </View>
   );
+}
+
+/**
+ * 지도 튜토리얼 동안 목록 시트를 화면 40% 높이로 내려 「길게 눌러 보기」 원이 들어갈 빈 지도를 만들고, 끝나면 원래 높이로 돌립니다.
+ * 단계마다 다시 그려지는 건 이 작은 컴포넌트뿐입니다.
+ */
+function TutorialSheetFocus({ sheetRef, snaps, height, sheetIndex }: {
+  sheetRef: React.RefObject<BottomSheet | null>; snaps: number[]; height: number; sheetIndex: React.RefObject<number>;
+}) {
+  const running = useTutorial().active?.key === "map";
+  const restore = useRef<number | null>(null);
+  useEffect(() => {
+    if (running) {
+      restore.current = sheetIndex.current;
+      const target = height * 0.4;
+      const i = snaps.reduce((best, y, j) => (Math.abs(y - target) < Math.abs(snaps[best] - target) ? j : best), 0);
+      sheetRef.current?.snapToIndex(i);
+    } else if (restore.current != null) {
+      sheetRef.current?.snapToIndex(restore.current);
+      restore.current = null;
+    }
+  }, [running]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
 }
 
 /** 웹 + 단추 — 획으로 그린 더하기(20, 1.7). */

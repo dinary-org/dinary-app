@@ -15,6 +15,7 @@ import { C, F, FAINT_BOLD } from "@/theme";
 import { openDirections, openNaverPlace } from "./api";
 import { logRec, rememberShown, type RecSession } from "./log";
 import { HereLegend, HereMarker, NumberMarker, REC } from "./ui";
+import { useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 
 const MAP_H = 270;
 /** 이만큼 끌면 다음 장(§5-3). */
@@ -105,6 +106,7 @@ export function NowMode({
 
   const note = result ? noteLine(result.relax, result.cycled, kakao) : "";
   const ready = !!here && !loading && picks.length > 0;
+  const nowSpot = useTutorialTarget("recommend.now");
 
   return (
     <View style={{ flex: 1 }}>
@@ -120,7 +122,7 @@ export function NowMode({
         {filter.exc.map((c) => chip(`e${c}`, `${c} 빼기`, "exc", () => onChangeFilter({ ...filter, exc: filter.exc.filter((x) => x !== c) })))}
       </ScrollView>
 
-      <View style={{ flex: 1, marginTop: 12, minHeight: MAP_H + 230, borderRadius: 24, borderWidth: 1.5, borderColor: C.brick, backgroundColor: REC.paper, overflow: "hidden" }}>
+      <View ref={nowSpot} collapsable={false} style={{ flex: 1, marginTop: 12, minHeight: MAP_H + 230, borderRadius: 24, borderWidth: 1.5, borderColor: C.brick, backgroundColor: REC.paper, overflow: "hidden" }}>
         {/* 지도는 위치가 생기면 한 번만 띄워 두고, 불러오는 중 · 빈 결과는 그 위를 덮습니다.
             불러오기(GPS · 카카오 1.5km → 3km)마다 지도를 내렸다 올리면 안드로이드 네이버 지도가 앱째 죽었습니다. */}
         {here && <PickMap here={here} picks={picks} index={index} onPick={setIndex} pointLabel={pointLabel} onTouch={onMapTouch} />}

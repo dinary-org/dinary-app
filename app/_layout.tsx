@@ -31,6 +31,8 @@ import { syncWishGeofences } from "@/features/notify/geofence";
 import { registerPushToken } from "@/features/notify/push";
 import { clearMonthWidget, syncMonthWidget } from "@/lib/widget";
 import { C } from "@/theme";
+import CoachOverlay from "@/features/tutorial/CoachOverlay";
+import { TutorialProvider } from "@/features/tutorial/TutorialProvider";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -179,7 +181,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   if (!fontsLoaded || session === undefined) return null;
 
   return (
-    <>
+    <TutorialProvider enabled={signedIn && !showBoot}>
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.paper } }}>
       <Stack.Screen name="(tabs)" />
       {/* 커뮤니티 — 들어갈 때는 전환 판이 덮고, 나갈 때(‹ 내 기록 · 밀기)는 판 없이 아래로 내려갑니다. */}
@@ -208,7 +210,9 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     {showBoot && <BootScreen key={bootOwner ?? "signed-out"} state={bootStatus} characterId={account && account.userId === userId ? account.characterId : undefined}
       fetching={books.isFetching} onRetry={() => { void books.refetch(); }}
       onCapture={session && account && account.userId === userId && account.nickname && account.termsAgreed ? () => { setCaptureEscape(true); router.push("/capture"); } : undefined} onHidden={hideBoot} />}
-    </>
+    {/* 첫 실행 튜토리얼 — 탭 · 시트 · 전환 판보다 위 */}
+    <CoachOverlay />
+    </TutorialProvider>
   );
 }
 

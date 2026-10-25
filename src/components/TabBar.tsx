@@ -9,6 +9,7 @@ import { useActiveBook } from "@/data/books";
 import { useCommunityUnseen } from "@/features/community/api";
 import { playCommunityTransition } from "@/features/community/Transition";
 import { useRecapUnseen } from "@/features/recap/useRecapState";
+import { useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 import { C, F, TAB_BAR_H } from "@/theme";
 
 const LABEL: Record<string, string> = {
@@ -47,6 +48,12 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
   const { isCouple, readOnly } = useActiveBook();
   // 마지막으로 커뮤니티를 본 뒤 친구가 공유한 기록이 있으면 커뮤니티 아이콘에 점.
   const { data: communityUnseen = 0 } = useCommunityUnseen();
+  // 첫 실행 튜토리얼이 구멍을 뚫는 자리.
+  const tutorialRef: Record<string, ReturnType<typeof useTutorialTarget>> = {
+    calendar: useTutorialTarget("tab.calendar"), recommend: useTutorialTarget("tab.recommend"),
+  };
+  const communityRef = useTutorialTarget("tab.community");
+  const cameraRef = useTutorialTarget("tab.camera");
 
   const item = (name: string) => {
     const index = state.routes.findIndex((r) => r.name === name);
@@ -59,6 +66,7 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
     return (
       <Pressable
         key={route.key}
+        ref={tutorialRef[route.name]}
         style={s.tab}
         accessibilityRole="button"
         onPress={() => {
@@ -86,6 +94,7 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
         item("account")
       ) : (
         <Pressable
+          ref={communityRef}
           style={s.tab}
           accessibilityRole="button"
           accessibilityLabel={communityUnseen > 0 ? "커뮤니티, 새 소식 있음" : "커뮤니티"}
@@ -103,6 +112,7 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
       )}
 
       <Pressable
+        ref={cameraRef}
         accessibilityLabel="사진으로 방문 인증"
         style={s.shutter}
         onPress={() => {

@@ -11,6 +11,7 @@ import AnniversaryBanner from "@/features/couple/AnniversaryBanner";
 import RecapCard from "@/features/recap/RecapCard";
 import RecapListSheet from "@/features/recap/RecapListSheet";
 import { useRecapState, useRecaps } from "@/features/recap/useRecapState";
+import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 import { dayCount, milestoneOn } from "@/lib/anniversary";
 import { pinColor, type Restaurant, type Wish } from "@/lib/types";
 import { C, F } from "@/theme";
@@ -167,6 +168,10 @@ export default function CalendarTab() {
   const { book, isCouple } = useActiveBook();
   const { data: picks = [] } = useAnniversaryPicks();
   const startedOn = isCouple ? book?.startedOn ?? null : null;
+  // 첫 실행 튜토리얼 — 달력 칸 · 리캡 카드.
+  useTabTutorial("calendar");
+  const gridSpot = useTutorialTarget("calendar.grid");
+  const recapSpot = useTutorialTarget("calendar.recap");
   const openRecap = (quarter: string) => router.push({ pathname: "/recap/[quarter]", params: { quarter } });
 
   const maxVisitedAt = useMemo(() => rows.reduce<string | null>((m, r) => (r.visited_at && (!m || r.visited_at > m) ? r.visited_at : m), null), [rows]);
@@ -252,6 +257,7 @@ export default function CalendarTab() {
       {startedOn && <AnniversaryBanner startedOn={startedOn} picks={picks} rows={rows} />}
 
       {!isCouple && recaps.latest && (
+        <View ref={recapSpot} collapsable={false}>
         <RecapCard
           summary={recaps.latest}
           nick={account?.nickname?.trim() || "나"}
@@ -259,6 +265,7 @@ export default function CalendarTab() {
           onOpen={() => openRecap(recaps.latest!.quarter)}
           onList={() => setRecapList(true)}
         />
+        </View>
       )}
 
       <View style={{ marginTop: 14, flexDirection: "row", paddingHorizontal: 12 }}>
@@ -266,7 +273,7 @@ export default function CalendarTab() {
       </View>
 
       {/* 탭바는 화면 아래에 따로 놓여서(절대 위치 아님) 이 화면은 이미 탭바 위에서 끝납니다. iOS 는 떠 있는 탭바 만큼 끝에 여유를 둡니다. */}
-      <View style={{ flex: 1, marginTop: 6, marginBottom: bottomGap }} onLayout={(e) => setPage({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+      <View ref={gridSpot} collapsable={false} style={{ flex: 1, marginTop: 6, marginBottom: bottomGap }} onLayout={(e) => setPage({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
         {page.w > 0 && (
           <FlatList
             ref={listRef}

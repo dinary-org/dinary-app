@@ -8,7 +8,7 @@ import { BottomSheetModal } from "@/components/ui";
 import { CheckIcon, DocIcon, PhotoIcon, RankBarsIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  createPost, hasContact, updatePost, useBoardPost, useCurrentTheme, useIsAdmin, usePopularTags, usePostsToday, type PostType,
+  createPost, hasContact, updatePost, useBoardPost, useCurrentTheme, useIsAdmin, usePopularTags, type PostType,
 } from "@/features/community/api";
 import { BOARD_LABEL, guOf, RecordMini } from "@/features/community/BoardPost";
 import { CourseMap } from "@/features/community/CourseMap";
@@ -18,7 +18,6 @@ import { pickAlbumUris, removePhotoObjects, uploadAlbumPhoto } from "@/lib/photo
 import { coverPhoto, type Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
-const DAILY = 3;
 const TITLE_MAX = 60;
 const BODY_MAX = 2000;
 const TAG_MAX = 5;
@@ -46,7 +45,6 @@ export default function BoardCompose() {
   const editId = params.edit ? Number(params.edit) : null;
   const { data: editing } = useBoardPost(editId ?? -1, editId != null);
   const { data: theme } = useCurrentTheme();
-  const { data: today = 0 } = usePostsToday();
   const { data: isAdmin } = useIsAdmin();
   const { data: popular = [] } = usePopularTags(20);
 
@@ -87,10 +85,6 @@ export default function BoardCompose() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
 
-  const blocked = editId || isAdmin
-    ? null
-    : today >= DAILY ? "오늘은 3개를 다 올렸습니다" : null;
-
   const kindFor = type === "food" ? "restaurant" : type === "cafe" ? "cafe" : null;
   const pollFilled = pollOptions.map((o) => o.trim()).filter(Boolean);
   const ready =
@@ -122,7 +116,7 @@ export default function BoardCompose() {
     : [];
 
   async function submit() {
-    if (!ready || blocked || busy) return;
+    if (!ready || busy) return;
     setBusy(true);
     setError("");
     try {
@@ -184,8 +178,8 @@ export default function BoardCompose() {
             <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.muted }}>취소</Text>
           </Pressable>
           <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.ink }}>{editId ? "글 고치기" : "글쓰기"}</Text>
-          <Pressable onPress={submit} disabled={!ready || !!blocked || busy} hitSlop={10}>
-            <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.brick, opacity: !ready || blocked || busy ? 0.35 : 1 }}>{busy ? "올리는 중…" : editId ? "저장" : "올리기"}</Text>
+          <Pressable onPress={submit} disabled={!ready || busy} hitSlop={10}>
+            <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.brick, opacity: !ready || busy ? 0.35 : 1 }}>{busy ? "올리는 중…" : editId ? "저장" : "올리기"}</Text>
           </Pressable>
         </View>
       </View>
@@ -197,9 +191,6 @@ export default function BoardCompose() {
           <Text style={{ fontFamily: F.mono, fontSize: 10.5, letterSpacing: 1.4, color: C.faint }}>{BOARD_LABEL[type]} · 제목 · 본문 · 태그만 고칠 수 있습니다</Text>
         )}
 
-        {!!blocked && (
-          <Text style={{ borderRadius: 12, backgroundColor: K.segMap, paddingHorizontal: 12, paddingVertical: 9, fontFamily: F.sans, fontSize: 12, color: C.muted, overflow: "hidden" }}>{blocked}</Text>
-        )}
 
         {editId == null && type === "theme" && (
           <View style={{ borderRadius: 16, backgroundColor: C.ink, paddingVertical: 12, paddingHorizontal: 14, gap: 3 }}>

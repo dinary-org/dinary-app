@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
-import Svg, { Circle, Polyline, Text as SvgText } from "react-native-svg";
 import { useAccount } from "@/data/profile";
 import { regionFromAddress } from "@/lib/regions";
 import { coverPhoto } from "@/lib/types";
@@ -90,46 +89,15 @@ const stopPhoto = (s: CourseStop) => coverPhoto({ photo_urls: s.photo_urls ?? []
 
 /* ───────────── 코스 ───────────── */
 
-/** 동선 지도 — 좌표로 그린 간단한 선 + 번호 원(지도 타일 없이). 좌표가 둘 미만이면 그리지 않습니다. */
-function RouteMap({ stops, height = 110 }: { stops: CourseStop[]; height?: number }) {
-  const [w, setW] = useState(0);
-  const pts = stops.filter((s) => s.lat != null && s.lng != null);
-  if (pts.length < 2) return null;
-  const lats = pts.map((s) => s.lat!), lngs = pts.map((s) => s.lng!);
-  const [minLat, maxLat, minLng, maxLng] = [Math.min(...lats), Math.max(...lats), Math.min(...lngs), Math.max(...lngs)];
-  const pad = 18;
-  const spanX = Math.max(maxLng - minLng, 1e-4), spanY = Math.max(maxLat - minLat, 1e-4);
-  // 가로세로 비율을 지키며 가운데에.
-  const scale = w ? Math.min((w - pad * 2) / spanX, (height - pad * 2) / spanY) : 0;
-  const ox = (w - spanX * scale) / 2, oy = (height - spanY * scale) / 2;
-  const xy = (s: CourseStop) => [ox + (s.lng! - minLng) * scale, oy + (maxLat - s.lat!) * scale] as const;
-  return (
-    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height, borderRadius: 14, backgroundColor: C.map, overflow: "hidden" }}>
-      {w > 0 && (
-        <Svg width={w} height={height}>
-          <Polyline points={pts.map((s) => xy(s).join(",")).join(" ")} fill="none" stroke={C.brick} strokeWidth={2} strokeDasharray="5 4" strokeLinecap="round" />
-          {pts.map((s) => {
-            const [x, y] = xy(s);
-            return [
-              <Circle key={`c${s.position}`} cx={x} cy={y} r={10} fill={C.brick} stroke={C.card} strokeWidth={2} />,
-              <SvgText key={`t${s.position}`} x={x} y={y + 3.5} fontSize={10} fontFamily={F.mono} fill={C.card} textAnchor="middle">{s.position}</SvgText>,
-            ];
-          })}
-        </Svg>
-      )}
-    </View>
-  );
-}
-
 /**
- * 코스 — (요약 자리) · 동선 지도 · 번호 원 세로 줄 + 메모 · ✓ 인증 n/m.
- * 상세(onMapTouch 가 있으면)는 네이버 지도에 가게 이름까지, 목록 카드는 가벼운 선 그림으로.
+ * 코스 — (요약 자리) · 동선 지도 · 번호 원 세로 줄 + 메모.
+ * 네이버 지도에 번호 핀 + 가게 이름. 상세(onMapTouch 가 있으면)는 끌고 확대할 수 있고, 목록 카드는 만질 수 없게(누르면 글 열기).
  */
-export function CourseBlock({ post, stops, onMapTouch }: { post: BoardPost; stops: CourseStop[]; onMapTouch?: (touching: boolean) => void }) {
+export function CourseBlock({ stops, onMapTouch }: { stops: CourseStop[]; onMapTouch?: (touching: boolean) => void }) {
   return (
     <View style={{ gap: 10 }}>
       {/* TODO(코스 요약): 시안의 「도보 12분 · 저녁 · 2인 약 6만 원」 자리 — 이번에는 비워 둡니다. */}
-      {onMapTouch ? <CourseMap stops={stops} onTouch={onMapTouch} /> : <RouteMap stops={stops} />}
+      {onMapTouch ? <CourseMap stops={stops} onTouch={onMapTouch} /> : <CourseMap stops={stops} interactive={false} />}
       <View>
         {stops.map((s, i) => (
           <View key={s.position} style={{ flexDirection: "row", gap: 10 }}>
@@ -142,7 +110,6 @@ export function CourseBlock({ post, stops, onMapTouch }: { post: BoardPost; stop
             <View style={{ flex: 1, minWidth: 0, paddingBottom: i < stops.length - 1 ? 12 : 0, gap: 2 }}>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
                 <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.serif, fontSize: 14, color: C.ink }}>{s.name}</Text>
-                {s.verified && <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: C.brick }}>✓</Text>}
                 <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>{s.category}</Text>
               </View>
               {!!s.memo && <Text style={{ fontFamily: F.sans, fontSize: 12, lineHeight: 18, color: K.text2 }}>{s.memo}</Text>}
@@ -150,7 +117,6 @@ export function CourseBlock({ post, stops, onMapTouch }: { post: BoardPost; stop
           </View>
         ))}
       </View>
-      <Text style={{ fontFamily: F.mono, fontSize: 10, color: C.brick }}>✓ 인증 {post.course_verified}/{post.course_count}</Text>
     </View>
   );
 }
@@ -233,7 +199,7 @@ function QuickPoll({ post }: { post: BoardPost }) {
 /* ───────────── 반응 ───────────── */
 
 /**
- * 모든 글: ♡ 좋아요(cheer 반응, 내 글은 수만) / 맛집 · 카페: + 「+ 위시에 담기」 / 코스: + 「코스 통째로 담기」.
+ * 모든 글: ♡ 좋아요(cheer 반응, 내 글은 수만) / 맛집 · 카페: + 「+ 위시에 담기」 / 코스: + 「+ 코스 담기」.
  */
 export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop[] }) {
   const qc = useQueryClient();
@@ -270,7 +236,7 @@ export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop
         toggle("want", !post.my_want, post.place_name
           ? () => add({ name: post.place_name!, where_text: post.address, category: post.category, lat: post.lat, lng: post.lng, source })
           : undefined))}
-      {post.type === "course" && chip(post.my_want ? `✓ 코스 담음 ${post.want_count}` : `코스 통째로 담기 ${post.want_count}`, post.my_want, () =>
+      {post.type === "course" && chip(post.my_want ? "✓ 코스 담음" : "+ 코스 담기", post.my_want, () =>
         toggle("want", !post.my_want, stops?.length
           ? () => addMany(stops.map((s) => ({ name: s.name, where_text: s.address, category: s.category, lat: s.lat, lng: s.lng, source })))
           : undefined))}
@@ -361,7 +327,7 @@ export function PostCard({
           <RecordMini name={post.place_name} photo={postPhoto(post)} rating={post.rating} category={post.category} address={post.address} verifiedAt={post.verified ? post.verified_at : null} />
         </Pressable>
       )}
-      {post.type === "course" && stops && <Pressable onPress={onOpen}><CourseBlock post={post} stops={stops} /></Pressable>}
+      {post.type === "course" && stops && <Pressable onPress={onOpen}><CourseBlock stops={stops} /></Pressable>}
       {hasPoll ? (
         <QuickPoll post={post} />
       ) : (

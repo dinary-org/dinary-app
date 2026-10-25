@@ -22,8 +22,9 @@ function fit(pts: { lat: number; lng: number }[]) {
 /**
  * 코스 지도 — 네이버 지도 위에 번호 핀 + 가게 이름, 순서대로 점선. 가게가 모두 들어오게 맞춥니다.
  * onTouch 로 바깥 세로 스크롤을 멈춰 지도 끌기 · 확대가 먹히게 합니다. 좌표 있는 가게가 없으면 그리지 않습니다.
+ * interactive={false}(목록 카드)면 지도를 만지지 못하게 — 손가락은 카드로 넘어가 목록 스크롤 · 글 열기가 그대로 됩니다.
  */
-export function CourseMap({ stops, height = 200, onTouch }: { stops: CourseMapStop[]; height?: number; onTouch?: (touching: boolean) => void }) {
+export function CourseMap({ stops, height = 200, onTouch, interactive = true }: { stops: CourseMapStop[]; height?: number; onTouch?: (touching: boolean) => void; interactive?: boolean }) {
   const pts = stops.flatMap((s, i) => (s.lat != null && s.lng != null ? [{ lat: s.lat, lng: s.lng, name: s.name, n: i + 1 }] : []));
   // 메모를 칠 때마다 카메라가 다시 움직이지 않게 — 좌표가 바뀔 때만 다시 맞춥니다.
   const key = pts.map((p) => `${p.lat},${p.lng}`).join("|");
@@ -31,12 +32,21 @@ export function CourseMap({ stops, height = 200, onTouch }: { stops: CourseMapSt
   if (!pts.length) return null;
   return (
     <View
+      pointerEvents={interactive ? "auto" : "none"}
       style={{ height, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.map }}
       onTouchStart={() => onTouch?.(true)}
       onTouchEnd={() => onTouch?.(false)}
       onTouchCancel={() => onTouch?.(false)}
     >
-      <PaperMap region={region} isRotateGesturesEnabled={false} isTiltGesturesEnabled={false} isShowIndoorLevelPicker={false}>
+      <PaperMap
+        region={region}
+        isRotateGesturesEnabled={false}
+        isTiltGesturesEnabled={false}
+        isScrollGesturesEnabled={interactive}
+        isZoomGesturesEnabled={interactive}
+        isStopGesturesEnabled={interactive}
+        isShowIndoorLevelPicker={false}
+      >
         {pts.length > 1 && (
           <NaverMapPolylineOverlay coords={pts.map((p) => ({ latitude: p.lat, longitude: p.lng }))} width={2.5} color={C.brick} pattern={[8, 6]} />
         )}

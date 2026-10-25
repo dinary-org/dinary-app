@@ -130,7 +130,7 @@ function PostContent({ post, stops, onMapTouch }: { post: BoardPost; stops: Para
           <RecordMini name={post.place_name} photo={postPhoto(post)} rating={post.rating} category={post.category} address={post.address} verifiedAt={post.verified ? post.verified_at : null} />
         </View>
       )}
-      {post.type === "course" && <CourseBlock post={post} stops={stops} onMapTouch={onMapTouch} />}
+      {post.type === "course" && <CourseBlock stops={stops} onMapTouch={onMapTouch} />}
       <Reactions post={post} stops={stops} />
     </>
   );

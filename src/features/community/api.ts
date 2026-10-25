@@ -645,19 +645,6 @@ export async function deletePost(qc: QueryClient, id: number, photos?: string[] 
   await qc.invalidateQueries({ queryKey: ["community", "theme"] });
 }
 
-/** 오늘(한국 날짜) 내가 올린 글 수 — 「하루 3개까지」 안내용. 서버가 한 번 더 막습니다. */
-export const usePostsToday = () =>
-  useQuery({
-    queryKey: ["community", "board", "today"],
-    queryFn: async () => {
-      const me = await myId();
-      if (!me) return 0;
-      const since = new Date(`${seoulToday()}T00:00:00+09:00`).toISOString();
-      const { count } = await supabase.from("board_posts").select("id", { count: "exact", head: true }).eq("author_id", me).gte("created_at", since);
-      return count ?? 0;
-    },
-  });
-
 /* ───────────── 프로필 창 ───────────── */
 
 export type FriendState = "self" | "friend" | "sent" | "received" | "none";

@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, Pressable, useWindowDimensions, View } from "react-native";
 import { Text } from "@/components/Text";
-import { CheckIcon } from "@/components/icons";
 import { SignedImage } from "@/lib/signedPhoto";
 import { C, F } from "@/theme";
 import type { GalleryPhoto } from "./api";
@@ -11,7 +10,7 @@ import type { GalleryPhoto } from "./api";
 const GAP = 3;
 
 /**
- * 갤러리 3칸 격자(HANDOFF-gallery 01) — 사진만, 칸 사이 3px, 정사각. 인증 기록 사진은 오른쪽 위 ✓.
+ * 갤러리 3칸 격자(HANDOFF-gallery 01) — 사진만, 칸 사이 3px, 정사각.
  * 처음 누르면 그 칸에 정보(가게 · 메뉴 · ♥ · 댓글 · 보기 ›), 같은 칸을 한 번 더 누르면 정보를 닫고 사진만 — 자세히는 「보기 ›」로.
  * 다른 칸을 누르면 정보가 그 칸으로 옮겨 가고(한 번에 한 칸), 스크롤하면 닫힙니다.
  */
@@ -57,11 +56,6 @@ export function GalleryGrid({
             style={{ width: size, height: size, backgroundColor: "#ece7dc" }}
           >
             <SignedImage uri={p.photo_ref} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-            {p.verified && !on && (
-              <View style={{ position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: 9, backgroundColor: C.card, alignItems: "center", justifyContent: "center" }}>
-                <CheckIcon size={11} stroke={C.brick} />
-              </View>
-            )}
             {on && (
               <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "rgba(28,26,23,.62)", justifyContent: "flex-end", padding: 8, gap: 2 }}>
                 <Text numberOfLines={1} style={{ fontFamily: F.serif, fontSize: 13, color: C.card }}>{p.place_name}</Text>

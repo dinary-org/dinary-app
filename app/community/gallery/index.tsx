@@ -1,17 +1,15 @@
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/Text";
 import { SearchLineIcon } from "@/components/icons";
-import { usePersonalRows } from "@/data/queries";
-import { useGalleryFeed, useGalleryToday, useIsAdmin, type GallerySort } from "@/features/community/api";
+import { useGalleryFeed, useGalleryToday, type GallerySort } from "@/features/community/api";
 import { GalleryGrid } from "@/features/community/GalleryGrid";
 import { CommunityHeader, FilterChips, RoundButton, TitleBlock } from "@/features/community/ui";
 import { C, F } from "@/theme";
 import { useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 import { COMMUNITY_DELAY } from "@/features/tutorial/steps";
 
-const MIN_VERIFIED = 5;
 
 /**
  * 공유 갤러리(HANDOFF-gallery 01) — 각자 찍은 음식 사진을 한 장씩. 사진에는 가게 · 메뉴가 붙고 반응은 좋아요 · 댓글.
@@ -19,16 +17,10 @@ const MIN_VERIFIED = 5;
  */
 export default function GalleryHome() {
   const router = useRouter();
-  const { data: rows = [] } = usePersonalRows();
-  const { data: isAdmin } = useIsAdmin();
   const { data: today = 0 } = useGalleryToday();
   const [sort, setSort] = useState<GallerySort>("latest");
   useTabTutorial("community.gallery", COMMUNITY_DELAY);
   const gridSpot = useTutorialTarget("community.gallery.grid");
-
-  // my_verified_count 와 같은 기준.
-  const verified = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null), [rows]);
-  const canPost = verified.length >= MIN_VERIFIED || !!isAdmin;
 
   const { data: photos = [], refetch, isRefetching } = useGalleryFeed({ sort });
 
@@ -59,19 +51,13 @@ export default function GalleryHome() {
         />
       </View>
 
-      {/* 사진 올리기 — 게시판 「+ 글쓰기」와 같은 자리 · 모양. 인증 기록 5건 전에는 안내 띠. */}
-      {canPost ? (
-        <Pressable
+      {/* 사진 올리기 — 게시판 「+ 글쓰기」와 같은 자리 · 모양, 누구나. */}
+      <Pressable
           onPress={() => router.push("/community/gallery/new")}
           style={{ position: "absolute", right: 18, bottom: 22, height: 46, borderRadius: 23, backgroundColor: C.ink, paddingHorizontal: 18, justifyContent: "center", shadowColor: C.ink, shadowOpacity: 0.25, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
         >
           <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.card }}>+ 사진 올리기</Text>
-        </Pressable>
-      ) : (
-        <View style={{ position: "absolute", left: 18, right: 18, bottom: 22, minHeight: 46, borderRadius: 23, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 16, alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.muted }}>인증 기록 {MIN_VERIFIED}건부터 사진을 올릴 수 있습니다 · 지금 {verified.length}건</Text>
-        </View>
-      )}
+      </Pressable>
     </View>
   );
 }

@@ -8,7 +8,7 @@ import { Text } from "@/components/Text";
 import { CheckIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePersonalRows } from "@/data/queries";
-import { postGalleryPhoto, useIsAdmin, useMyGalleryRefs } from "@/features/community/api";
+import { postGalleryPhoto, useMyGalleryRefs } from "@/features/community/api";
 import { K, monthDay } from "@/features/community/ui";
 import { photosOf } from "@/lib/record";
 import { regionFromSearch } from "@/lib/regions";
@@ -16,7 +16,6 @@ import { SignedImage } from "@/lib/signedPhoto";
 import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
-const MIN_VERIFIED = 5;
 const MENU_MAX = 40;
 const CAPTION_MAX = 120;
 const PAGE = 60;
@@ -45,7 +44,6 @@ export default function GalleryCompose() {
   const { width } = useWindowDimensions();
   const { data: rows = [] } = usePersonalRows();
   const { data: mine } = useMyGalleryRefs();
-  const { data: isAdmin } = useIsAdmin();
 
   const [pick, setPick] = useState<Pick | null>(null);
   const [menu, setMenu] = useState<MenuChoice>({ kind: "none" });
@@ -65,10 +63,6 @@ export default function GalleryCompose() {
   }, [rows]);
   const posted = (t: Pick) => mine?.refs.has(`${t.r.id}|${t.ref}`) ?? false;
 
-  const verifiedN = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null).length, [rows]);
-  const blocked = isAdmin
-    ? null
-    : verifiedN < MIN_VERIFIED ? `인증 기록 ${MIN_VERIFIED}건부터 사진을 올릴 수 있습니다 · 지금 ${verifiedN}건` : null;
 
   const menus = pick ? recordMenus(pick.r) : [];
   // 사진을 고르면 그 기록의 첫 메뉴가 골라진 상태로.
@@ -100,7 +94,7 @@ export default function GalleryCompose() {
   }
 
   function submit() {
-    if (!ready || blocked || busy) return;
+    if (!ready || busy) return;
     // 직접 쓴 메뉴가 그 기록에 없으면 기록에도 남길지 묻습니다.
     if (menu.kind === "custom" && !menus.some((m) => normMenu(m) === normMenu(custom))) {
       showDialog("이 메뉴를 기록에도 남길까요?", `「${custom.trim()}」을 ${pick!.r.name} 기록의 메뉴에 더합니다.`, [
@@ -131,16 +125,13 @@ export default function GalleryCompose() {
         <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Pressable onPress={() => router.back()} hitSlop={10}><Text style={{ fontFamily: F.sans, fontSize: 13, color: C.muted }}>취소</Text></Pressable>
           <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.ink }}>사진 올리기</Text>
-          <Pressable onPress={submit} disabled={!ready || !!blocked || busy} hitSlop={10}>
-            <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.brick, opacity: !ready || blocked || busy ? 0.35 : 1 }}>{busy ? "올리는 중…" : "올리기"}</Text>
+          <Pressable onPress={submit} disabled={!ready || busy} hitSlop={10}>
+            <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.brick, opacity: !ready || busy ? 0.35 : 1 }}>{busy ? "올리는 중…" : "올리기"}</Text>
           </Pressable>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: insets.bottom + 30, gap: 14 }} keyboardShouldPersistTaps="handled">
-        {!!blocked && (
-          <Text style={{ borderRadius: 12, backgroundColor: K.segMap, paddingHorizontal: 12, paddingVertical: 9, fontFamily: F.sans, fontSize: 12, color: C.muted, overflow: "hidden" }}>{blocked}</Text>
-        )}
 
         {/* 미리보기 — 고른 사진 120 + 가게 */}
         <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>

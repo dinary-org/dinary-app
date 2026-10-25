@@ -84,8 +84,8 @@ export default function BoardHome() {
           <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>한 사람의 글만 보는 중 ✕</Text>
         </Pressable>
       )}
-      <View ref={chipsSpot} collapsable={false}>
       <FilterChips<BoardTab>
+        contentRef={chipsSpot}
         value={tab}
         onChange={pickTab}
         options={[
@@ -96,7 +96,6 @@ export default function BoardHome() {
           (tab === "food" || tab === "cafe") && toggleChip("✓ 인증만", verifiedOnly, () => setVerifiedOnly((v) => !v))
         }
       />
-      </View>
       {/* 글의 #태그를 눌러 거른 때만 — 많이 쓰인 태그를 저절로 띄우지는 않습니다. */}
       {tag && <View style={{ marginTop: 10, paddingHorizontal: 20, flexDirection: "row" }}>{toggleChip(`#${tag}`, true, () => setTag(null))}</View>}
 

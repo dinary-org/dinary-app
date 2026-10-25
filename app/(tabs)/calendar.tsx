@@ -259,15 +259,14 @@ export default function CalendarTab() {
       {startedOn && <View ref={anniversarySpot} collapsable={false}><AnniversaryBanner startedOn={startedOn} picks={picks} rows={rows} /></View>}
 
       {!isCouple && recaps.latest && (
-        <View ref={recapSpot} collapsable={false}>
         <RecapCard
+          targetRef={recapSpot}
           summary={recaps.latest}
           nick={account?.nickname?.trim() || "나"}
           unseen={recapState.loaded && !recapState.seen(recaps.latest.quarter)}
           onOpen={() => openRecap(recaps.latest!.quarter)}
           onList={() => setRecapList(true)}
         />
-        </View>
       )}
 
       <View style={{ marginTop: 14, flexDirection: "row", paddingHorizontal: 12 }}>

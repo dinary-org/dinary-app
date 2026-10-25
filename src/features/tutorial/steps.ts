@@ -15,6 +15,10 @@ export type Step = {
   /** 잰 자리 대신 그 가운데에 이 크기로 구멍을 냅니다(탭바 칸처럼 누름 영역이 넓은 곳). */
   box?: { w: number; h: number };
   sim?: "longPress" | "share";
+  /** 앞 단계에 이어지는 체험은 별도 번호를 세지 않습니다. */
+  unnumbered?: boolean;
+  /** 강조 테두리와 실제 요소 사이의 간격. */
+  ringGap?: number;
   /** intro · outro 는 번호를 세지 않고 글을 가운데 둡니다. */
   kind?: "intro" | "outro";
   /** 자리를 못 쟀을 때 쓸 원 — 화면 가운데, 위에서 y 비율 자리. 지도 빈 곳처럼 꼭 보여야 하는 단계만. */
@@ -27,14 +31,14 @@ export const STEPS: Record<TutorialKey, Step[]> = {
   map: [
     { kind: "intro", title: "다이너리에 오신 걸\n환영해요", desc: "", targets: [] },
     { title: "사진으로 기록", desc: "가게에서 사진을 찍으면 바로 기록이 시작되고, 다녀간 곳으로 인증돼요.", targets: ["tab.camera"], radius: "circle" },
-    { title: "직접 추가", desc: "사진 없이 기록을 쓰거나, 가고 싶은 곳을 계획으로 담아요.", targets: ["map.plus"], radius: "circle" },
-    { title: "지도를 길게 누르면", desc: "지도에서 아무 곳이나 꾹 누르고 있으면 그 자리를 찾아 줘요. 건물이면 그 안 식당을 층별로, 건물이 없으면 둘레 식당을 25 · 50 · 100m 로 넓혀 가며 보여줘요.", targets: ["map.open"], radius: "circle", fallback: { y: 0.3, size: 200 } },
-    { title: "길게 눌러 보기", desc: "이제 원 안을 꾹 눌러 해 보세요.", targets: ["map.open"], radius: "circle", sim: "longPress", fallback: { y: 0.3, size: 200 } },
-    { title: "보관함", desc: "쓰다 만 기록과 올리는 중인 기록이 여기 모여요.", targets: ["map.drafts"], radius: "circle" },
-    { title: "내 맛집 목록", desc: "지도에 있는 곳을 목록으로 봐요. 위로 끌어올리면 넓어져요.", targets: ["map.sheet"], radius: 28 },
+    { title: "직접 추가", desc: "인증 없이 기록을 쓰거나, 가고 싶은 곳을 계획으로 담아요.", targets: ["map.plus"], radius: "circle" },
+    { title: "지도에서 식당 보기", desc: "지도에서 아무 곳이나 꾹 누르고 있으면 식당을 찾아 줘요. 건물이면 그 안 식당을 층별로, 건물이 없으면 주변 식당을 찾아줘요.", targets: ["map.open"], radius: "circle", fallback: { y: 0.3, size: 200 } },
+    { title: "길게 눌러 보기", desc: "화면을 꾹 눌러보세요.", targets: ["map.open"], radius: "circle", sim: "longPress", unnumbered: true, fallback: { y: 0.3, size: 200 } },
+    { title: "보관함", desc: "쓰다 만 기록이 여기 모여요.", targets: ["map.drafts"], radius: "circle" },
+    { title: "내 맛집 목록", desc: "지도에 있는 곳을 목록으로 봐요.", targets: ["map.sheet"], radius: 28 },
     { title: "기록장 바꾸기", desc: "개인 기록장과 연인 기록장을 오가요.", targets: ["map.book"], radius: 22 },
     { title: "라벨첩", desc: "기록이 쌓이면 라벨이 모여요. 닉네임 옆에 달 수 있어요.", targets: ["map.labels"], radius: "circle" },
-    { title: "릴스 · 유튜브에서 담기", desc: "릴스나 유튜브에서 공유를 누르고 다이너리를 골라보세요.", targets: [], sim: "share" },
+    { title: "릴스 유튜브 블로그에서 담기", desc: "릴스, 블로그, 유튜브에서 공유를 누르고 다이너리를 골라보세요.", targets: [], sim: "share" },
     { title: "다른 탭", desc: "캘린더 · 추천 · 커뮤니티. 처음 들어가면 그 화면도 짧게 알려드릴게요.", targets: ["tab.calendar", "tab.recommend", "tab.community", "tab.couple"], radius: 16, box: { w: 60, h: 54 },
       couple: { desc: "캘린더 · 추천 · 연인. 처음 들어가면 그 화면도 짧게 알려드릴게요." } },
     { kind: "outro", title: "준비 끝", desc: "다음 식사 때 이 버튼으로 첫 기록을 남겨보세요.", targets: ["tab.camera"], radius: "circle" },
@@ -50,8 +54,8 @@ export const STEPS: Record<TutorialKey, Step[]> = {
     { title: "우리 숫자", desc: "함께 간 식당, 기록, 인증을 둘이 합쳐 세요.", targets: ["couple.stats"], radius: 18 },
   ],
   calendar: [
-    { title: "날짜별 기록", desc: "먹은 날에 가게 이름이 적혀요. 날짜를 누르면 그날 기록을 봐요.", targets: ["calendar.grid"], radius: 20 },
-    { title: "리캡", desc: "분기마다 내가 먹은 기록을 한 장으로 정리해 줘요.", targets: ["calendar.recap"], radius: 20 },
+    { title: "날짜별 기록", desc: "가게 이름이 날짜별로 기록돼요. 날짜를 누르면 그날 기록이 보여요.", targets: ["calendar.grid"], radius: 20 },
+    { title: "리캡", desc: "분기마다 내가 먹은 기록을 정리해 줘요.", targets: ["calendar.recap"], radius: 18, ringGap: 0 },
   ],
   // 연인 기록장의 캘린더를 처음 열었을 때 — 개인 캘린더 튜토리얼을 이미 봤어도 따로 한 번.
   "couple.calendar": [
@@ -60,25 +64,24 @@ export const STEPS: Record<TutorialKey, Step[]> = {
     { title: "달력의 기념일", desc: "기념일인 날은 날짜에 연한 동그라미가 쳐지고 「100일」 · 「1주년」처럼 이름이 붙어요.", targets: ["calendar.grid"], radius: 20 },
   ],
   recommend: [
-    { title: "지금 뭐 먹지", desc: "지금 위치와 시간에 맞는 한 곳을 골라줘요.", targets: ["recommend.now"], radius: 20 },
+    { title: "지금 뭐 먹지", desc: "지금 위치와 시간에 어울리는 맛집을 추천해줘요.", targets: ["recommend.now"], radius: 20 },
     { title: "내 위치 · 시간", desc: "추천 기준이 되는 동네와 시간이에요. 눌러서 다른 동네나 시간으로 바꿀 수 있어요.", targets: ["recommend.where"], radius: 16 },
-    { title: "둘러보기", desc: "동네와 조건을 골라 여러 곳을 한 번에 봐요.", targets: ["recommend.browse"], radius: 16 },
+    { title: "둘러보기", desc: "다른 맛집들도 둘러봐요.", targets: ["recommend.browse"], radius: 16 },
     { title: "랜덤 게임", desc: "도저히 못 고르겠을 땐 게임으로 정해요. 추천된 가게 · 카테고리 · 직접 넣은 후보 중에서 하나가 뽑혀요.", targets: ["recommend.games"], radius: 16 },
   ],
   "community.friends": [
-    { title: "커뮤니티 메뉴", desc: "친구 · 갤러리 · 랭킹 · 게시판을 오가요. 처음 들어가는 곳마다 짧게 알려드릴게요.", targets: ["community.tab.friends", "community.tab.gallery", "community.tab.ranking", "community.tab.board"], radius: 16, box: { w: 60, h: 54 } },
-    { title: "친구 소식", desc: "친구가 인증한 기록이 여기 모여요. 동그라미를 누르면 친구별로 봐요.", targets: ["community.stories"], radius: 20 },
-    { title: "소식 · 친구 지도", desc: "목록 대신 지도에서 친구들이 다녀온 곳을 봐요.", targets: ["community.segment"], radius: 18 },
+    { title: "커뮤니티 메뉴", desc: "친구 · 갤러리 · 랭킹 · 게시판이 있어요. 처음 들어가는 곳마다 짧게 알려드릴게요.", targets: ["community.tab.friends", "community.tab.gallery", "community.tab.ranking", "community.tab.board"], radius: 16, box: { w: 60, h: 54 } },
+    { title: "친구 소식", desc: "친구가 인증한 기록이 여기 모여요. 동그라미를 누르면 친구별로 보여요.", targets: ["community.stories"], radius: 20 },
+    { title: "소식 · 친구 지도", desc: "목록 대신 지도에서 친구들이 다녀온 곳이 보여요.", targets: ["community.segment"], radius: 18 },
   ],
   "community.gallery": [
-    { title: "갤러리", desc: "모두가 올린 인증 사진이 모여요. 사진을 누르면 가게 정보를 봐요.", targets: ["community.gallery.grid"], radius: 16 },
+    { title: "갤러리", desc: "다양한 음식 사진들이 있어요. 사진을 누르면 가게 정보가 보여요.", targets: ["community.gallery.grid"], radius: 16 },
   ],
   "community.ranking": [
     { title: "랭킹", desc: "인증 횟수, 처음 가 본 가게, 단골 같은 기준으로 순위를 매겨요.", targets: ["community.ranking.list"], radius: 20 },
-    { title: "구경 중 · 참여", desc: "지금은 구경만 하는 중이에요. 눌러서 참여하면 내 순위도 올라가요.", targets: ["community.ranking.join"], radius: "circle" },
   ],
   "community.board": [
-    { title: "글 종류", desc: "주제, 어디 가요?, 기록 나눔으로 골라 보거나 동네를 좁혀요.", targets: ["community.board.chips"], radius: 18 },
+    { title: "글 종류", desc: "여러 사람들과 의견을 나눠요.", targets: ["community.board.chips"], radius: 16, ringGap: 0 },
   ],
 };
 

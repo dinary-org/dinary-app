@@ -1,6 +1,4 @@
-import * as Haptics from "expo-haptics";
-import { Image, Pressable, StyleSheet, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import { Image, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { Text } from "@/components/Text";
@@ -8,7 +6,7 @@ import { C, F } from "@/theme";
 
 /**
  * 튜토리얼 8 · 릴스 · 유튜브에서 담기 — 어둠 뒤에 릴스 화면 흉내, 어둠 위에 공유 시트 흉내.
- * 「다이너리」를 누르면 「위시에 담았어요」로 바뀔 뿐, 진짜 위시는 만들지 않습니다.
+ * 공유 시트는 안내용 그림이며, 어디든 탭하면 다음 단계로 넘어갑니다.
  * 실제 흐름: 공유 시트로 받은 글은 app/_layout.tsx 가 받아 /wish/new(share) 로 넘깁니다.
  */
 
@@ -34,40 +32,23 @@ export function ReelsBackdrop() {
   );
 }
 
-type Props = { done: boolean; onDone: () => void; onNext: () => void };
-
 /** 어둠 위 — 아래에서 올라온 공유 시트(높이 300). */
-export default function ShareSheetSim({ done, onDone, onNext }: Props) {
+export default function ShareSheetSim() {
   const insets = useSafeAreaInsets();
   return (
-    <Pressable onPress={() => { if (done) onNext(); }} style={[s.sheet, { height: 300 + insets.bottom, paddingBottom: insets.bottom }]}>
-      {done ? (
-        <Animated.View entering={FadeIn.duration(220)} style={s.doneBox}>
-          <View style={s.check}>
-            <Svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={C.card} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><Path d="M5 12.5l4.5 4.5L19 7.5" /></Svg>
-          </View>
-          <Text style={s.doneTitle}>위시에 담았어요</Text>
-          <Text style={s.doneSub}>성수 파스타바 · 서울 성동구 성수동</Text>
-        </Animated.View>
-      ) : (
-        <>
-          <Text style={s.title}>공유</Text>
-          <Text style={s.sub}>성수 파스타바 봉골레 후기 · 릴스</Text>
-          <View style={s.row}>
-            <Target label="메시지"><View style={[s.app, { backgroundColor: "#4cb75c" }]}><Glyph d={BUBBLE} /></View></Target>
-            <Target label="카카오톡"><View style={[s.app, { backgroundColor: "#f7d84a" }]}><Glyph d={BUBBLE} color="#3a2e1f" /></View></Target>
-            <Pressable
-              onPress={() => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); onDone(); }}
-              accessibilityRole="button" accessibilityLabel="다이너리" style={s.target}
-            >
-              <View style={s.ring}><Image source={ICON} style={s.icon} /></View>
-              <Text style={[s.label, { color: C.ink }]}>다이너리</Text>
-            </Pressable>
-            <Target label="링크 복사"><View style={[s.app, { backgroundColor: "#e6e0d3" }]}><Glyph d={LINK} color={C.muted} /></View></Target>
-          </View>
-        </>
-      )}
-    </Pressable>
+    <View pointerEvents="none" style={[s.sheet, { height: 300 + insets.bottom, paddingBottom: insets.bottom }]}>
+      <Text style={s.title}>공유</Text>
+      <Text style={s.sub}>성수 파스타바 봉골레 후기 · 릴스</Text>
+      <View style={s.row}>
+        <Target label="메시지"><View style={[s.app, { backgroundColor: "#4cb75c" }]}><Glyph d={BUBBLE} /></View></Target>
+        <Target label="카카오톡"><View style={[s.app, { backgroundColor: "#f7d84a" }]}><Glyph d={BUBBLE} color="#3a2e1f" /></View></Target>
+        <View style={s.target}>
+          <View style={s.ring}><Image source={ICON} style={s.icon} /></View>
+          <Text style={[s.label, { color: C.ink }]}>다이너리</Text>
+        </View>
+        <Target label="링크 복사"><View style={[s.app, { backgroundColor: "#e6e0d3" }]}><Glyph d={LINK} color={C.muted} /></View></Target>
+      </View>
+    </View>
   );
 }
 
@@ -103,8 +84,4 @@ const s = StyleSheet.create({
   ring: { padding: 4, borderRadius: 18, borderWidth: 2, borderStyle: "dashed", borderColor: C.coachRing, margin: -6 },
   icon: { width: 56, height: 56, borderRadius: 14 },
   label: { fontFamily: F.sans, fontSize: 11.5, color: C.muted },
-  doneBox: { flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 20 },
-  check: { width: 56, height: 56, borderRadius: 28, backgroundColor: C.brick, alignItems: "center", justifyContent: "center" },
-  doneTitle: { marginTop: 14, fontFamily: F.serif, fontSize: 21, color: C.ink },
-  doneSub: { marginTop: 6, fontFamily: F.sans, fontSize: 12.5, color: C.faint },
 });

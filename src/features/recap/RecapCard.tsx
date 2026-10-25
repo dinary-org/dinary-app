@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "@/components/Text";
 import { C, F } from "@/theme";
@@ -9,11 +10,12 @@ import { quarterLabel, seasonOf } from "./seasons";
  * 누르면 재생, 길게 누르면 지난 리캡 목록. 끝까지 보기 전까지 오른쪽 위에 점.
  */
 export default function RecapCard({
-  summary, nick, unseen, onOpen, onList,
-}: { summary: RecapSummary; nick: string; unseen: boolean; onOpen: () => void; onList: () => void }) {
+  summary, nick, unseen, onOpen, onList, targetRef,
+}: { summary: RecapSummary; nick: string; unseen: boolean; onOpen: () => void; onList: () => void; targetRef?: Ref<View> }) {
   const season = seasonOf(summary.quarter);
   return (
     <Pressable
+      ref={targetRef}
       onPress={onOpen}
       onLongPress={onList}
       accessibilityLabel={`${season.name} 식탁 리캡 보기`}

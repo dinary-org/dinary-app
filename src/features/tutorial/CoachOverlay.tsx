@@ -42,7 +42,8 @@ function Overlay() {
   const [box, setBox] = useState<{ id: string; y: number; h: number } | null>(null);
   const simDone = doneAt === stepId;
   const setSimDone = () => setDoneAt(stepId);
-  const textBox = box?.id === stepId ? box : null;
+  const textId = `${stepId}.${simDone ? "done" : "ready"}`;
+  const textBox = box?.id === textId ? box : null;
 
   useEffect(() => { void AccessibilityInfo.isScreenReaderEnabled().then(setReader); }, []);
   useEffect(() => {
@@ -50,7 +51,7 @@ function Overlay() {
     return () => sub.remove();
   }, [close]);
 
-  const off = holes!.length > 1 ? 4 : 7;
+  const off = step?.ringGap ?? (holes!.length > 1 ? 4 : 7);
   const textW = Math.min(TEXT_W, size.w - 32);
   const centered = step?.kind === "intro" || step?.kind === "outro";
   // 글 자리 — 구멍 가운데가 화면 위쪽이면 구멍 아래 24, 아니면 구멍 위 24.
@@ -71,17 +72,20 @@ function Overlay() {
     const v = union(hs)!;
     return { holes: hs, pos: { bottom: size.h - (v.y - off) + 24, left } };
   }, [holes, step, size.w, size.h, textW, centered, off, insets.top, insets.bottom]);
-  const shown = placed.holes;
+  // 결과는 설명 아래의 전체 너비 시트로 보이고, 체험용 원은 걷습니다.
+  const longPressDone = step?.sim === "longPress" && simDone;
+  const shown = longPressDone ? [] : placed.holes;
   const slots = useSlots(shown, off, size);
 
   if (!step) return null;
   const sim = step.sim;
   // 상호작용 단계는 해낼 때까지 바깥을 눌러도 넘어가지 않습니다(화면 읽기를 켰으면 그냥 넘어갑니다).
-  const waiting = !!sim && !simDone && !reader;
+  const waiting = sim === "longPress" && !simDone && !reader;
   const advance = () => { if (!waiting) next(); };
 
-  const pos: { top?: number; bottom?: number; left: number } = placed.pos
-    ?? (step.kind === "intro" ? { top: size.h * 0.38, left: (size.w - textW) / 2 } : { top: insets.top + 96, left: 16 });
+  const pos: { top?: number; bottom?: number; left: number } = longPressDone
+    ? { top: insets.top + 24, left: 16 }
+    : placed.pos ?? (step.kind === "intro" ? { top: size.h * 0.38, left: (size.w - textW) / 2 } : { top: insets.top + 96, left: 16 });
 
   const desc = sim && simDone ? SIM_DONE_DESC[sim] : step.desc;
   const hint = step.kind === "intro" ? "탭해서 시작 →" : waiting ? SIM_HINT[sim!] : last ? "탭해서 닫기" : "탭해서 계속 →";
@@ -100,10 +104,10 @@ function Overlay() {
       {Array.from({ length: SLOTS }, (_, i) => <Ring key={i} slots={slots} i={i} />)}
 
       {fresh && <Animated.View
-        key={stepId}
+        key={textId}
         entering={FadeIn.duration(220)}
         style={[s.text, { width: textW }, pos]}
-        onLayout={(e) => setBox({ id: stepId, y: e.nativeEvent.layout.y, h: e.nativeEvent.layout.height })}
+        onLayout={(e) => setBox({ id: textId, y: e.nativeEvent.layout.y, h: e.nativeEvent.layout.height })}
         accessible
         accessibilityRole="text"
         accessibilityLiveRegion="polite"
@@ -124,11 +128,11 @@ function Overlay() {
         </View>
       </Animated.View>}
 
-      {fresh && sim === "longPress" && shown[0] && (
-        <LongPressSim key={stepId} hole={shown[0]} done={simDone} onDone={setSimDone} onNext={next}
-          cardTop={textBox && (pos.top != null ? textBox.y + textBox.h + 16 : shown[0].y + shown[0].h + off + 16)} cardLeft={pos.left} width={textW} bottomLimit={size.h - insets.bottom - 12} />
+      {fresh && sim === "longPress" && placed.holes[0] && (
+        <LongPressSim key={stepId} hole={placed.holes[0]} done={simDone} onDone={setSimDone} onNext={next}
+          cardTop={textBox && (pos.top != null ? textBox.y + textBox.h + 16 : placed.holes[0].y + placed.holes[0].h + off + 16)} bottomInset={insets.bottom} height={size.h} />
       )}
-      {sim === "share" && <ShareSheetSim key={stepId} done={simDone} onDone={setSimDone} onNext={next} />}
+      {sim === "share" && <ShareSheetSim />}
     </Pressable>
   );
 }

@@ -142,8 +142,8 @@ export function TutorialProvider({ enabled, couple, children }: { enabled: boole
 
   const value = useMemo<Ctx>(() => {
     const list = active ? STEPS[active.key] : [];
-    const counted = list.filter((s) => !s.kind);
-    const number = active && step && !step.kind ? { n: list.slice(0, active.index + 1).filter((s) => !s.kind).length, of: counted.length } : null;
+    const counted = list.filter((s) => !s.kind && !s.unnumbered);
+    const number = active && step && !step.kind && !step.unnumbered ? { n: list.slice(0, active.index + 1).filter((s) => !s.kind && !s.unnumbered).length, of: counted.length } : null;
     const fresh = !!measured && measured.at === active;
     return { active, step, holes, fresh, number, last: !!active && active.index === list.length - 1, next, close };
   }, [active, step, holes, measured, next, close]);

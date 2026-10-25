@@ -35,12 +35,11 @@ type Props = {
   onNext: () => void;
   /** 카드 윗변 — 글 블록을 잰 뒤에 정해집니다. */
   cardTop: number | null;
-  cardLeft: number;
-  width: number;
-  bottomLimit: number;
+  bottomInset: number;
+  height: number;
 };
 
-export default function LongPressSim({ hole, done, onDone, onNext, cardTop, cardLeft, width, bottomLimit }: Props) {
+export default function LongPressSim({ hole, done, onDone, onNext, cardTop, bottomInset, height }: Props) {
   const grow = useSharedValue(0);
   const doneRef = useRef(false);
   const finish = () => {
@@ -56,7 +55,7 @@ export default function LongPressSim({ hole, done, onDone, onNext, cardTop, card
 
   return (
     <>
-      <Pressable
+      {!done && <Pressable
         style={{ position: "absolute", left: hole.x, top: hole.y, width: hole.w, height: hole.h, borderRadius: hole.r, alignItems: "center", justifyContent: "center" }}
         accessibilityRole="button"
         accessibilityLabel="원 안을 꾹 누르기"
@@ -72,15 +71,14 @@ export default function LongPressSim({ hole, done, onDone, onNext, cardTop, card
           grow.value = 0;
         }}
         onLongPress={finish}
-        onPress={() => { if (doneRef.current) onNext(); }}
       >
         <Animated.View pointerEvents="none" style={[s.ripple, ripple]} />
-      </Pressable>
+      </Pressable>}
 
       {done && cardTop != null && (
-        <Animated.View entering={FadeInDown.duration(240)} style={[s.card, { top: cardTop, left: cardLeft, width, maxHeight: Math.max(160, bottomLimit - cardTop) }]}>
+        <Animated.View entering={FadeInDown.duration(240)} style={[s.card, { maxHeight: Math.max(0, height - cardTop), paddingBottom: bottomInset + 20 }]}>
           <Pressable onPress={onNext} style={{ flexShrink: 1 }}>
-            <View style={{ flexShrink: 1 }}>
+            <View pointerEvents="none" style={{ flexShrink: 1 }}>
               <BuildingView data={SAMPLE} info={info} onPick={onNext} onClose={onNext} />
             </View>
           </Pressable>
@@ -92,5 +90,5 @@ export default function LongPressSim({ hole, done, onDone, onNext, cardTop, card
 
 const s = StyleSheet.create({
   ripple: { backgroundColor: "rgba(180,85,45,.22)", borderWidth: 2, borderColor: C.coachRing },
-  card: { position: "absolute", backgroundColor: C.paper, borderRadius: 22, paddingHorizontal: 18, paddingTop: 16, paddingBottom: 10 },
+  card: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 18 },
 });

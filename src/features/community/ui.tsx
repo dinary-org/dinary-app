@@ -153,19 +153,21 @@ export function MiniSegment<T extends string>({ value, options, onChange }: { va
 }
 
 /** 거르기 칩 줄(높이 32) — 켜진 것은 먹색. */
-export function FilterChips<T extends string>({ value, options, onChange, trailing }: { value: T; options: { id: T; label: string }[]; onChange: (v: T) => void; trailing?: React.ReactNode }) {
+export function FilterChips<T extends string>({ value, options, onChange, trailing, contentRef }: { value: T; options: { id: T; label: string }[]; onChange: (v: T) => void; trailing?: React.ReactNode; contentRef?: React.Ref<View> }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 6 }}>
-      {options.map((o) => {
-        const on = o.id === value;
-        return (
-          <Pressable key={o.id} onPress={() => { Haptics.selectionAsync(); onChange(o.id); }} accessibilityState={{ selected: on }}
-            style={{ height: 32, borderRadius: 16, paddingHorizontal: 13, justifyContent: "center", backgroundColor: on ? C.ink : C.card, borderWidth: on ? 0 : 1, borderColor: C.line }}>
-            <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 12, color: on ? C.card : K.text2 }}>{o.label}</Text>
-          </Pressable>
-        );
-      })}
-      {trailing}
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 14, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: 20 }}>
+      <View ref={contentRef} collapsable={false} style={{ flexDirection: "row", gap: 6 }}>
+        {options.map((o) => {
+          const on = o.id === value;
+          return (
+            <Pressable key={o.id} onPress={() => { Haptics.selectionAsync(); onChange(o.id); }} accessibilityState={{ selected: on }}
+              style={{ height: 32, borderRadius: 16, paddingHorizontal: 13, justifyContent: "center", backgroundColor: on ? C.ink : C.card, borderWidth: on ? 0 : 1, borderColor: C.line }}>
+              <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 12, color: on ? C.card : K.text2 }}>{o.label}</Text>
+            </Pressable>
+          );
+        })}
+        {trailing}
+      </View>
     </ScrollView>
   );
 }

@@ -14,7 +14,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#ffffff",
+    "backgroundColor": "#fbfaf7",
     "ios": {
       "bundleIdentifier": "app.dinary",
       "supportsTablet": false,

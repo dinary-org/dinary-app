@@ -36,9 +36,9 @@ export const MONTH_WIDGETS = ["MonthWidget", "MonthDotsWidget", "MonthPhotoWidge
 
 // MARK: 색 · 글꼴 — MonthWidgets.swift 와 같은 값
 
-const brick = "#b4552d", paper = "#ffffff", ink = "#1c1a17";
-const line = "#ece9e5", mute = "#8a8377", sub = "#6b665e", faint = "#d1cdc6", blush = "#f1d9cc";
-const dayPast = "#ece9e5", dayAhead = "#f3f1ee";
+const brick = "#b4552d", paper = "#fbfaf7", ink = "#1c1a17";
+const line = "#e8e4dd", mute = "#8a8377", sub = "#6b665e", faint = "#d4cfc6", blush = "#f1d9cc";
+const dayPast = "#e8e4dd", dayAhead = "#f1efea";
 const BATANG = "GowunBatang-Regular", BATANG_B = "GowunBatang-Bold", MONO = "JetBrainsMono-Regular";
 /** 런처가 모서리를 깎지 않는 기기에서도 iOS 위젯처럼 둥글게 */
 const R = 20;

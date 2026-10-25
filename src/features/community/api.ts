@@ -192,12 +192,12 @@ export const useFriendFeed = () =>
     },
   });
 
-export type PostInput = { recordId: number; photoIndex: number[]; note: string; audience: Audience };
+export type PostInput = { recordId: number; photoIndex: number[]; note: string };
 
 /** 올리기 · 고치기 — 같은 기록이면 새 소식이 아니라 고치기입니다(unique user_id, record_id). */
 export async function upsertFriendPost(qc: QueryClient, p: PostInput): Promise<number> {
   const { data, error } = await supabase.rpc("upsert_friend_post", {
-    p_record_id: p.recordId, p_photo_index: p.photoIndex, p_note: stripContact(p.note).trim() || null, p_audience: p.audience,
+    p_record_id: p.recordId, p_photo_index: p.photoIndex, p_note: stripContact(p.note).trim() || null, p_audience: "friends",
   });
   if (error) throw new Error(boardError(error.message));
   await qc.invalidateQueries({ queryKey: ["community", "feed"] });
@@ -209,29 +209,6 @@ export async function removeFriendPost(qc: QueryClient, id: number) {
   const { error } = await supabase.from("friend_posts").delete().eq("id", id);
   if (error) throw new Error(error.message);
   await qc.invalidateQueries({ queryKey: ["community", "feed"] });
-}
-
-/** 내가 고른 친한 친구 id. */
-export const useCloseFriends = () =>
-  useQuery({
-    queryKey: ["community", "close"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("close_friends").select("friend_id");
-      return soft("close_friends 조회", error, ((data ?? []) as { friend_id: string }[]).map((r) => r.friend_id));
-    },
-  });
-
-/** 친한 친구를 통째로 바꿉니다. */
-export async function setCloseFriends(qc: QueryClient, ids: string[]) {
-  const me = await myId();
-  if (!me) return;
-  const { error: delErr } = await supabase.from("close_friends").delete().eq("user_id", me);
-  if (delErr) throw new Error(delErr.message);
-  if (ids.length) {
-    const { error } = await supabase.from("close_friends").insert(ids.map((friend_id) => ({ user_id: me, friend_id })));
-    if (error) throw new Error(error.message);
-  }
-  await qc.invalidateQueries({ queryKey: ["community", "close"] });
 }
 
 /** 공감 · 댓글 수와 내가 공감했는지. */

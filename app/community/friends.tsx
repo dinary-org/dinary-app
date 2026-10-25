@@ -13,9 +13,10 @@ import { useAccount } from "@/data/profile";
 import { useWishes } from "@/data/queries";
 import { useAppState } from "@/data/store";
 import {
-  postPhotos, removeFriendPost, toggleCheer, upsertFriendPost, useCloseFriends, useFriendFeed, useFriends, useRecordSocial,
+  postPhotos, removeFriendPost, toggleCheer, upsertFriendPost, useFriendFeed, useFriends, useRecordSocial,
   type FriendPost, type WishSeed,
 } from "@/features/community/api";
+import { useAlarmDot } from "@/features/community/alarms";
 import CommentsSheet from "@/features/community/Comments";
 import PostSheet from "@/features/community/PostSheet";
 import { useAddWish, type WishResult } from "@/features/community/useAddWish";
@@ -42,13 +43,17 @@ export default function FriendsScreen() {
   const { data: fr } = useFriends();
   const { data: account } = useAccount();
   const { data: posts = [] } = useFriendFeed();
-  const { data: closeIds = [] } = useCloseFriends();
   const [view, setView] = useState<View_>("feed");
   const [only, setOnly] = useState<string | null>(null);
   // 프로필 창 「친구 · 기록 보기」 — 그 친구만 거른 소식으로 엽니다(?only=).
-  const { only: onlyParam } = useLocalSearchParams<{ only?: string }>();
-  useEffect(() => { if (onlyParam) setOnly(onlyParam); }, [onlyParam]);
+  // 알림 — 내 소식 카드로(?post=), 댓글이면 댓글 창까지(?comments=). t 는 같은 알림을 다시 눌러도 다시 돌게.
+  const { only: onlyParam, post: postParam, comments: commentsParam, t: navT } = useLocalSearchParams<{ only?: string; post?: string; comments?: string; t?: string }>();
+  useEffect(() => { if (onlyParam) setOnly(onlyParam); }, [onlyParam, navT]);
   const [commentsFor, setCommentsFor] = useState<number | null>(null);
+  useEffect(() => {
+    if (postParam) { setView("feed"); setScrollTo(Number(postParam)); }
+    if (commentsParam) setCommentsFor(Number(commentsParam));
+  }, [postParam, commentsParam, navT]);
   const [posting, setPosting] = useState<{ recordId: number | null } | null>(null);
   const [menuFor, setMenuFor] = useState<FriendPost | null>(null);
   const [removed, setRemoved] = useState<FriendPost | null>(null);
@@ -58,6 +63,7 @@ export default function FriendsScreen() {
   const { add: addWish, sheet: wishSheet } = useAddWish();
 
   const me = account?.userId ?? fr?.me ?? null;
+  const alarmDot = useAlarmDot(me);
   const friends = fr?.friends ?? [];
   const people = useMemo(() => {
     const m = new Map<string, Who>(friends.map((f) => [f.id, f]));
@@ -103,13 +109,13 @@ export default function FriendsScreen() {
   async function undo() {
     const p = removed;
     setRemoved(null);
-    if (p) await upsertFriendPost(qc, { recordId: p.record_id, photoIndex: p.photo_index, note: p.note ?? "", audience: p.audience }).catch(() => {});
+    if (p) await upsertFriendPost(qc, { recordId: p.record_id, photoIndex: p.photo_index, note: p.note ?? "" }).catch(() => {});
   }
 
   const right = (
     <>
       <RoundButton label="친구 추가" onPress={() => router.push("/community/people")}><AddPersonIcon /></RoundButton>
-      <RoundButton label="알림" dot={(fr?.incoming.length ?? 0) > 0} onPress={() => router.push({ pathname: "/community/people", params: { tab: "requests" } })}>
+      <RoundButton label="알림" dot={alarmDot} onPress={() => router.push("/community/alarms")}>
         <BellLineIcon />
       </RoundButton>
     </>
@@ -118,8 +124,7 @@ export default function FriendsScreen() {
   const head = (
     <View>
       <TitleBlock
-        eyebrow="COMMUNITY · FRIENDS"
-        title="친구"
+        eyebrow="FRIENDS"
         aside={<Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>친구 {friends.length}명 · 새 소식 {fresh.length}</Text>}
       />
       <Segmented<View_>
@@ -170,7 +175,6 @@ export default function FriendsScreen() {
         onClose={() => setPosting(null)}
         onPosted={() => { setOnly(null); setView("feed"); requestAnimationFrame(() => listRef.current?.scrollToOffset({ offset: 0, animated: true })); }}
         myPosts={mine}
-        friends={friends}
       />
       <BottomSheetModal visible={!!menuFor} onClose={() => setMenuFor(null)}>
         {menuFor && (
@@ -179,7 +183,6 @@ export default function FriendsScreen() {
             <View style={{ marginTop: 12 }}>
               {[
                 { label: "사진 · 한 줄 고치기", onPress: () => { setPosting({ recordId: menuFor.record_id }); setMenuFor(null); } },
-                { label: "받는 사람 바꾸기", onPress: () => { setPosting({ recordId: menuFor.record_id }); setMenuFor(null); } },
                 { label: "소식에서 내리기", onPress: () => takeDown(menuFor), danger: true },
               ].map((o, i) => (
                 <Pressable key={o.label} onPress={o.onPress} style={{ minHeight: 52, justifyContent: "center", borderTopWidth: i ? 1 : 0, borderTopColor: "#efeae0" }}>
@@ -225,7 +228,6 @@ export default function FriendsScreen() {
         posts={shown}
         people={people}
         me={me}
-        closeCount={closeIds.length}
         header={head}
         empty={<Empty hasFriends={friends.length > 0} />}
         onComments={setCommentsFor}
@@ -280,9 +282,9 @@ function Empty({ hasFriends }: { hasFriends: boolean }) {
   );
 }
 
-function FlatListFeed({ listRef, posts, people, me, closeCount, header, empty, onComments, onMenu, onWish, bottom }: {
+function FlatListFeed({ listRef, posts, people, me, header, empty, onComments, onMenu, onWish, bottom }: {
   listRef: React.RefObject<FlatList<FriendPost> | null>;
-  posts: FriendPost[]; people: Map<string, Who>; me: string | null; closeCount: number;
+  posts: FriendPost[]; people: Map<string, Who>; me: string | null;
   header: React.ReactElement; empty: React.ReactElement; onComments: (recordId: number) => void; onMenu: (p: FriendPost) => void; onWish: OnWish; bottom: number;
 }) {
   const { data: social } = useRecordSocial(posts.map((p) => p.record_id));
@@ -302,7 +304,6 @@ function FlatListFeed({ listRef, posts, people, me, closeCount, header, empty, o
             p={item}
             who={people.get(item.user_id)}
             mine={item.user_id === me}
-            closeCount={closeCount}
             social={social?.get(item.record_id)}
             onComments={() => onComments(item.record_id)}
             onMenu={() => onMenu(item)}
@@ -335,8 +336,8 @@ function PhotoPager({ urls, height }: { urls: string[]; height: number }) {
 }
 
 /** 소식 카드 — 고른 사진 · 한 줄. 내 카드는 먹색 테두리 + 받는 사람 칩 + ··· 메뉴, 위시 버튼 없음. */
-const FeedCard = memo(function FeedCard({ p, who, mine, closeCount, social, onComments, onMenu, onWish }: {
-  p: FriendPost; who?: Who; mine: boolean; closeCount: number; social?: { cheers: number; mine: boolean; comments: number }; onComments: () => void; onMenu: () => void; onWish: OnWish;
+const FeedCard = memo(function FeedCard({ p, who, mine, social, onComments, onMenu, onWish }: {
+  p: FriendPost; who?: Who; mine: boolean; social?: { cheers: number; mine: boolean; comments: number }; onComments: () => void; onMenu: () => void; onWish: OnWish;
 }) {
   const qc = useQueryClient();
   const [wish, setWish] = useState<"idle" | "added" | "exists">("idle");
@@ -352,9 +353,6 @@ const FeedCard = memo(function FeedCard({ p, who, mine, closeCount, social, onCo
     }
   }
   const wishLabel = wish === "added" ? "✓ 위시에 담음" : wish === "exists" ? "이미 담아둔 곳" : "+ 위시에 담기";
-  const audienceChip = (label: string, soft: boolean) => (
-    <Text style={{ borderRadius: 9, backgroundColor: soft ? C.brickSoft : K.seg, paddingHorizontal: 7, paddingVertical: 1, fontFamily: F.mono, fontSize: 10, color: soft ? K.brickInk : C.muted, overflow: "hidden" }}>{label}</Text>
-  );
 
   return (
     <View style={{ borderRadius: 20, borderWidth: 1, borderColor: mine ? C.ink : C.lineSoft, backgroundColor: C.card, padding: 14 }}>
@@ -364,18 +362,12 @@ const FeedCard = memo(function FeedCard({ p, who, mine, closeCount, social, onCo
         <Text style={{ fontFamily: F.mono, fontSize: 10, color: K.inactive }}>{timeAgo(p.created_at)}</Text>
         <View style={{ marginLeft: "auto", flexDirection: "row", alignItems: "center", gap: 6 }}>
           {mine ? (
-            <>
-              {audienceChip(p.audience === "close" ? `친한 친구 ${closeCount}` : "친구 전체", p.audience === "close")}
-              <Pressable onPress={onMenu} hitSlop={8} accessibilityLabel="소식 메뉴"
-                style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: K.seg, alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ marginTop: -6, fontFamily: F.sansMd, fontSize: 14, color: K.text2 }}>···</Text>
-              </Pressable>
-            </>
+            <Pressable onPress={onMenu} hitSlop={8} accessibilityLabel="소식 메뉴"
+              style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: K.seg, alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ marginTop: -6, fontFamily: F.sansMd, fontSize: 14, color: K.text2 }}>···</Text>
+            </Pressable>
           ) : (
-            <>
-              {p.audience === "close" && audienceChip("친한 친구", true)}
-              <VerifiedChip />
-            </>
+            <VerifiedChip />
           )}
         </View>
       </View>

@@ -31,8 +31,7 @@ export default function GalleryHome() {
   const header = (
     <View style={{ paddingBottom: 14 }}>
       <TitleBlock
-        eyebrow="COMMUNITY · GALLERY"
-        title="갤러리"
+        eyebrow="GALLERY"
         aside={<Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>오늘 올라온 사진 <Text style={{ color: C.brick }}>{today}</Text></Text>}
       />
       <FilterChips<GallerySort>

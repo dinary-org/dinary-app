@@ -87,7 +87,7 @@ export default function PeopleScreen() {
     <View style={{ flex: 1, backgroundColor: C.paper }}>
       <CommunityHeader back={{ label: "친구", onPress: () => (router.canGoBack() ? router.back() : router.navigate("/community/friends")) }} />
       <ScrollView contentContainerStyle={{ paddingBottom: TAB_BAR_H + insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-        <TitleBlock eyebrow="COMMUNITY · FRIENDS" title="친구 추가" />
+        <TitleBlock eyebrow="FRIENDS" title="친구 추가" />
         <View style={{ paddingHorizontal: 20 }}>
           {invited && status(invited.id) !== "me" && (
             <>

@@ -7,14 +7,14 @@ import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { CameraIcon } from "@/components/icons";
-import { BottomSheetModal, fieldStyle } from "@/components/ui";
+import { fieldStyle } from "@/components/ui";
 import { useIosKeyboardHeight, useKeyboardOpen } from "@/lib/keyboard";
 import { usePersonalRows } from "@/data/queries";
 import { photosOf } from "@/lib/record";
 import { coverPhoto, type Restaurant } from "@/lib/types";
 import { C, F, SHADOW } from "@/theme";
-import { setCloseFriends, upsertFriendPost, useCloseFriends, type Audience, type FriendPost, type PublicProfile } from "./api";
-import { Avatar, K, PhotoOrStripes, Segmented } from "./ui";
+import { upsertFriendPost, type FriendPost } from "./api";
+import { K, PhotoOrStripes } from "./ui";
 import { SignedImage } from "@/lib/signedPhoto";
 
 const NOTE_MAX = 40;
@@ -30,17 +30,16 @@ const dotted = (iso: string | null) =>
   iso ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" }).format(new Date(iso)).replace(/-/g, ".") : "";
 
 /**
- * 친구 소식 올리기 시트(HANDOFF-friend-posts §3-3, 시안 1a A2 · A3) — 1단계 기록 고르기 → 2단계 사진 · 한 줄 · 받는 사람.
+ * 친구 소식 올리기 시트(HANDOFF-friend-posts §3-3, 시안 1a A2 · A3) — 1단계 기록 고르기 → 2단계 사진 · 한 줄. 친구 전체에게 보입니다.
  * 이미 올린 기록을 고르면 2단계가 기존 값으로 채워지고 「고치기」가 됩니다. startRecordId 가 있으면 바로 2단계.
  */
 export default function PostSheet({
-  visible, onClose, onPosted, myPosts, friends, startRecordId,
+  visible, onClose, onPosted, myPosts, startRecordId,
 }: {
   visible: boolean;
   onClose: () => void;
   onPosted: () => void;
   myPosts: FriendPost[];
-  friends: PublicProfile[];
   startRecordId?: number | null;
 }) {
   const qc = useQueryClient();
@@ -48,7 +47,6 @@ export default function PostSheet({
   const insets = useSafeAreaInsets();
   const { height: winH, width: winW } = useWindowDimensions();
   const { data: rows = [] } = usePersonalRows();
-  const { data: closeIds = [] } = useCloseFriends();
 
   const records = useMemo(
     () =>
@@ -63,15 +61,13 @@ export default function PostSheet({
   const [pickedId, setPickedId] = useState<number | null>(null);
   const [photos, setPhotos] = useState<number[]>([]);
   const [note, setNote] = useState("");
-  const [audience, setAudience] = useState<Audience>("friends");
-  const [editingClose, setEditingClose] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const picked = records.find((r) => r.id === pickedId) ?? null;
   const existing = pickedId != null ? postedBy.get(pickedId) ?? null : null;
 
-  /** 2단계 값 채우기 — 올린 적 있으면 그 값, 없으면 대표 사진 한 장 · 빈 한 줄 · 친구 전체. */
+  /** 2단계 값 채우기 — 올린 적 있으면 그 값, 없으면 대표 사진 한 장 · 빈 한 줄. */
   function fill(r: Restaurant) {
     const prev = postedBy.get(r.id);
     const count = photosOf(r).length;
@@ -79,7 +75,6 @@ export default function PostSheet({
     const prevPhotos = prev?.photo_index.filter((i) => i < count) ?? [];
     setPhotos(prevPhotos.length ? prevPhotos : count ? [cover] : []);
     setNote(prev?.note ?? "");
-    setAudience(prev?.audience ?? "friends");
     setError("");
   }
 
@@ -104,17 +99,12 @@ export default function PostSheet({
     setPhotos((cur) => (cur.includes(i) ? (cur.length > 1 ? cur.filter((x) => x !== i) : cur) : [...cur, i]));
   }
 
-  function pickAudience(a: Audience) {
-    setAudience(a);
-    if (a === "close" && closeIds.length === 0) setEditingClose(true);
-  }
-
   async function submit() {
     if (!picked) return;
     setBusy(true);
     setError("");
     try {
-      await upsertFriendPost(qc, { recordId: picked.id, photoIndex: photos, note, audience });
+      await upsertFriendPost(qc, { recordId: picked.id, photoIndex: photos, note });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onClose();
       onPosted();
@@ -125,7 +115,6 @@ export default function PostSheet({
     }
   }
 
-  const closeFriends = friends.filter((f) => closeIds.includes(f.id));
   const sheetH = Math.min(690, winH - insets.top - 12);
   const iosKb = useIosKeyboardHeight(visible);
   const kbOpen = useKeyboardOpen(visible);
@@ -230,36 +219,10 @@ export default function PostSheet({
         style={[fieldStyle, { fontFamily: F.serif }]}
       />
 
-      <Text style={label}>받는 사람</Text>
-      <Segmented<Audience>
-        value={audience}
-        onChange={pickAudience}
-        options={[{ id: "friends", label: `친구 전체 · ${friends.length}` }, { id: "close", label: `친한 친구 · ${closeFriends.length}` }]}
-      />
-      {audience === "close" && closeFriends.length === 0 && (
-        <Pressable onPress={() => setEditingClose(true)} style={{ marginTop: 10, alignSelf: "flex-start" }} hitSlop={6}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>친한 친구를 골라 주세요 ›</Text>
-        </Pressable>
-      )}
-      {audience === "close" && closeFriends.length > 0 && (
-        <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View style={{ flexDirection: "row" }}>
-            {closeFriends.slice(0, 4).map((f, i) => (
-              <View key={f.id} style={{ marginLeft: i ? -8 : 0, borderRadius: 14, borderWidth: 2, borderColor: C.paper }}>
-                <Avatar name={f.nickname} url={f.avatarUrl} size={24} seed={f.id} />
-              </View>
-            ))}
-          </View>
-          <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sans, fontSize: 12, color: K.text2 }}>{closeFriends.map((f) => f.nickname).join(", ")}</Text>
-          <Pressable onPress={() => setEditingClose(true)} hitSlop={8}>
-            <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>친한친구 수정하기 ›</Text>
-          </Pressable>
-        </View>
-      )}
     </ScrollView>
   );
 
-  const canSubmit = !!picked && !busy && (audience === "friends" || closeFriends.length > 0);
+  const canSubmit = !!picked && !busy;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
@@ -300,73 +263,8 @@ export default function PostSheet({
         </View>
         {iosKb > 0 && <View style={{ height: iosKb, backgroundColor: C.paper }} />}
       </KeyboardAvoidingView>
-      <CloseFriendsSheet
-        visible={editingClose}
-        friends={friends}
-        selected={closeIds}
-        onClose={(saved) => {
-          setEditingClose(false);
-          // 0명인 채로 닫으면 친구 전체로 되돌립니다.
-          if (saved != null ? saved.length === 0 : closeIds.length === 0) setAudience("friends");
-        }}
-        onSave={(ids) => setCloseFriends(qc, ids)}
-      />
     </Modal>
   );
 }
 
 const label = { marginTop: 20, marginBottom: 9, fontFamily: F.mono, fontSize: 10, letterSpacing: 1.6, color: C.faint } as const;
-
-/** 친한 친구 고르기 — 친구 목록 체크. 상대에게 알리지 않습니다. */
-function CloseFriendsSheet({
-  visible, friends, selected, onClose, onSave,
-}: { visible: boolean; friends: PublicProfile[]; selected: string[]; onClose: (saved: string[] | null) => void; onSave: (ids: string[]) => Promise<void> }) {
-  const [ids, setIds] = useState<string[]>(selected);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  useEffect(() => { if (visible) { setIds(selected); setError(""); } }, [visible, selected]);
-
-  async function save() {
-    setBusy(true);
-    setError("");
-    try {
-      await onSave(ids);
-      onClose(ids);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <BottomSheetModal visible={visible} onClose={() => onClose(null)}>
-      <Text style={{ fontFamily: F.serif, fontSize: 19, color: C.ink }}>친한 친구</Text>
-      <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>고른 사람에게 알리지 않습니다</Text>
-      <ScrollView style={{ marginTop: 12, maxHeight: 340 }}>
-        {friends.length === 0 && <Text style={{ paddingVertical: 20, fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>아직 친구가 없습니다.</Text>}
-        {friends.map((f) => {
-          const on = ids.includes(f.id);
-          return (
-            <Pressable
-              key={f.id}
-              onPress={() => { Haptics.selectionAsync(); setIds((cur) => (on ? cur.filter((x) => x !== f.id) : [...cur, f.id])); }}
-              accessibilityState={{ checked: on }}
-              style={{ minHeight: 52, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: 1, borderBottomColor: "#efeae0" }}
-            >
-              <Avatar name={f.nickname} url={f.avatarUrl} size={32} seed={f.id} />
-              <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 13.5, color: C.ink }}>{f.nickname}</Text>
-              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: on ? 0 : 1.5, borderColor: C.line, backgroundColor: on ? C.brick : "transparent", alignItems: "center", justifyContent: "center" }}>
-                {on && <Check />}
-              </View>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-      {!!error && <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12, color: "#a8412a" }}>{error}</Text>}
-      <Pressable onPress={save} disabled={busy} style={{ marginTop: 16, height: 50, borderRadius: 18, backgroundColor: C.ink, alignItems: "center", justifyContent: "center", opacity: busy ? 0.7 : 1 }}>
-        <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.card }}>{busy ? "저장하는 중…" : `저장 · ${ids.length}명`}</Text>
-      </Pressable>
-    </BottomSheetModal>
-  );
-}

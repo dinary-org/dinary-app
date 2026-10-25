@@ -32,6 +32,7 @@ export default function CommunityLayout() {
         <Tabs.Screen name="board" />
         <Tabs.Screen name="recs" options={{ href: null }} />
         <Tabs.Screen name="people" options={{ href: null }} />
+        <Tabs.Screen name="alarms" options={{ href: null }} />
       </Tabs>
     </ProfileSheetProvider>
   );

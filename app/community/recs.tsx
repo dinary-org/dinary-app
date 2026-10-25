@@ -102,7 +102,7 @@ export default function RecsScreen() {
   const heroW = width - 32;
   const header = (
     <View>
-      <TitleBlock eyebrow="COMMUNITY · FOR YOU" title="탐색" sub={`내 기록 ${myCount}건과 친구 기록으로 고릅니다`} />
+      <TitleBlock eyebrow="FOR YOU" sub={`내 기록 ${myCount}건과 친구 기록으로 고릅니다`} />
       {searching && (
         <TextInput
           autoFocus

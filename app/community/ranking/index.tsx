@@ -53,7 +53,7 @@ export default function RankingScreen() {
         }
       />
       <ScrollView contentContainerStyle={{ paddingBottom: TAB_BAR_H + insets.bottom + 24 }}>
-        <TitleBlock eyebrow="COMMUNITY · RANKING" title="랭킹" />
+        <TitleBlock eyebrow="RANKING" />
         <View style={{ marginTop: 14, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.ink }}>{periodLabel(PERIOD)}</Text>
           <MiniSegment value={scope} options={SCOPES} onChange={setScope} />

@@ -84,15 +84,25 @@ export const RoundButton = ({ onPress, label, children, dot, borderColor = C.lin
   </Pressable>
 );
 
-/** 제목 덩어리 — eyebrow · Gowun 22 제목 · 부제(선택). aside 는 제목 줄 오른쪽. */
-export function TitleBlock({ eyebrow, title, sub, aside }: { eyebrow: string; title: string; sub?: string; aside?: React.ReactNode }) {
+/** 제목 덩어리 — eyebrow · Gowun 22 제목(선택) · 부제(선택). aside 는 제목 줄 오른쪽 — 제목이 없으면(내 기록 탭처럼 영문 eyebrow 만) eyebrow 줄 오른쪽. */
+export function TitleBlock({ eyebrow, title, sub, aside }: { eyebrow: string; title?: string; sub?: string; aside?: React.ReactNode }) {
+  const label = <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 2.2, color: C.faint }}>{eyebrow}</Text>;
   return (
     <View style={{ paddingTop: 14, paddingHorizontal: 20 }}>
-      <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 2.2, color: C.faint }}>{eyebrow}</Text>
-      <View style={{ marginTop: 8, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
-        <Text style={{ fontFamily: F.serif, fontSize: 22, color: C.ink }}>{title}</Text>
-        {aside}
-      </View>
+      {title ? (
+        <>
+          {label}
+          <View style={{ marginTop: 8, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
+            <Text style={{ fontFamily: F.serif, fontSize: 22, color: C.ink }}>{title}</Text>
+            {aside}
+          </View>
+        </>
+      ) : (
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          {label}
+          {aside}
+        </View>
+      )}
       {!!sub && <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 12, color: C.faint }}>{sub}</Text>}
     </View>
   );

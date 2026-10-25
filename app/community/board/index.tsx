@@ -81,7 +81,7 @@ export default function BoardHome() {
 
   const header = (
     <View>
-      <TitleBlock eyebrow="COMMUNITY · BOARD" title="게시판" />
+      <TitleBlock eyebrow="BOARD" />
       {searching && (
         <TextInput
           autoFocus

@@ -127,6 +127,7 @@
       ],
       "./plugins/withShareExtensionDisplayName",
       "./plugins/withNaverMaven",
+      "./plugins/withoutLocationForegroundService",
       [
         "react-native-android-widget",
         {

@@ -98,7 +98,6 @@ export default function BoardPostScreen() {
       </ScrollView>
       {!hidden && (
         <CommentInput
-          allowRecord
           replyTo={replyTo}
           onClearReply={() => setReplyTo(null)}
           inputRef={inputRef}

@@ -3,11 +3,10 @@ import { useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { coverPhoto, type Restaurant } from "@/lib/types";
+import { coverPhoto } from "@/lib/types";
 import { C, F } from "@/theme";
 import { AuthorRow, RecordMini } from "./BoardPost";
 import { MoreButton, type MenuTarget } from "./ItemMenu";
-import { RecordPickerSheet } from "./RecordPicker";
 import { K, timeAgo } from "./ui";
 
 /**
@@ -62,25 +61,22 @@ export function CommentRow({ c, ownerId, target, onReply, onEdit }: { c: ThreadC
 }
 
 /**
- * 입력줄 — (allowRecord 면) 왼쪽 「+」 내 기록 붙이기 + 「댓글 달기」 500자. 문턱(5건)은 없습니다.
+ * 입력줄 — 「댓글 달기」 500자 + 「남기기」(한 줄일 때 둘 다 높이 40). 문턱(5건)은 없습니다.
  * editing 이 있으면 그 댓글 고치기 — 본문을 채워 두고 「댓글 수정 중 ✕」, 단추는 「수정」. 키보드 위에 붙은 이 줄에서 고쳐 가려지지 않습니다.
  */
 export function CommentInput({
-  onSend, replyTo, onClearReply, inputRef, allowRecord, editing, onClearEdit, onSaveEdit,
+  onSend, replyTo, onClearReply, inputRef, editing, onClearEdit, onSaveEdit,
 }: {
   onSend: (p: { body: string; parentId: number | null; recordId: number | null }) => Promise<void>;
   replyTo: ThreadComment | null;
   onClearReply: () => void;
   inputRef: React.RefObject<TextInput | null>;
-  allowRecord: boolean;
   editing?: ThreadComment | null;
   onClearEdit?: () => void;
   onSaveEdit?: (body: string) => Promise<void>;
 }) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState("");
-  const [record, setRecord] = useState<Restaurant | null>(null);
-  const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -102,8 +98,7 @@ export function CommentInput({
         await onSaveEdit(text);
         onClearEdit?.();
       } else {
-        await onSend({ body: text, parentId: replyTo?.id ?? null, recordId: record?.id ?? null });
-        setRecord(null);
+        await onSend({ body: text, parentId: replyTo?.id ?? null, recordId: null });
         onClearReply();
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -117,7 +112,7 @@ export function CommentInput({
 
   return (
     <View style={{ borderTopWidth: 1, borderTopColor: C.lineSoft, backgroundColor: C.paper, paddingHorizontal: 14, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 10), gap: 6 }}>
-      {(replyTo || record || editing) && (
+      {(replyTo || editing) && (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           {editing && (
             <Pressable onPress={onClearEdit} accessibilityLabel="수정 그만두기" style={{ borderRadius: 12, backgroundColor: C.brickSoft, paddingHorizontal: 9, paddingVertical: 3 }}>
@@ -129,19 +124,9 @@ export function CommentInput({
               <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.muted }}>{replyTo.author_role === "admin" ? "DINARY 운영" : replyTo.nickname}에게 답글 ✕</Text>
             </Pressable>
           )}
-          {!editing && record && (
-            <Pressable onPress={() => setRecord(null)} style={{ borderRadius: 12, backgroundColor: C.brickSoft, paddingHorizontal: 9, paddingVertical: 3 }}>
-              <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.brick }}>{record.name}{record.verified ? " ✓" : ""} ✕</Text>
-            </Pressable>
-          )}
         </View>
       )}
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
-        {allowRecord && !editing && (
-          <Pressable onPress={() => setPicking(true)} accessibilityLabel="내 기록 붙이기" style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontFamily: F.sans, fontSize: 19, color: C.muted, marginTop: -2 }}>+</Text>
-          </Pressable>
-        )}
         <TextInput
           ref={inputRef}
           value={text}
@@ -150,7 +135,7 @@ export function CommentInput({
           placeholderTextColor={K.inactive}
           multiline
           maxLength={COMMENT_MAX}
-          style={{ flex: 1, minHeight: 40, maxHeight: 110, borderRadius: 20, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10, fontFamily: F.sans, fontSize: 13, color: C.ink }}
+          style={{ flex: 1, minHeight: 40, maxHeight: 110, borderRadius: 20, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10, lineHeight: 18, includeFontPadding: false, textAlignVertical: "center", fontFamily: F.sans, fontSize: 13, color: C.ink }}
         />
         <Pressable onPress={send} disabled={!text.trim() || busy} style={{ height: 40, borderRadius: 20, backgroundColor: C.ink, paddingHorizontal: 14, justifyContent: "center", opacity: !text.trim() || busy ? 0.4 : 1 }}>
           <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.card }}>{editing ? "수정" : "남기기"}</Text>
@@ -159,7 +144,6 @@ export function CommentInput({
       {(text.length > COMMENT_MAX - 60 || !!error) && (
         <Text style={{ fontFamily: F.sans, fontSize: 11, color: error ? C.brick : K.inactive, textAlign: error ? "left" : "right" }}>{error || `${text.length} / ${COMMENT_MAX}`}</Text>
       )}
-      {allowRecord && <RecordPickerSheet visible={picking} onClose={() => setPicking(false)} onPick={([r]) => setRecord(r ?? null)} title="댓글에 내 기록 붙이기" />}
     </View>
   );
 }

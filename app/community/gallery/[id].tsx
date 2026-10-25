@@ -200,7 +200,6 @@ export default function GalleryPhotoScreen() {
       </ScrollView>
       {!photo.hidden_at && (
         <CommentInput
-          allowRecord={false}
           replyTo={replyTo}
           onClearReply={() => setReplyTo(null)}
           inputRef={inputRef}

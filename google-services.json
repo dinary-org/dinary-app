@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "430037955028",
+    "project_id": "dinary-2fc77",
+    "storage_bucket": "dinary-2fc77.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430037955028:android:d33212020c98573d16a641",
+        "android_client_info": {
+          "package_name": "app.dinary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkbogiIcO0Fy2mY0dJOxo6DBgQI1fNzDM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

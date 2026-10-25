@@ -36,7 +36,8 @@ async function send(admin: any, userId: string, messages: Message[]) {
   const tokens = ((rows ?? []) as { token: string }[]).map((r) => r.token);
   if (!tokens.length) return { sent: 0, tokens: 0, errors: [] as string[] };
   // channelId — 앱이 만드는 Android 알림 채널(src/features/notify/channel.ts). iOS 는 무시합니다.
-  const batch = tokens.flatMap((to) => messages.map((m) => ({ to, sound: "default", channelId: "dinary", ...m })));
+  // priority high — Android 가 절전(Doze) 중이어도 바로 띄웁니다.
+  const batch = tokens.flatMap((to) => messages.map((m) => ({ to, sound: "default", channelId: "dinary", priority: "high", ...m })));
   const res = await fetch(EXPO_PUSH, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(batch) });
   const out = await res.json().catch(() => null) as { data?: Ticket[] } | null;
   const tickets = out?.data ?? [];

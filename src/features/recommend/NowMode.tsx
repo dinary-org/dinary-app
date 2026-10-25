@@ -1,7 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useIsFocused, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, AppState, PanResponder, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Animated, AppState, PanResponder, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Text } from "@/components/Text";
 import { PaperMap } from "@/components/PaperMap";
 import { setState, type RecHere } from "@/data/store";
@@ -100,6 +100,7 @@ export function NowMode({
   };
 
   const note = result ? noteLine(result.relax, result.cycled, kakao) : "";
+  const ready = !!here && !loading && picks.length > 0;
 
   return (
     <View style={{ flex: 1 }}>
@@ -116,30 +117,36 @@ export function NowMode({
       </ScrollView>
 
       <View style={{ flex: 1, marginTop: 12, minHeight: MAP_H + 230, borderRadius: 24, borderWidth: 1.5, borderColor: C.brick, backgroundColor: REC.paper, overflow: "hidden" }}>
-        {!here || loading ? (
-          <Empty>{here ? <ActivityIndicator color={C.brick} /> : <Text style={emptyText}>지금 있는 곳을 찾는 중이에요…</Text>}</Empty>
-        ) : error && !picks.length ? (
-          <Empty>
-            <Text style={emptyText}>추천할 곳을 불러오지 못했어요.</Text>
-            <Pressable onPress={onRetry} style={{ marginTop: 10 }} accessibilityRole="button">
-              <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.brick }}>다시 시도하기</Text>
-            </Pressable>
-          </Empty>
-        ) : picks.length === 0 ? (
-          <Empty>
-            <Text style={emptyText}>
-              {`${formatDistance(REC_CONFIG.mineRadius)} 안에서 조건에 맞는 곳을 아직 못 찾았어요.\n필터를 풀거나 위시리스트에 담아 두면 여기서 골라 드릴게요.`}
-            </Text>
-            <Pressable onPress={onOpenFilter} style={{ marginTop: 10 }}>
-              <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.brick }}>필터 바꾸기</Text>
-            </Pressable>
-          </Empty>
-        ) : (
+        {/* 지도는 위치가 생기면 한 번만 띄워 두고, 불러오는 중 · 빈 결과는 그 위를 덮습니다.
+            불러오기(GPS · 카카오 1.5km → 3km)마다 지도를 내렸다 올리면 안드로이드 네이버 지도가 앱째 죽었습니다. */}
+        {here && <PickMap here={here} picks={picks} index={index} onPick={setIndex} pointLabel={pointLabel} onTouch={onMapTouch} />}
+        {ready ? (
           <>
-            <PickMap here={here} picks={picks} index={index} onPick={setIndex} pointLabel={pointLabel} onTouch={onMapTouch} />
             {!!note && <Text style={{ marginTop: 8, marginHorizontal: 18, fontFamily: F.sans, fontSize: 11, color: C.faint }}>{note}</Text>}
             <Pager picks={picks} index={index} onIndex={setIndex} session={session} />
           </>
+        ) : (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: REC.paper }]}>
+            {!here || loading ? (
+              <Empty>{here ? <ActivityIndicator color={C.brick} /> : <Text style={emptyText}>지금 있는 곳을 찾는 중이에요…</Text>}</Empty>
+            ) : error ? (
+              <Empty>
+                <Text style={emptyText}>추천할 곳을 불러오지 못했어요.</Text>
+                <Pressable onPress={onRetry} style={{ marginTop: 10 }} accessibilityRole="button">
+                  <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.brick }}>다시 시도하기</Text>
+                </Pressable>
+              </Empty>
+            ) : (
+              <Empty>
+                <Text style={emptyText}>
+                  {`${formatDistance(REC_CONFIG.mineRadius)} 안에서 조건에 맞는 곳을 아직 못 찾았어요.\n필터를 풀거나 위시리스트에 담아 두면 여기서 골라 드릴게요.`}
+                </Text>
+                <Pressable onPress={onOpenFilter} style={{ marginTop: 10 }}>
+                  <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.brick }}>필터 바꾸기</Text>
+                </Pressable>
+              </Empty>
+            )}
+          </View>
         )}
       </View>
 

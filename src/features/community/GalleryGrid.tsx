@@ -88,7 +88,7 @@ export function GalleryGrid({
                     accessibilityState={{ selected: like.on }}
                     style={{ flexDirection: "row", alignItems: "center", gap: 3 }}
                   >
-                    <HeartIcon size={12} stroke={like.on ? C.brick : "#d8d2c6"} fill={like.on ? C.brick : "none"} strokeWidth={2} />
+                    <HeartIcon size={12} stroke={like.on ? C.heart : "#d8d2c6"} fill={like.on ? C.heart : "none"} strokeWidth={2} />
                     <Text style={{ fontFamily: F.mono, fontSize: 9, color: like.on ? C.card : "#d8d2c6" }}>{like.n}</Text>
                   </Pressable>
                   <Text style={{ flex: 1, fontFamily: F.mono, fontSize: 9, color: "#d8d2c6" }}> · 댓글 {p.comment_count}</Text>

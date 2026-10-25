@@ -7,6 +7,8 @@ export const C = {
   ink: "#1c1a17",
   brick: "#b4552d",
   brickSoft: "#f7ece5",
+  /** 좋아요 하트 — 벽돌색보다 붉은 빨강. */
+  heart: "#e5303a",
   line: "#d8d3c8",
   lineSoft: "#e2ddd2",
   muted: "#6b665e",

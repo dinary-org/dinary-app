@@ -126,8 +126,8 @@ export default function GalleryPhotoScreen() {
         {/* 반응 줄 — ♡/♥ + 수 · 말풍선 + 댓글 수 · 「+ 위시에 담기」 */}
         <View style={{ paddingHorizontal: 16, paddingTop: 12, flexDirection: "row", alignItems: "center", gap: 14 }}>
           <Pressable onPress={() => toggleLike(!liked)} hitSlop={8} accessibilityLabel={liked ? "좋아요 취소" : "좋아요"} accessibilityState={{ selected: liked }} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-            <HeartIcon stroke={liked ? C.brick : C.ink} fill={liked ? C.brick : "none"} />
-            <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: liked ? C.brick : C.ink }}>{likes}</Text>
+            <HeartIcon stroke={liked ? C.heart : C.ink} fill={liked ? C.heart : "none"} />
+            <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: liked ? C.heart : C.ink }}>{likes}</Text>
           </Pressable>
           <Pressable onPress={() => { setAllComments(true); inputRef.current?.focus(); }} hitSlop={8} accessibilityLabel="댓글" style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
             <ChatIcon stroke={C.ink} />

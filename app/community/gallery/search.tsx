@@ -107,7 +107,7 @@ export default function GallerySearch() {
                   </View>
                   <Text numberOfLines={1} style={{ fontFamily: F.serif, fontSize: 12, color: C.ink }}>{p.place_name}</Text>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                    <HeartIcon size={10} stroke={p.my_like ? C.brick : C.faint} fill={p.my_like ? C.brick : "none"} strokeWidth={2} />
+                    <HeartIcon size={10} stroke={p.my_like ? C.heart : C.faint} fill={p.my_like ? C.heart : "none"} strokeWidth={2} />
                     <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.mono, fontSize: 9.5, color: C.faint }}>{p.like_count}{p.area ? ` · ${p.area.split(" ").slice(-1)[0]}` : ""}</Text>
                   </View>
                 </Pressable>

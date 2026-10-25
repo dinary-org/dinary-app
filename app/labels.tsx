@@ -102,7 +102,7 @@ export default function Labels() {
               <View style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: F.sansBd, fontSize: 12.5, color: C.ink }}>
                   {account?.nickname || "나"}
-                  <Text style={{ color: title.color }}> · {title.name}</Text>
+                  <Text style={{ color: title.color }}> {title.name}</Text>
                 </Text>
                 <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>라벨을 길게 누르면 대표 라벨이 바뀌어요</Text>
               </View>

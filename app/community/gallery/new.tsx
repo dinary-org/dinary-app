@@ -17,7 +17,6 @@ import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
 const MIN_VERIFIED = 5;
-const DAILY = 10;
 const MENU_MAX = 40;
 const CAPTION_MAX = 120;
 const PAGE = 60;
@@ -69,8 +68,7 @@ export default function GalleryCompose() {
   const verifiedN = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null).length, [rows]);
   const blocked = isAdmin
     ? null
-    : verifiedN < MIN_VERIFIED ? `인증 기록 ${MIN_VERIFIED}건부터 사진을 올릴 수 있습니다 · 지금 ${verifiedN}건`
-    : (mine?.today ?? 0) >= DAILY ? `오늘은 ${DAILY}장을 다 올렸습니다` : null;
+    : verifiedN < MIN_VERIFIED ? `인증 기록 ${MIN_VERIFIED}건부터 사진을 올릴 수 있습니다 · 지금 ${verifiedN}건` : null;
 
   const menus = pick ? recordMenus(pick.r) : [];
   // 사진을 고르면 그 기록의 첫 메뉴가 골라진 상태로.

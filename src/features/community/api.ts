@@ -847,17 +847,16 @@ export const useGalleryToday = () =>
     },
   });
 
-/** 내가 이미 올린 사진(record_id · photo_ref) — 올리기 화면에서 흐리게 「올림」. 오늘 올린 수도 함께. */
+/** 내가 이미 올린 사진(record_id · photo_ref) — 올리기 화면에서 흐리게 「올림」. */
 export const useMyGalleryRefs = () =>
   useQuery({
     queryKey: ["community", "gallery", "mine"],
     queryFn: async () => {
       const me = await myId();
-      if (!me) return { refs: new Set<string>(), today: 0 };
-      const { data } = await supabase.from("gallery_photos").select("record_id, photo_ref, created_at").eq("author_id", me);
-      const rows = (data ?? []) as { record_id: number; photo_ref: string; created_at: string }[];
-      const since = Date.parse(`${seoulToday()}T00:00:00+09:00`);
-      return { refs: new Set(rows.map((r) => `${r.record_id}|${r.photo_ref}`)), today: rows.filter((r) => Date.parse(r.created_at) >= since).length };
+      if (!me) return { refs: new Set<string>() };
+      const { data } = await supabase.from("gallery_photos").select("record_id, photo_ref").eq("author_id", me);
+      const rows = (data ?? []) as { record_id: number; photo_ref: string }[];
+      return { refs: new Set(rows.map((r) => `${r.record_id}|${r.photo_ref}`)) };
     },
   });
 
@@ -866,7 +865,7 @@ export async function postGalleryPhoto(qc: QueryClient, p: { recordId: number; p
     p_record_id: p.recordId, p_photo_ref: p.photoRef, p_menu: p.menu?.trim() || null, p_caption: stripContact(p.caption).trim() || null,
     p_add_menu_to_record: p.addMenuToRecord, p_area: p.area,
   });
-  if (error) throw new Error(error.message.includes("daily_limit") ? "사진은 하루 10장까지 올릴 수 있습니다" : boardError(error.message));
+  if (error) throw new Error(boardError(error.message));
   await qc.invalidateQueries({ queryKey: ["community", "gallery"] });
   if (p.addMenuToRecord) await refreshAll(qc);
   return Number(data);

@@ -3,8 +3,8 @@
  * targets 는 useTutorialTarget(id) 로 등록한 자리입니다. 등록된 자리가 하나도 없으면 그 단계는 건너뜁니다.
  */
 
-export type TutorialKey = "map" | "couple" | "couple.account" | "calendar" | "recommend" | "community.friends" | "community.gallery" | "community.ranking" | "community.board";
-export const TUTORIAL_KEYS: TutorialKey[] = ["map", "couple", "couple.account", "calendar", "recommend", "community.friends", "community.gallery", "community.ranking", "community.board"];
+export type TutorialKey = "map" | "couple" | "couple.account" | "calendar" | "couple.calendar" | "recommend" | "community.friends" | "community.gallery" | "community.ranking" | "community.board";
+export const TUTORIAL_KEYS: TutorialKey[] = ["map", "couple", "couple.account", "calendar", "couple.calendar", "recommend", "community.friends", "community.gallery", "community.ranking", "community.board"];
 
 export type Step = {
   title: string;
@@ -17,6 +17,8 @@ export type Step = {
   sim?: "longPress" | "share";
   /** intro · outro 는 번호를 세지 않고 글을 가운데 둡니다. */
   kind?: "intro" | "outro";
+  /** 자리를 못 쟀을 때 쓸 원 — 화면 가운데, 위에서 y 비율 자리. 지도 빈 곳처럼 꼭 보여야 하는 단계만. */
+  fallback?: { y: number; size: number };
   /** 연인 기록장을 보고 있을 때 바꿔 쓰는 글. */
   couple?: { title?: string; desc?: string };
 };
@@ -26,7 +28,8 @@ export const STEPS: Record<TutorialKey, Step[]> = {
     { kind: "intro", title: "다이너리에 오신 걸\n환영해요", desc: "", targets: [] },
     { title: "사진으로 기록", desc: "가게에서 사진을 찍으면 바로 기록이 시작되고, 다녀간 곳으로 인증돼요.", targets: ["tab.camera"], radius: "circle" },
     { title: "직접 추가", desc: "사진 없이 기록을 쓰거나, 가고 싶은 곳을 계획으로 담아요.", targets: ["map.plus"], radius: "circle" },
-    { title: "길게 눌러 보기", desc: "지도에서 아무 곳이나 꾹 누르면 그 자리의 건물과 근처 식당이 떠요. 원 안을 꾹 눌러 해 보세요.", targets: ["map.open"], radius: "circle", sim: "longPress" },
+    { title: "지도를 길게 누르면", desc: "지도에서 아무 곳이나 꾹 누르고 있으면 그 자리를 찾아 줘요. 건물이면 그 안 식당을 층별로, 건물이 없으면 둘레 식당을 25 · 50 · 100m 로 넓혀 가며 보여줘요.", targets: ["map.open"], radius: "circle", fallback: { y: 0.3, size: 200 } },
+    { title: "길게 눌러 보기", desc: "이제 원 안을 꾹 눌러 해 보세요.", targets: ["map.open"], radius: "circle", sim: "longPress", fallback: { y: 0.3, size: 200 } },
     { title: "보관함", desc: "쓰다 만 기록과 올리는 중인 기록이 여기 모여요.", targets: ["map.drafts"], radius: "circle" },
     { title: "내 맛집 목록", desc: "지도에 있는 곳을 목록으로 봐요. 위로 끌어올리면 넓어져요.", targets: ["map.sheet"], radius: 28 },
     { title: "기록장 바꾸기", desc: "개인 기록장과 연인 기록장을 오가요.", targets: ["map.book"], radius: 22 },
@@ -48,8 +51,13 @@ export const STEPS: Record<TutorialKey, Step[]> = {
   ],
   calendar: [
     { title: "날짜별 기록", desc: "먹은 날에 가게 이름이 적혀요. 날짜를 누르면 그날 기록을 봐요.", targets: ["calendar.grid"], radius: 20 },
-    { title: "리캡", desc: "분기마다 내가 먹은 기록을 한 장으로 정리해 줘요.", targets: ["calendar.recap", "calendar.anniversary"], radius: 20,
-      couple: { title: "기념일", desc: "다음 기념일까지 남은 날이에요. 누르면 지난 기념일마다 함께 먹은 식사를 봐요." } },
+    { title: "리캡", desc: "분기마다 내가 먹은 기록을 한 장으로 정리해 줘요.", targets: ["calendar.recap"], radius: 20 },
+  ],
+  // 연인 기록장의 캘린더를 처음 열었을 때 — 개인 캘린더 튜토리얼을 이미 봤어도 따로 한 번.
+  "couple.calendar": [
+    { title: "기념일", desc: "사귄 날부터 100일마다, 그리고 해마다 기념일이 와요. 여기엔 다음 기념일까지 남은 날과 지난 기념일에 함께 먹은 식사가 보여요.", targets: ["calendar.anniversary"], radius: 20 },
+    { title: "기념일 화면", desc: "배너를 누르면 지난 기념일이 날짜순으로 모여요. 그날 남긴 기록이 그 기념일의 식사가 되고, 다른 기록으로 바꿀 수도 있어요.", targets: ["calendar.anniversary"], radius: 20 },
+    { title: "달력의 기념일", desc: "기념일인 날은 날짜에 연한 동그라미가 쳐지고 「100일」 · 「1주년」처럼 이름이 붙어요.", targets: ["calendar.grid"], radius: 20 },
   ],
   recommend: [
     { title: "지금 뭐 먹지", desc: "지금 위치와 시간에 맞는 한 곳을 골라줘요.", targets: ["recommend.now"], radius: 20 },
@@ -79,7 +87,7 @@ export const COMMUNITY_DELAY = 1100;
 
 /** 상호작용 단계에서 해낸 뒤 바뀌는 설명. */
 export const SIM_DONE_DESC: Record<NonNullable<Step["sim"]>, string> = {
-  longPress: "건물 안 식당은 층별로, 건물이 없는 곳이면 둘레 식당이 떠요. 가게를 누르면 바로 기록을 시작해요.",
+  longPress: "이렇게 떠요. 가게를 누르면 바로 그 가게 기록을 시작하고, 이미 기록한 곳이면 그 기록이 열려요.",
   share: "공유한 식당이 위시에 담겼어요. 지도에서 바로 볼 수 있어요.",
 };
 export const SIM_HINT: Record<NonNullable<Step["sim"]>, string> = { longPress: "원 안을 꾹 누르기", share: "다이너리 누르기" };

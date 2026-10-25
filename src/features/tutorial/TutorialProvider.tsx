@@ -108,6 +108,12 @@ export function TutorialProvider({ enabled, couple, children }: { enabled: boole
         return node ? measure(node) : Promise.resolve(null);
       }))).filter((r): r is NonNullable<typeof r> => !!r);
       if (dead) return;
+      // 꼭 보여야 하는 단계(지도 빈 곳)는 못 쟀으면 화면 가운데 원으로 대신합니다.
+      if (!rects.length && step.fallback) {
+        const { width, height } = Dimensions.get("window");
+        const d = step.fallback.size;
+        rects.push({ x: (width - d) / 2, y: height * step.fallback.y, w: d, h: d });
+      }
       // 자리가 하나도 없으면(연인 기록장이라 칸이 없는 경우 등) 그 단계는 건너뜁니다.
       if (!rects.length) { if (final) next(); return; }
       setMeasured({ at: active, holes: rects.map((r) => {

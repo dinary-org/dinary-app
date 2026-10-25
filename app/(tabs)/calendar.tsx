@@ -168,8 +168,9 @@ export default function CalendarTab() {
   const { book, isCouple } = useActiveBook();
   const { data: picks = [] } = useAnniversaryPicks();
   const startedOn = isCouple ? book?.startedOn ?? null : null;
-  // 첫 실행 튜토리얼 — 달력 칸 · 리캡 카드(연인 기록이면 기념일 배너).
+  // 첫 실행 튜토리얼 — 달력 칸 · 리캡 카드. 연인 기록이면 기념일 안내를 따로 한 번(개인 캘린더 튜토리얼을 이미 봤어도).
   useTabTutorial("calendar");
+  useTabTutorial("couple.calendar", 300, isCouple);
   const gridSpot = useTutorialTarget("calendar.grid");
   const recapSpot = useTutorialTarget("calendar.recap");
   const anniversarySpot = useTutorialTarget("calendar.anniversary");

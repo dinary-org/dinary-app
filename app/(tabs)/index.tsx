@@ -139,7 +139,9 @@ export default function MapTab() {
   const sheetTargetStyle = useAnimatedStyle(() => ({ top: sheetTop.value }));
   const openTargetStyle = useAnimatedStyle(() => {
     const top = insets.top + 62, room = sheetTop.value - top;
-    const d = Math.max(80, Math.min(200, room - 16));
+    // 시트 자리를 아직 모르거나 빈 지도가 너무 좁으면 0 — 튜토리얼이 화면 가운데 원으로 대신합니다.
+    if (room < 96) return { top: 0, left: 0, width: 0, height: 0 };
+    const d = Math.min(200, room - 16);
     return { top: top + room / 2 - d / 2, left: winW / 2 - d / 2, width: d, height: d };
   });
 

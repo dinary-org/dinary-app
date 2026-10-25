@@ -8,12 +8,11 @@ import { setState, useAppState, type BoardTab } from "@/data/store";
 import {
   useBoardFeed, useCourseStops, useCurrentTheme, useIsAdmin, useLastTheme, usePopularTags, type PostType,
 } from "@/features/community/api";
-import { guLabel, guOf, NoticeRow, PostCard } from "@/features/community/BoardPost";
+import { NoticeRow, PostCard } from "@/features/community/BoardPost";
 import { CommunityHeader, FilterChips, K, RoundButton, TitleBlock } from "@/features/community/ui";
 import { C, F } from "@/theme";
 
 const MIN_VERIFIED = 5;
-const NEAR_TABS: BoardTab[] = ["food", "cafe", "course"];
 
 /**
  * 게시판(HANDOFF-board-v2 01~05) — DINARY 사용자 모두가 봅니다. 자유 · 주제 · 맛집 · 카페 · 코스 다섯 칸,
@@ -25,7 +24,6 @@ export default function BoardHome() {
   const { data: rows = [] } = usePersonalRows();
   const { data: isAdmin } = useIsAdmin();
   const { boardTab: tab } = useAppState();
-  const [nearOnly, setNearOnly] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [tag, setTag] = useState<string | null>(null);
   const [pastTheme, setPastTheme] = useState(false);
@@ -34,11 +32,6 @@ export default function BoardHome() {
 
   // my_verified_count 와 같은 기준 — 보관함 · 연인 복사본 제외.
   const verified = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null), [rows]);
-  // 내 동네 — 가장 최근 인증 기록의 구.
-  const myGu = useMemo(() => {
-    const latest = [...verified].filter((r) => r.verified_at && guOf(r.address)).sort((a, b) => (a.verified_at! < b.verified_at! ? 1 : -1))[0];
-    return latest ? guOf(latest.address) : null;
-  }, [verified]);
 
   const { data: theme } = useCurrentTheme();
   const { data: lastTheme } = useLastTheme();
@@ -46,7 +39,7 @@ export default function BoardHome() {
   const type: PostType | null = tab === "all" ? null : tab;
   const { data: posts = [], refetch, isRefetching } = useBoardFeed({
     type,
-    area: nearOnly && NEAR_TABS.includes(tab) ? myGu : null,
+    area: null,
     verifiedOnly: verifiedOnly && (tab === "food" || tab === "cafe"),
     tag,
     themeId: tab === "theme" && pastTheme && lastTheme ? lastTheme.id : null,
@@ -105,10 +98,7 @@ export default function BoardHome() {
           { id: "food", label: "맛집" }, { id: "cafe", label: "카페" }, { id: "course", label: "코스" },
         ]}
         trailing={
-          <>
-            {myGu && NEAR_TABS.includes(tab) && toggleChip(`${guLabel(myGu)}만`, nearOnly, () => setNearOnly((v) => !v))}
-            {(tab === "food" || tab === "cafe") && toggleChip("✓ 인증만", verifiedOnly, () => setVerifiedOnly((v) => !v))}
-          </>
+          (tab === "food" || tab === "cafe") && toggleChip("✓ 인증만", verifiedOnly, () => setVerifiedOnly((v) => !v))
         }
       />
       {tab === "free" && (hotTags.length > 0 || tag) && (

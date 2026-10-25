@@ -2,9 +2,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Image, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Text } from "@/components/Text";
-import { CheckIcon } from "@/components/icons";
+import { BottomSheetModal } from "@/components/ui";
+import { CheckIcon, DocIcon, PhotoIcon, RankBarsIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePersonalRows } from "@/data/queries";
 import {
@@ -14,6 +15,7 @@ import { BOARD_LABEL, guOf, RecordMini } from "@/features/community/BoardPost";
 import { CourseMap } from "@/features/community/CourseMap";
 import { RecordPickerSheet } from "@/features/community/RecordPicker";
 import { K, monthDay, Segmented } from "@/features/community/ui";
+import { pickAlbumUris, removePhotoObjects, uploadAlbumPhoto } from "@/lib/photos";
 import { coverPhoto, type Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
@@ -24,6 +26,7 @@ const BODY_MAX = 2000;
 const TAG_MAX = 5;
 const MEMO_MAX = 60;
 const COURSE_MAX = 5;
+const PHOTO_MAX = 4;
 const POLL_DAYS = [1, 3, 7];
 const TYPES: PostType[] = ["free", "theme", "food", "cafe", "course"];
 
@@ -34,7 +37,7 @@ type Stop = { r: Restaurant; memo: string };
 
 /**
  * 글쓰기(HANDOFF-board-v2 06) — 게시판을 고르고 제목 · 본문을 자유롭게. 맛집 · 카페는 내 기록 하나(필수),
- * 코스는 2~5곳(끌어서 순서 바꾸기 · 가게마다 메모), 자유 · 주제는 기록을 붙여도 되고 안 붙여도 됩니다. 투표는 자유만.
+ * 코스는 2~5곳(끌어서 순서 바꾸기 · 가게마다 메모). 「+ 추가하기」로 내 기록 · 앨범 사진(4장) · 투표(자유만)를 붙입니다.
  * ?edit=<id> 면 내 글 고치기 — 제목 · 본문 · 태그만 바꿉니다.
  */
 export default function BoardCompose() {
@@ -63,10 +66,11 @@ export default function BoardCompose() {
   const [pollDays, setPollDays] = useState(3);
   const [pinned, setPinned] = useState(false);
   const [picking, setPicking] = useState<null | "single" | "course">(null);
+  const [adding, setAdding] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
   const [scrollOn, setScrollOn] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const tagRef = useRef<TextInput>(null);
 
   // 고치기 — 불러오면 한 번 채웁니다.
   const filled = useRef(false);
@@ -127,6 +131,14 @@ export default function BoardCompose() {
     setBusy(true);
     setError("");
     try {
+      // 앨범 사진은 올리기를 누를 때 버킷에 — 고르기만 하고 취소하면 아무것도 안 남습니다.
+      const photoRefs: string[] = [];
+      try {
+        for (const uri of photos) photoRefs.push(await uploadAlbumPhoto(uri));
+      } catch (e) {
+        removePhotoObjects(photoRefs);
+        throw new Error(`사진을 올리지 못했습니다${e instanceof Error ? ` · ${e.message}` : ""}`);
+      }
       const allTags = tagInput.trim() && tags.length < TAG_MAX ? [...tags, normTag(tagInput)].filter(Boolean) : tags;
       if (editId != null) {
         await updatePost(qc, editId, { title, body, tags: allTags });
@@ -142,6 +154,10 @@ export default function BoardCompose() {
           poll: type === "free" && pollOn ? { options: pollFilled, days: pollDays } : null,
           area: type === "course" ? guOf(course[0]?.r.address) : guOf(record?.address),
           pinned: isAdmin ? pinned : false,
+          photos: photoRefs,
+        }).catch((e) => {
+          removePhotoObjects(photoRefs);
+          throw e;
         });
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -152,11 +168,17 @@ export default function BoardCompose() {
     setBusy(false);
   }
 
-  const tool = (label: string, onPress: () => void, disabled = false, on = false) => (
-    <Pressable key={label} onPress={onPress} disabled={disabled} style={{ flex: 1, minHeight: 40, alignItems: "center", justifyContent: "center", opacity: disabled ? 0.4 : 1 }}>
-      <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 12, color: on ? C.brick : C.muted }}>{label}</Text>
-    </Pressable>
-  );
+  /** 「추가하기」 시트를 닫고 다음 일을 — iOS 는 시트가 다 내려간 뒤에야 다른 시트를 띄웁니다. */
+  function addThen(f: () => void) {
+    setAdding(false);
+    setTimeout(f, 380);
+  }
+  const canAdd = editId == null;
+
+  async function addPhotos() {
+    const uris = await pickAlbumUris(PHOTO_MAX - photos.length);
+    if (uris.length) setPhotos((cur) => [...cur, ...uris].slice(0, PHOTO_MAX));
+  }
 
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper }}>
@@ -235,6 +257,29 @@ export default function BoardCompose() {
           style={{ minHeight: 140, fontFamily: F.serif, fontSize: 13.5, lineHeight: 23, color: C.ink }}
         />
         {body.length > BODY_MAX - 200 && <Text style={{ textAlign: "right", fontFamily: F.mono, fontSize: 10, color: K.inactive }}>{body.length} / {BODY_MAX}</Text>}
+        {photos.length > 0 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {photos.map((uri) => (
+              <View key={uri}>
+                <Image source={{ uri }} style={{ width: 92, height: 92, borderRadius: 12, backgroundColor: K.stripe }} />
+                <Pressable
+                  onPress={() => setPhotos((cur) => cur.filter((x) => x !== uri))}
+                  hitSlop={8}
+                  accessibilityLabel="사진 빼기"
+                  style={{ position: "absolute", top: 5, right: 5, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(28,26,23,0.6)", alignItems: "center", justifyContent: "center" }}
+                >
+                  <Text style={{ fontFamily: F.sansMd, fontSize: 11, color: C.card }}>✕</Text>
+                </Pressable>
+              </View>
+            ))}
+            {photos.length < PHOTO_MAX && (
+              <Pressable onPress={addPhotos} accessibilityLabel="사진 더 고르기" style={{ width: 92, height: 92, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", borderColor: K.dashed, alignItems: "center", justifyContent: "center", gap: 2 }}>
+                <Text style={{ fontFamily: F.sans, fontSize: 18, color: C.muted }}>+</Text>
+                <Text style={{ fontFamily: F.mono, fontSize: 10, color: K.inactive }}>{photos.length} / {PHOTO_MAX}</Text>
+              </Pressable>
+            )}
+          </ScrollView>
+        )}
         {contact && <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>링크 · 연락처는 올릴 때 지워집니다</Text>}
 
         {/* 태그 — 칩 + 「#태그 추가」 + n / 5, 입력하면 많이 쓰인 태그 자동완성 */}
@@ -247,7 +292,6 @@ export default function BoardCompose() {
             ))}
             {tags.length < TAG_MAX && (
               <TextInput
-                ref={tagRef}
                 value={tagInput}
                 onChangeText={(t) => (/[\s,]$/.test(t) ? addTag(t) : setTagInput(t.slice(0, 21)))}
                 onSubmitEditing={() => addTag(tagInput)}
@@ -276,6 +320,18 @@ export default function BoardCompose() {
           <PollEditor options={pollOptions} onOptions={setPollOptions} days={pollDays} onDays={setPollDays} onRemove={() => setPollOn(false)} />
         )}
 
+        {canAdd && (
+          <Pressable
+            onPress={() => { Haptics.selectionAsync(); setAdding(true); }}
+            accessibilityLabel={type === "free" ? "내 기록 · 사진 · 투표 추가하기" : "내 기록 · 사진 추가하기"}
+            style={({ pressed }) => ({ minHeight: 48, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: K.dashed, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? C.brickSoft : "transparent" })}
+          >
+            <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>
+              <Text style={{ fontFamily: F.sansMd, color: C.brick }}>+ 추가하기</Text>  ·  {type === "free" ? "내 기록 · 사진 · 투표" : "내 기록 · 사진"}
+            </Text>
+          </Pressable>
+        )}
+
         {editId == null && isAdmin && (
           <Pressable onPress={() => setPinned((v) => !v)} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <View style={{ width: 20, height: 20, borderRadius: 6, borderWidth: pinned ? 0 : 1.5, borderColor: K.dashed, backgroundColor: pinned ? C.brick : "transparent", alignItems: "center", justifyContent: "center" }}>
@@ -288,16 +344,39 @@ export default function BoardCompose() {
         {!!error && <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>{error}</Text>}
       </ScrollView>
 
-      {/* 도구줄 — 내 기록 · 사진 · #태그 · 투표(자유만) */}
-      {editId == null && (
-        <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.lineSoft, backgroundColor: C.paper, paddingHorizontal: 8, paddingBottom: Math.max(insets.bottom, 6) }}>
-          {tool("내 기록", () => setPicking(type === "course" ? "course" : "single"), false, !!record || course.length > 0)}
-          {/* TODO(사진): 기록 없이 붙이는 사진은 이번 범위 밖입니다. */}
-          {tool("사진", () => Alert.alert("곧 열립니다", "지금은 내 기록을 붙이면 대표 사진이 함께 올라갑니다."))}
-          {tool("#태그", () => tagRef.current?.focus(), tags.length >= TAG_MAX)}
-          {tool(type === "free" ? "투표" : "투표 · 자유만", () => setPollOn((v) => !v), type !== "free", pollOn)}
+      {/* 추가하기 — 내 기록 · 사진 · 투표(자유만) */}
+      <BottomSheetModal visible={adding} onClose={() => setAdding(false)}>
+        <Text style={{ fontFamily: F.serif, fontSize: 18, color: C.ink }}>무엇을 붙일까요?</Text>
+        <View style={{ marginTop: 14, borderRadius: 16, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, overflow: "hidden" }}>
+          <AddRow
+            icon={<DocIcon size={17} stroke={C.brick} />}
+            label={type === "course" ? "코스 가게" : "내 기록"}
+            sub={
+              type === "course" ? (course.length ? `${course.length}곳 · 더하기 · 빼기` : "내 기록에서 2~5곳 골라요")
+              : record ? `${record.name} · 다른 기록으로 바꾸기` : "다녀온 가게를 카드로 붙여요"
+            }
+            done={type === "course" ? course.length >= 2 : !!record}
+            onPress={() => addThen(() => setPicking(type === "course" ? "course" : "single"))}
+          />
+          <AddRow
+            icon={<PhotoIcon size={17} stroke={C.brick} />}
+            label="사진"
+            sub={photos.length >= PHOTO_MAX ? `${PHOTO_MAX}장 다 붙였어요` : photos.length ? `${photos.length}장 붙임 · ${PHOTO_MAX}장까지` : `앨범에서 ${PHOTO_MAX}장까지 골라요`}
+            done={photos.length > 0}
+            disabled={photos.length >= PHOTO_MAX}
+            onPress={() => addThen(addPhotos)}
+          />
+          <AddRow
+            icon={<RankBarsIcon size={17} stroke={C.brick} />}
+            label="투표"
+            sub={type !== "free" ? "자유 게시판에서만 열 수 있어요" : pollOn ? "이미 붙였어요 · 글 아래에서 고쳐요" : "선택지 2~5개 · 1 · 3 · 7일"}
+            done={pollOn}
+            disabled={type !== "free" || pollOn}
+            onPress={() => { Haptics.selectionAsync(); setPollOn(true); setAdding(false); }}
+            last
+          />
         </View>
-      )}
+      </BottomSheetModal>
 
       <RecordPickerSheet
         visible={picking === "single"}
@@ -315,6 +394,31 @@ export default function BoardCompose() {
         title="코스 고르기 · 2~5곳"
       />
     </KeyboardAvoidingView>
+  );
+}
+
+/** 「추가하기」 시트의 한 줄 — 둥근 아이콘 · 이름 · 설명, 붙인 것은 ✓. */
+function AddRow({ icon, label, sub, onPress, done, disabled, last }: { icon: React.ReactNode; label: string; sub: string; onPress?: () => void; done?: boolean; disabled?: boolean; last?: boolean }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || !onPress}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || !onPress, selected: done }}
+      style={({ pressed }) => ({
+        minHeight: 64, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, paddingVertical: 10,
+        borderBottomWidth: last ? 0 : 1, borderBottomColor: C.lineSoft, backgroundColor: pressed ? C.paper : C.card,
+      })}
+    >
+      <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.brickSoft, alignItems: "center", justifyContent: "center", opacity: disabled && !done ? 0.45 : 1 }}>
+        {icon}
+      </View>
+      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+        <Text style={{ fontFamily: F.sansMd, fontSize: 14, color: disabled && !done ? K.inactive : C.ink }}>{label}</Text>
+        <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{sub}</Text>
+      </View>
+      {done ? <CheckIcon size={13} /> : !disabled && <Text style={{ fontFamily: F.sans, fontSize: 16, color: K.inactive }}>›</Text>}
+    </Pressable>
   );
 }
 

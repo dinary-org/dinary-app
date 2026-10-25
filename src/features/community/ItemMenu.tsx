@@ -73,7 +73,7 @@ export function MoreButton({ target, onEdit, onDeleted, onBlocked }: { target: M
       {
         text: isPhoto ? "내리기" : "삭제", style: "destructive",
         onPress: () => run(async () => {
-          if (target.kind === "post") await deletePost(qc, id);
+          if (target.kind === "post") await deletePost(qc, id, target.post.photo_refs);
           else if (target.kind === "comment") await deleteBoardComment(qc, id);
           else if (target.kind === "gallery_photo") await removeGalleryPhoto(qc, id);
           else await deleteGalleryComment(qc, id);

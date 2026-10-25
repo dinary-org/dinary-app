@@ -1,6 +1,7 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { refreshAll } from "@/data/invalidate";
 import { DEFAULT_CHARACTER, isCharacterId, type CharacterId } from "@/lib/characters";
+import { removePhotoObjects } from "@/lib/photos";
 import { supabase } from "@/lib/supabase";
 import { coverPhoto, matchWish, type Kind, type Wish } from "@/lib/types";
 
@@ -402,6 +403,8 @@ export type BoardPost = {
   poll_total: number;
   poll_closes_at: string | null;
   my_vote: number | null;
+  /** 앨범에서 붙인 사진(버킷 안 경로) 0~4장 — 붙인 기록의 사진과는 따로. */
+  photo_refs?: string[] | null;
 };
 
 export type Theme = { id: number; title: string; description: string | null; starts_on: string; ends_on: string };
@@ -600,13 +603,15 @@ export const BOARD_ERRORS: Record<string, string> = {
   role_locked: "바꿀 수 없는 값입니다",
   already_posted: "이미 갤러리에 올린 사진입니다",
   not_my_photo: "내 기록의 사진만 올릴 수 있습니다",
+  not_my_upload: "내가 올린 사진만 붙일 수 있습니다",
+  too_many_photos: "사진은 4장까지 붙일 수 있습니다",
 };
 const boardError = (msg: string) => BOARD_ERRORS[Object.keys(BOARD_ERRORS).find((k) => msg.includes(k)) ?? ""] ?? msg;
 
 export type NewPost = {
   type: PostType; title: string; body?: string; tags?: string[]; recordId?: number | null;
   course?: { record_id: number; memo?: string }[]; themeId?: number | null; poll?: { options: string[]; days: number } | null;
-  area?: string | null; pinned?: boolean;
+  area?: string | null; pinned?: boolean; photos?: string[];
 };
 
 export async function createPost(qc: QueryClient, p: NewPost) {
@@ -615,6 +620,8 @@ export async function createPost(qc: QueryClient, p: NewPost) {
     p_record_id: p.recordId ?? null,
     p_course: p.course ? p.course.map((c) => ({ record_id: c.record_id, memo: c.memo ? stripContact(c.memo).trim() : null })) : null,
     p_theme_id: p.themeId ?? null, p_poll: p.poll ?? null, p_area: p.area ?? null, p_pinned: p.pinned ?? false,
+    // 사진이 없으면 칸을 안 보냅니다 — 사진 칸이 없는 서버에서도 글은 올라가게.
+    ...(p.photos?.length ? { p_photos: p.photos } : {}),
   });
   if (error) throw new Error(boardError(error.message));
   await qc.invalidateQueries({ queryKey: ["community", "board"] });
@@ -630,9 +637,10 @@ export async function updatePost(qc: QueryClient, id: number, p: { title: string
   await qc.invalidateQueries({ queryKey: ["community", "board"] });
 }
 
-export async function deletePost(qc: QueryClient, id: number) {
+export async function deletePost(qc: QueryClient, id: number, photos?: string[] | null) {
   const { error } = await supabase.from("board_posts").delete().eq("id", id);
   if (error) throw new Error(error.message);
+  if (photos?.length) await removePhotoObjects(photos);
   await qc.invalidateQueries({ queryKey: ["community", "board"] });
   await qc.invalidateQueries({ queryKey: ["community", "theme"] });
 }

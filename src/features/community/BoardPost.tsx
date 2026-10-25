@@ -305,6 +305,39 @@ export const Tags = ({ tags, onTag }: { tags: string[]; onTag?: (t: string) => v
   ) : null;
 
 /** 게시판 목록 글 하나 — 작성자 줄 · 제목 · 본문 2줄 · 태그 · (칸마다) 기록 / 코스 / 빠른 투표 · 반응 · 댓글 수. */
+/**
+ * 앨범에서 붙인 사진 — 목록(compact)은 한 장이면 넓게, 여러 장이면 세 칸까지 나란히(넘치면 「+n」).
+ * 상세는 한 장씩 넓게 아래로.
+ */
+export function PostPhotos({ refs, compact }: { refs: string[] | null | undefined; compact?: boolean }) {
+  const list = refs ?? [];
+  if (!list.length) return null;
+  if (!compact) {
+    return (
+      <View style={{ gap: 8 }}>
+        {list.map((r) => <PhotoOrStripes key={r} uri={r} height={260} radius={16} />)}
+      </View>
+    );
+  }
+  if (list.length === 1) return <PhotoOrStripes uri={list[0]} height={180} radius={14} />;
+  const shown = list.slice(0, 3);
+  const more = list.length - shown.length;
+  return (
+    <View style={{ flexDirection: "row", gap: 6 }}>
+      {shown.map((r, i) => (
+        <View key={r} style={{ flex: 1 }}>
+          <PhotoOrStripes uri={r} height={108} radius={12} />
+          {more > 0 && i === shown.length - 1 && (
+            <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: 12, backgroundColor: "rgba(28,26,23,0.42)", alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ fontFamily: F.sansMd, fontSize: 15, color: C.card }}>+{more}</Text>
+            </View>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function PostCard({
   post, stops, showBoard, onOpen, onTag, onEdit,
 }: { post: BoardPost; stops?: CourseStop[]; showBoard?: boolean; onOpen: () => void; onTag?: (t: string) => void; onEdit?: () => void }) {
@@ -322,6 +355,7 @@ export function PostCard({
         {!!postTitle(post) && <Text numberOfLines={2} style={{ fontFamily: F.serif, fontSize: 15.5, lineHeight: 22, color: C.ink }}>{postTitle(post)}</Text>}
         {!!post.body && <Text numberOfLines={2} style={{ fontFamily: F.sans, fontSize: 12.5, lineHeight: 19, color: K.text2 }}>{post.body}</Text>}
       </Pressable>
+      {!!post.photo_refs?.length && <Pressable onPress={onOpen}><PostPhotos refs={post.photo_refs} compact /></Pressable>}
       <Tags tags={post.tags} onTag={onTag} />
       {hasRecord && (
         <Pressable onPress={onOpen}>

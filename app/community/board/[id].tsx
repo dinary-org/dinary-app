@@ -8,7 +8,7 @@ import {
   addBoardComment, editBoardComment, useBoardComments, useBoardPost, useCourseStops, useCurrentTheme, useIsAdmin, type BoardComment, type BoardPost,
 } from "@/features/community/api";
 import {
-  AuthorRow, boardPill, CourseBlock, PollOptions, postPhoto, postTitle, Reactions, RecordMini, Tags,
+  AuthorRow, boardPill, CourseBlock, PollOptions, PostPhotos, postPhoto, postTitle, Reactions, RecordMini, Tags,
 } from "@/features/community/BoardPost";
 import { MoreButton } from "@/features/community/ItemMenu";
 import { CommentInput, CommentRow } from "@/features/community/CommentThread";
@@ -119,6 +119,7 @@ function PostContent({ post, stops, onMapTouch }: { post: BoardPost; stops: Para
     <>
       {!!postTitle(post) && <Text style={{ fontFamily: F.serif, fontSize: 20, lineHeight: 28, color: C.ink }}>{postTitle(post)}</Text>}
       {!!post.body && <Text selectable style={{ fontFamily: F.serif, fontSize: 13.5, lineHeight: 23, color: K.text2 }}>{post.body}</Text>}
+      <PostPhotos refs={post.photo_refs} />
       <Tags tags={post.tags} />
       {post.type === "free" && !!post.poll_closes_at && (
         <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 12 }}>

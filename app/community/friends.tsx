@@ -4,6 +4,7 @@ import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, ScrollView, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AddPersonIcon, BellLineIcon, BookmarkIcon } from "@/components/icons";
@@ -13,7 +14,7 @@ import { useAccount } from "@/data/profile";
 import { useWishes } from "@/data/queries";
 import { useAppState } from "@/data/store";
 import {
-  postPhotos, removeFriendPost, toggleCheer, upsertFriendPost, useFriendFeed, useFriends, useRecordSocial,
+  blockUser, postPhotos, removeFriendPost, report, REPORT_REASONS, toggleCheer, upsertFriendPost, useFriendFeed, useFriends, useRecordSocial,
   type FriendPost, type WishSeed,
 } from "@/features/community/api";
 import { useAlarmDot } from "@/features/community/alarms";
@@ -56,6 +57,7 @@ export default function FriendsScreen() {
   }, [postParam, commentsParam, navT]);
   const [posting, setPosting] = useState<{ recordId: number | null } | null>(null);
   const [menuFor, setMenuFor] = useState<FriendPost | null>(null);
+  const [menuStep, setMenuStep] = useState<"main" | "report">("main");
   const [removed, setRemoved] = useState<FriendPost | null>(null);
   const [scrollTo, setScrollTo] = useState<number | null>(null);
   const listRef = useRef<FlatList<FriendPost>>(null);
@@ -95,8 +97,36 @@ export default function FriendsScreen() {
     if (i >= 0) requestAnimationFrame(() => listRef.current?.scrollToIndex({ index: i, viewPosition: 0, animated: true }));
   }, [scrollTo, view, shown]);
 
+  const closeMenu = () => { setMenuFor(null); setMenuStep("main"); };
+  /** 시트가 다 내려간 뒤에 창을 — 내려가는 시트 위로는 iOS 가 못 띄웁니다. */
+  const later = (f: () => void) => setTimeout(f, 380);
+
+  // 남의 소식 — 신고(사유 고르기) · 차단(그 사람의 소식 · 댓글 · 기록이 내 화면에서 바로 빠짐).
+  function reportPost(p: FriendPost, reason: string) {
+    closeMenu();
+    report("friend_post", p.id, reason).then(
+      () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); later(() => showDialog("신고했습니다 · 살펴본 뒤 처리합니다")); },
+      (e: unknown) => later(() => showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "")),
+    );
+  }
+
+  function block(p: FriendPost) {
+    closeMenu();
+    const name = people.get(p.user_id)?.nickname ?? "이 사람";
+    later(() => showDialog(`${name}님을 차단할까요?`, "이 사람의 소식 · 글 · 댓글 · 기록이 내 화면에서 빠집니다.", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "차단하기", style: "destructive",
+        onPress: () => blockUser(qc, p.user_id).then(
+          () => { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); if (only === p.user_id) setOnly(null); },
+          (e: unknown) => showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""),
+        ),
+      },
+    ]));
+  }
+
   async function takeDown(p: FriendPost) {
-    setMenuFor(null);
+    closeMenu();
     try {
       await removeFriendPost(qc, p.id);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -176,15 +206,23 @@ export default function FriendsScreen() {
         onPosted={() => { setOnly(null); setView("feed"); requestAnimationFrame(() => listRef.current?.scrollToOffset({ offset: 0, animated: true })); }}
         myPosts={mine}
       />
-      <BottomSheetModal visible={!!menuFor} onClose={() => setMenuFor(null)}>
+      <BottomSheetModal visible={!!menuFor} onClose={closeMenu}>
         {menuFor && (
           <View>
-            <Text style={{ fontFamily: F.serif, fontSize: 17, color: C.ink }}>{menuFor.name}</Text>
+            <Text style={{ fontFamily: F.serif, fontSize: 17, color: C.ink }}>{menuStep === "report" ? "무엇이 문제인가요?" : menuFor.name}</Text>
             <View style={{ marginTop: 12 }}>
-              {[
-                { label: "사진 · 한 줄 고치기", onPress: () => { setPosting({ recordId: menuFor.record_id }); setMenuFor(null); } },
-                { label: "소식에서 내리기", onPress: () => takeDown(menuFor), danger: true },
-              ].map((o, i) => (
+              {(menuFor.user_id === me
+                ? [
+                    { label: "사진 · 한 줄 고치기", onPress: () => { setPosting({ recordId: menuFor.record_id }); closeMenu(); } },
+                    { label: "소식에서 내리기", onPress: () => takeDown(menuFor), danger: true },
+                  ]
+                : menuStep === "report"
+                  ? REPORT_REASONS.map((reason) => ({ label: reason, onPress: () => reportPost(menuFor, reason), danger: false }))
+                  : [
+                      { label: "신고하기", onPress: () => setMenuStep("report"), danger: false },
+                      { label: "차단하기", onPress: () => block(menuFor), danger: true },
+                    ]
+              ).map((o, i) => (
                 <Pressable key={o.label} onPress={o.onPress} style={{ minHeight: 52, justifyContent: "center", borderTopWidth: i ? 1 : 0, borderTopColor: "#efeae0" }}>
                   <Text style={{ fontFamily: F.sans, fontSize: 14, color: o.danger ? C.brick : C.ink }}>{o.label}</Text>
                 </Pressable>
@@ -361,14 +399,12 @@ const FeedCard = memo(function FeedCard({ p, who, mine, social, onComments, onMe
         <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.ink }}>{mine ? "내 소식" : name}</Text>
         <Text style={{ fontFamily: F.mono, fontSize: 10, color: K.inactive }}>{timeAgo(p.created_at)}</Text>
         <View style={{ marginLeft: "auto", flexDirection: "row", alignItems: "center", gap: 6 }}>
-          {mine ? (
-            <Pressable onPress={onMenu} hitSlop={8} accessibilityLabel="소식 메뉴"
-              style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ marginTop: -6, fontFamily: F.sansMd, fontSize: 14, color: K.text2 }}>···</Text>
-            </Pressable>
-          ) : (
-            <VerifiedChip />
-          )}
+          {!mine && <VerifiedChip />}
+          {/* 내 소식: 고치기 · 내리기 / 남의 소식: 신고 · 차단 */}
+          <Pressable onPress={onMenu} hitSlop={8} accessibilityLabel="소식 메뉴"
+            style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ marginTop: -6, fontFamily: F.sansMd, fontSize: 14, color: K.text2 }}>···</Text>
+          </Pressable>
         </View>
       </View>
       <View style={{ marginTop: 12 }}><PhotoPager urls={postPhotos(p)} height={170} /></View>

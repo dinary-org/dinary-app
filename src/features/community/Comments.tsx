@@ -6,10 +6,10 @@ import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { useAccount } from "@/data/profile";
 import { C, F } from "@/theme";
-import { addComment, deleteComment, editComment, useComments, type Comment } from "./api";
+import { addComment, blockUser, deleteComment, editComment, report, REPORT_REASONS, useComments, type Comment } from "./api";
 import { Avatar, K, timeAgo } from "./ui";
 
-/** 친구 소식 카드의 댓글 — 한 줄 120자, 링크 · 연락처는 넣을 수 없습니다. 내 댓글엔 「수정 · 삭제」 — 고치기는 아래 입력칸에서. */
+/** 친구 소식 카드의 댓글 — 한 줄 120자, 링크 · 연락처는 넣을 수 없습니다. 내 댓글엔 「수정 · 삭제」 — 고치기는 아래 입력칸에서. 남의 댓글엔 「신고 · 차단」. */
 export default function CommentsSheet({ recordId, onClose }: { recordId: number | null; onClose: () => void }) {
   const qc = useQueryClient();
   const { data: comments = [] } = useComments(recordId);
@@ -38,6 +38,25 @@ export default function CommentsSheet({ recordId, onClose }: { recordId: number 
           }
         },
       },
+    ]);
+  }
+
+  const failed = (e: unknown) => showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "");
+
+  function reportComment(c: Comment) {
+    showDialog("무엇이 문제인가요?", undefined, [
+      ...REPORT_REASONS.map((reason) => ({
+        text: reason,
+        onPress: () => { report("record_comment", c.id, reason).then(() => showDialog("신고했습니다 · 살펴본 뒤 처리합니다"), failed); },
+      })),
+      { text: "취소", style: "cancel" as const },
+    ]);
+  }
+
+  function block(c: Comment) {
+    showDialog(`${c.nickname ?? "이 사람"}님을 차단할까요?`, "이 사람의 소식 · 글 · 댓글 · 기록이 내 화면에서 빠집니다.", [
+      { text: "취소", style: "cancel" },
+      { text: "차단하기", style: "destructive", onPress: () => { blockUser(qc, c.user_id).then(() => qc.invalidateQueries({ queryKey: ["community", "comments", c.record_id] }), failed); } },
     ]);
   }
 
@@ -71,6 +90,16 @@ export default function CommentsSheet({ recordId, onClose }: { recordId: number 
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Text style={{ fontFamily: F.sansMd, fontSize: 12, color: C.ink }}>{c.nickname}</Text>
                 <Text style={{ fontFamily: F.mono, fontSize: 10, color: K.inactive }}>{timeAgo(c.created_at)}</Text>
+                {c.user_id !== account?.userId && !!account && (
+                  <View style={{ marginLeft: "auto", flexDirection: "row", gap: 10 }}>
+                    <Pressable onPress={() => reportComment(c)} hitSlop={8} accessibilityLabel="댓글 신고">
+                      <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>신고</Text>
+                    </Pressable>
+                    <Pressable onPress={() => block(c)} hitSlop={8} accessibilityLabel="작성자 차단">
+                      <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>차단</Text>
+                    </Pressable>
+                  </View>
+                )}
                 {c.user_id === account?.userId && (
                   <View style={{ marginLeft: "auto", flexDirection: "row", gap: 10 }}>
                     <Pressable onPress={() => startEdit(c)} hitSlop={8} accessibilityLabel="댓글 수정">

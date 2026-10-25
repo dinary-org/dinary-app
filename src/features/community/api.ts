@@ -939,6 +939,9 @@ export async function deleteGalleryComment(qc: QueryClient, id: number) {
 
 export const adminHideGalleryPhoto = (qc: QueryClient, id: number, hide: boolean) => adminRpc(qc, "admin_hide_gallery_photo", { p_id: id, p_hide: hide });
 export const adminHideGalleryComment = (qc: QueryClient, id: number, hide: boolean) => adminRpc(qc, "admin_hide_gallery_comment", { p_id: id, p_hide: hide });
+/** 친구 소식 · 그 댓글 — 숨김 칸이 없어 신고되면 내립니다(기록은 그대로). */
+export const adminRemoveFriendPost = (qc: QueryClient, id: number) => adminRpc(qc, "admin_remove_friend_post", { p_id: id });
+export const adminRemoveRecordComment = (qc: QueryClient, id: number) => adminRpc(qc, "admin_remove_record_comment", { p_id: id });
 
 export type GalleryScope = "all" | "menu" | "place" | "area" | "person";
 export type GalleryPlaceHit = { place: string; name: string; address: string | null; category: string | null; area: string | null; photo_count: number; cover_ref: string | null };
@@ -972,7 +975,10 @@ export const useGalleryTopMenus = () =>
 
 /* ───────────── 신고 · 차단 ───────────── */
 
-export type ReportTarget = "post" | "answer" | "comment" | "board_comment" | "gallery_photo" | "gallery_comment" | "user" | "tour";
+export type ReportTarget = "post" | "answer" | "comment" | "board_comment" | "gallery_photo" | "gallery_comment" | "friend_post" | "record_comment" | "user" | "tour";
+
+/** 신고 사유 — 게시판 · 갤러리 · 친구 소식이 함께 씁니다. */
+export const REPORT_REASONS = ["광고", "욕설", "거짓 정보", "기타"];
 
 export async function report(targetType: ReportTarget, targetId: string | number, reason: string) {
   const me = await myId();

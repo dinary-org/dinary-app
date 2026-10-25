@@ -9,7 +9,7 @@ import { useAccount } from "@/data/profile";
 import { C, F } from "@/theme";
 import {
   adminHideComment, adminHideGalleryComment, adminHideGalleryPhoto, adminHidePost, adminPinPost, adminSanction, blockUser,
-  deleteBoardComment, deleteGalleryComment, deletePost, removeGalleryPhoto, report, useIsAdmin,
+  deleteBoardComment, deleteGalleryComment, deletePost, removeGalleryPhoto, report, REPORT_REASONS, useIsAdmin,
   type BoardComment, type BoardPost, type GalleryComment, type GalleryPhoto, type ReportTarget,
 } from "./api";
 import { K } from "./ui";
@@ -29,8 +29,6 @@ function describe(t: MenuTarget) {
     case "gallery_comment": return { id: t.comment.id, authorId: t.comment.author_id, name: t.comment.nickname, hidden: !!t.comment.hidden_at, what: "댓글", report: "gallery_comment" as ReportTarget };
   }
 }
-
-const REASONS = ["광고", "욕설", "거짓 정보", "기타"];
 
 type Item = { label: string; onPress: () => void; danger?: boolean; muted?: boolean };
 
@@ -117,7 +115,7 @@ export function MoreButton({ target, onEdit, onDeleted, onBlocked }: { target: M
 
   const items: Item[] =
     step === "report"
-      ? REASONS.map((reason) => ({
+      ? REPORT_REASONS.map((reason) => ({
           label: reason,
           onPress: () => run(() => report(d.report, id, reason), "신고했습니다 · 살펴본 뒤 처리합니다"),
         }))

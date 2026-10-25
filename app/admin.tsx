@@ -7,7 +7,7 @@ import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  adminCreateNotice, adminDeleteNotice, adminHideComment, adminHideGalleryComment, adminHideGalleryPhoto, adminHidePost, adminRankUnban, adminResolveReport, adminSanction, adminSaveTheme, adminUpdateNotice, createPost,
+  adminCreateNotice, adminDeleteNotice, adminHideComment, adminHideGalleryComment, adminHideGalleryPhoto, adminHidePost, adminRemoveFriendPost, adminRemoveRecordComment, adminRankUnban, adminResolveReport, adminSanction, adminSaveTheme, adminUpdateNotice, createPost,
   useAdminNotices, useCurrentTheme, useIsAdmin, useRankBans, useReports, type AppNotice, type RankBan, type ReportRow,
 } from "@/features/community/api";
 import { Avatar, K, Segmented, timeAgo } from "@/features/community/ui";
@@ -204,7 +204,7 @@ function NoticeForm() {
 
 type Preview = { title: string; text: string | null; authorId: string | null; authorName: string | null; hidden: boolean };
 
-/** 신고 대상 미리보기 — 글 · 게시판 댓글 · 사람. 그 밖(옛 답 · 투어)은 id 만. */
+/** 신고 대상 미리보기 — 글 · 댓글 · 갤러리 · 친구 소식 · 사람. 그 밖(옛 답 · 투어)은 id 만. */
 function useReportPreview(r: ReportRow) {
   return useQuery({
     queryKey: ["community", "admin", "preview", r.target_type, r.target_id],
@@ -232,6 +232,14 @@ function useReportPreview(r: ReportRow) {
         return data
           ? { title: "갤러리 댓글", text: data.body, authorId: data.author_id, authorName: data.nickname, hidden: !!data.hidden_at }
           : { title: "지워진 댓글", text: null, authorId: null, authorName: null, hidden: false };
+      }
+      if (r.target_type === "friend_post" || r.target_type === "record_comment") {
+        // 친구에게만 읽히는 것이라 신고된 것만 함수로 봅니다.
+        const { data } = await supabase.rpc("admin_report_preview", { p_type: r.target_type, p_id: r.target_id });
+        const row = (data as { title: string; body: string | null; author_id: string; author_name: string | null }[] | null)?.[0];
+        return row
+          ? { title: row.title, text: row.body, authorId: row.author_id, authorName: row.author_name, hidden: false }
+          : { title: r.target_type === "friend_post" ? "지워진 소식" : "지워진 댓글", text: null, authorId: null, authorName: null, hidden: false };
       }
       if (r.target_type === "user") {
         const { data } = await supabase.from("public_profiles").select("id, nickname").eq("id", r.target_id).maybeSingle();
@@ -293,7 +301,10 @@ function ReportCard({ r }: { r: ReportRow }) {
     board_comment: (id) => adminHideComment(qc, id, true),
     gallery_photo: (id) => adminHideGalleryPhoto(qc, id, true),
     gallery_comment: (id) => adminHideGalleryComment(qc, id, true),
+    friend_post: (id) => adminRemoveFriendPost(qc, id),
+    record_comment: (id) => adminRemoveRecordComment(qc, id),
   };
+  const removes = r.target_type === "friend_post" || r.target_type === "record_comment";
   const canHide = !!HIDE[r.target_type] && p && !p.hidden && !p.title.startsWith("지워진");
   const hide = () => act(() => HIDE[r.target_type](Number(r.target_id)), "hide");
 
@@ -318,7 +329,7 @@ function ReportCard({ r }: { r: ReportRow }) {
       </Pressable>
       {!done && (
         <View style={{ flexDirection: "row", gap: 6 }}>
-          {canHide && <Btn label="숨기기" onPress={hide} disabled={busy} />}
+          {canHide && <Btn label={removes ? "내리기" : "숨기기"} onPress={hide} disabled={busy} />}
           {!!p?.authorId && <Btn label="정지" onPress={sanction} disabled={busy} />}
           <Btn label="무시" onPress={() => act(async () => {}, "dismiss")} disabled={busy} muted />
         </View>

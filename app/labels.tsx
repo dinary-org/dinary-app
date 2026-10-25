@@ -144,7 +144,7 @@ export default function Labels() {
                   <Text style={{ fontFamily: F.serif, fontSize: 14, color: l.earned ? C.ink : C.muted }}>
                     {l.name}
                     {l.id === titleId && <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.brick }}>  대표</Text>}
-                    {fresh && <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.brick }}>  · 새로</Text>}
+                    {fresh && <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 0.6, color: C.brick }}>  NEW</Text>}
                   </Text>
                   <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 11, color: C.faint }}>{l.desc}</Text>
                 </View>

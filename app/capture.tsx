@@ -37,6 +37,7 @@ import {
   findMatchingWish, wishCopies, wishKind, wishMetInfo, WISH_AUTO_M, type Kind, type Restaurant, type Wish,
 } from "@/lib/types";
 import { C, F, SHADOW } from "@/theme";
+import { askDraftReminderPermission } from "@/features/notify/draftReminder";
 
 type Step = "permission" | "shoot" | "review" | "pick" | "search" | "done";
 /** uri — 올릴 900px 사본, original — 셔터가 남긴 원본(사진 앱 저장용). */
@@ -359,7 +360,7 @@ export default function Capture() {
 
       if (newId != null) {
         if (writeNow) router.replace({ pathname: "/record/edit", params: { id: String(newId) } });
-        else router.back();
+        else { void askDraftReminderPermission(); router.back(); }
         return;
       }
 
@@ -367,7 +368,7 @@ export default function Capture() {
       Alert.alert(
         "인증은 저장했어요",
         "연결되면 사진이 올라갑니다. 앱을 닫아도 이어서 올라가고, 보관함에서 상태를 볼 수 있어요.",
-        [{ text: "확인", onPress: () => router.back() }]
+        [{ text: "확인", onPress: () => { if (!writeNow) void askDraftReminderPermission(); router.back(); } }]
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "기록을 저장하지 못했습니다");

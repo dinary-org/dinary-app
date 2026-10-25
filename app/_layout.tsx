@@ -19,12 +19,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAccount } from "@/data/profile";
-import { usePersonalRows, useWishes } from "@/data/queries";
+import { usePersonalRows, useRows, useWishes } from "@/data/queries";
 import { setState, useAppState } from "@/data/store";
 import CommunityTransition from "@/features/community/Transition";
 import { NoticeBanner } from "@/features/community/NoticeBanner";
 import { startQueueTriggers } from "@/features/queue/process";
 // 이 import 가 백그라운드 지오펜스 태스크를 정의합니다 — 반드시 앱 진입점에서 불러야 합니다.
+import { clearDraftReminder, syncDraftReminder } from "@/features/notify/draftReminder";
 import { syncWishGeofences } from "@/features/notify/geofence";
 import { clearMonthWidget, syncMonthWidget } from "@/lib/widget";
 import { C } from "@/theme";
@@ -124,6 +125,16 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   useEffect(() => { if (session && rows) void syncMonthWidget(rows); }, [session, rows]);
   useEffect(() => { if (session === null) clearMonthWidget(); }, [session]);
 
+  // 보관함 알림 — 오늘 담아 둔 내 기록이 있으면 21시에. 개인 · 지금 연 기록장(연인)을 합쳐 내 것만 셉니다.
+  const { data: bookRows } = useRows();
+  const nickname = account?.nickname ?? null;
+  useEffect(() => {
+    if (!session || !rows) return;
+    const mine = new Map([...rows, ...(bookRows ?? [])].filter((r) => r.user_id === session.user.id).map((r) => [r.id, r]));
+    void syncDraftReminder([...mine.values()], nickname);
+  }, [session, rows, bookRows, nickname]);
+  useEffect(() => { if (session === null) void clearDraftReminder(); }, [session]);
+
   // 위시가 바뀔 때마다 가까운 20곳으로 지오펜스를 다시 맞춥니다.
   useEffect(() => { if (session && wishes) void syncWishGeofences(wishes); }, [session, wishes]);
 
@@ -132,6 +143,8 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   useEffect(() => {
     const wishId = last?.notification.request.content.data?.wishId as string | undefined;
     if (ready && session && wishId) router.push({ pathname: "/capture", params: { verifyWishId: wishId } });
+    // 보관함 알림을 누르면 보관함으로.
+    if (ready && session && last?.notification.request.content.data?.drafts) router.push("/drafts");
   }, [last, ready, session, router]);
 
   // 공유 시트(릴스 · 쇼츠 …)로 받은 글 — 담아두고, 로그인 · 닉네임까지 끝난 뒤 위시 폼으로 넘깁니다.

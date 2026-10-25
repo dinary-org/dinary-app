@@ -23,9 +23,6 @@ const SUBSTEPS = 4;
 const RELEASE_MS = 110;
 const AFTER_MS = 2500;
 const MAX_MS = 25000;
-/** 마지막 관문 슬로우모션 — 아직 아무도 안 들어왔을 때 앞선 구슬이 이 높이를 넘으면 시간을 이만큼 느리게. */
-const SLOW_Y = 440;
-const SLOW = 0.3;
 
 /** 구슬 색 — 앱 톤(벽돌 · 살구 · 겨자 · 올리브 · 청록 · 남색 · 자두 · 장미 · 모래 · 밤 · 하늘 · 먹). */
 const MARBLES = ["#b4552d", "#e08a63", "#d9a441", "#7d8a4a", "#4f7f7a", "#4f6b7a", "#7a4f6b", "#c9727d", "#c8ab83", "#6b4a33", "#8fb0c4", "#3b3733"];
@@ -193,9 +190,7 @@ export function MarbleRace({ options, busy, onStart, onDone }: {
     let firstAt: number | null = null;
     let last = performance.now();
     const tick = (now: number) => {
-      // 마지막 관문 앞 — 첫 구슬이 들어오기 전까지 느리게.
-      const slow = finished.length === 0 && balls.current.some((b) => b.on && !b.done && b.y > SLOW_Y);
-      const dtMs = Math.min(33, now - last) * (slow ? SLOW : 1);
+      const dtMs = Math.min(33, now - last);
       last = now;
       simT.current += dtMs;
       const t = simT.current;

@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { KeyboardAvoidingView, ScrollView, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -111,8 +111,9 @@ export default function BoardPostScreen() {
   );
 }
 
-/** 본문 전체 · 태그 · 투표 카드 · 기록 카드 · 코스 · 반응. */
+/** 본문 전체 · 태그 · 투표 카드 · 기록 카드(누르면 기록 상세) · 코스 · 반응. */
 function PostContent({ post, stops, onMapTouch }: { post: BoardPost; stops: Parameters<typeof CourseBlock>[0]["stops"]; onMapTouch: (touching: boolean) => void }) {
+  const router = useRouter();
   const hasRecord = !!post.place_name && post.type !== "course";
   return (
     <>
@@ -126,9 +127,16 @@ function PostContent({ post, stops, onMapTouch }: { post: BoardPost; stops: Para
         </View>
       )}
       {hasRecord && (
-        <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 12 }}>
-          <RecordMini name={post.place_name} photo={postPhoto(post)} rating={post.rating} category={post.category} address={post.address} verifiedAt={post.verified ? post.verified_at : null} />
-        </View>
+        <Pressable
+          onPress={() => post.record_id != null && router.push({ pathname: "/community/board/record/[id]", params: { id: String(post.record_id) } })}
+          accessibilityLabel={`${post.place_name} 기록 자세히 보기`}
+          style={{ borderRadius: 16, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 12 }}
+        >
+          <RecordMini
+            name={post.place_name} photo={postPhoto(post)} rating={post.rating} category={post.category} address={post.address} verifiedAt={post.verified ? post.verified_at : null}
+            right={<Text style={{ fontFamily: F.sans, fontSize: 18, color: C.faint }}>›</Text>}
+          />
+        </Pressable>
       )}
       {post.type === "course" && <CourseBlock stops={stops} onMapTouch={onMapTouch} />}
       <Reactions post={post} stops={stops} />

@@ -1,4 +1,5 @@
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Text } from "@/components/Text";
@@ -27,6 +28,7 @@ export type ThreadComment = {
 /** 아바타 26 · 닉네임 · 시간 · 본문 12.5 · (붙인 기록) · 「답글」. 글쓴이가 단 댓글엔 「글쓴이」 꼬리표. ⋯ 메뉴의 「수정」은 onEdit(내 댓글 · 숨기지 않은 것만). */
 export function CommentRow({ c, ownerId, target, onReply, onEdit }: { c: ThreadComment; ownerId: string; target: MenuTarget; onReply?: () => void; onEdit?: () => void }) {
   const hidden = !!c.hidden_at && c.body == null;
+  const router = useRouter();
   const photo = c.record_id ? coverPhoto({ photo_urls: c.photo_urls ?? [], cover_index: c.cover_index ?? 0, photo_url: c.photo_url ?? null }) : null;
   return (
     <View style={{ paddingVertical: 11, gap: 6 }}>
@@ -45,9 +47,13 @@ export function CommentRow({ c, ownerId, target, onReply, onEdit }: { c: ThreadC
           <Text selectable style={{ fontFamily: F.sans, fontSize: 12.5, lineHeight: 19, color: K.text2 }}>{c.body}</Text>
         )}
         {!hidden && !!c.place_name && (
-          <View style={{ alignSelf: "flex-start", maxWidth: "100%", borderRadius: 10, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 6, paddingRight: 10 }}>
+          <Pressable
+            onPress={() => c.record_id != null && router.push({ pathname: "/community/board/record/[id]", params: { id: String(c.record_id) } })}
+            accessibilityLabel={`${c.place_name} 기록 자세히 보기`}
+            style={{ alignSelf: "flex-start", maxWidth: "100%", borderRadius: 10, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 6, paddingRight: 10 }}
+          >
             <RecordMini size={32} name={c.place_name} photo={photo} verifiedAt={c.verified ? c.verified_at : null} />
-          </View>
+          </Pressable>
         )}
         {!!c.hidden_at && !hidden && <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: C.brick }}>숨긴 댓글 · 운영자에게만 보입니다</Text>}
         {onReply && !hidden && (

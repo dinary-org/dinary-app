@@ -3,7 +3,7 @@ import { refreshAll } from "@/data/invalidate";
 import { DEFAULT_CHARACTER, isCharacterId, type CharacterId } from "@/lib/characters";
 import { removePhotoObjects } from "@/lib/photos";
 import { supabase } from "@/lib/supabase";
-import { coverPhoto, matchWish, type Kind, type Wish } from "@/lib/types";
+import { coverPhoto, matchWish, type Kind, type Restaurant, type Wish } from "@/lib/types";
 
 /**
  * 커뮤니티 데이터 — supabase/migrations/20261015000100_community.sql 의 표 · 뷰 · 함수를 읽습니다.
@@ -466,6 +466,23 @@ export const useBoardPost = (id: number, enabled = true) =>
     queryFn: async () => {
       const { data } = await supabase.from("board_feed").select("*").eq("id", id).maybeSingle();
       return (data as BoardPost | null) ?? null;
+    },
+  });
+
+/** 게시판에 붙인 기록 상세(board_record_detail) — 내 기록 상세에 보이는 칸 그대로, 메모(review)만 빠집니다. */
+export type BoardRecord = Pick<
+  Restaurant,
+  | "id" | "kind" | "name" | "category" | "region" | "address" | "rating" | "menu" | "menus" | "price_level" | "price_range"
+  | "visited_at" | "keywords" | "photo_urls" | "cover_index" | "photo_url" | "verified" | "verified_at"
+>;
+
+export const useBoardRecord = (recordId: number) =>
+  useQuery({
+    queryKey: ["community", "board", "record", recordId],
+    enabled: Number.isFinite(recordId),
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("board_record_detail", { p_record_id: recordId });
+      return soft("board_record_detail", error, (data as BoardRecord | null) ?? null);
     },
   });
 

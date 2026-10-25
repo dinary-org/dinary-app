@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { showDialog } from "@/components/Dialog";
@@ -91,9 +92,10 @@ const stopPhoto = (s: CourseStop) => coverPhoto({ photo_urls: s.photo_urls ?? []
 
 /**
  * 코스 — (요약 자리) · 동선 지도 · 번호 원 세로 줄 + 메모.
- * 네이버 지도에 번호 핀 + 가게 이름. 상세(onMapTouch 가 있으면)는 끌고 확대할 수 있고, 목록 카드는 만질 수 없게(누르면 글 열기).
+ * 네이버 지도에 번호 핀 + 가게 이름. 상세(onMapTouch 가 있으면)는 끌고 확대할 수 있고 가게 줄을 누르면 기록 상세, 목록 카드는 만질 수 없게(누르면 글 열기).
  */
 export function CourseBlock({ stops, onMapTouch }: { stops: CourseStop[]; onMapTouch?: (touching: boolean) => void }) {
+  const router = useRouter();
   return (
     <View style={{ gap: 10 }}>
       {/* TODO(코스 요약): 시안의 「도보 12분 · 저녁 · 2인 약 6만 원」 자리 — 이번에는 비워 둡니다. */}
@@ -107,13 +109,19 @@ export function CourseBlock({ stops, onMapTouch }: { stops: CourseStop[]; onMapT
               </View>
               {i < stops.length - 1 && <View style={{ flex: 1, width: 1.5, backgroundColor: K.brickLine, marginVertical: 2 }} />}
             </View>
-            <View style={{ flex: 1, minWidth: 0, paddingBottom: i < stops.length - 1 ? 12 : 0, gap: 2 }}>
+            <Pressable
+              disabled={!onMapTouch}
+              onPress={() => router.push({ pathname: "/community/board/record/[id]", params: { id: String(s.record_id) } })}
+              accessibilityLabel={`${s.name} 기록 자세히 보기`}
+              style={{ flex: 1, minWidth: 0, paddingBottom: i < stops.length - 1 ? 12 : 0, gap: 2 }}
+            >
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
                 <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.serif, fontSize: 14, color: C.ink }}>{s.name}</Text>
                 <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>{s.category}</Text>
+                {!!onMapTouch && <Text style={{ marginLeft: "auto", fontFamily: F.sans, fontSize: 15, color: C.faint }}>›</Text>}
               </View>
               {!!s.memo && <Text style={{ fontFamily: F.sans, fontSize: 12, lineHeight: 18, color: K.text2 }}>{s.memo}</Text>}
-            </View>
+            </Pressable>
           </View>
         ))}
       </View>

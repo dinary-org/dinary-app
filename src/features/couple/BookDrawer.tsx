@@ -11,13 +11,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { Character } from "@/components/Character";
 import { Eyebrow } from "@/components/ui";
-import { closeBook, setActiveBook, updateStartedOn, useActiveBook, type Book } from "@/data/books";
+import { closeBook, setActiveBook, updateStartedOn, useActiveBook, useCoupleRequests, type Book } from "@/data/books";
 import { useAccount } from "@/data/profile";
 import { useBookRows } from "@/data/queries";
 import { dayCount, todayIso } from "@/lib/anniversary";
 import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 import { Pair } from "./Avatars";
+import { acceptCoupleRequest, declineCoupleRequest } from "./requests";
 import { SinceDays } from "./Since";
 import { SignedImage } from "@/lib/signedPhoto";
 
@@ -83,6 +84,7 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
   const coupleCount = useCounts(couple);
   const [editDate, setEditDate] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { data: requests = [] } = useCoupleRequests();
 
   const open = couple && !couple.closedAt;
   const partner = couple?.members.find((m) => m.userId !== me?.userId) ?? null;
@@ -195,6 +197,23 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
                   couple.closedAt ? "끊긴 기록장" : undefined
                 )}
 
+              {/* 받은 연인 신청 — 아직 짝이 없을 때만(혼자 기다리던 기록장은 수락하면 닫힙니다). */}
+              {!(open && partner) && requests.map((r) => (
+                <View key={r.code} style={{ borderRadius: 20, borderWidth: 1, borderColor: "rgba(180,85,45,.35)", backgroundColor: C.brickSoft, padding: 16 }}>
+                  <Text style={{ fontFamily: F.serif, fontSize: 15, lineHeight: 22, color: C.ink }}>
+                    {r.inviter.nickname?.trim() || "상대"}님이 연인 기록을 함께 쓰자고 해요
+                  </Text>
+                  <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
+                    <Pressable onPress={() => declineCoupleRequest(qc, r)} style={{ flex: 1, minHeight: 40, borderRadius: 14, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>거절</Text>
+                    </Pressable>
+                    <Pressable onPress={() => acceptCoupleRequest(qc, r, onClose)} style={{ flex: 2, minHeight: 40, borderRadius: 14, backgroundColor: C.ink, alignItems: "center", justifyContent: "center" }}>
+                      <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.card }}>수락</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+
               {/* 열린 연인 기록장이 없으면 만들기 — 끊긴 기록장이 있어도 새로 만들 수 있습니다(§4). */}
               {!open && (
                 <View style={{ borderRadius: 20, borderWidth: 1, borderStyle: "dashed", borderColor: "#cdc6b8", padding: 16 }}>
@@ -215,7 +234,7 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
                 <View style={{ marginTop: 4, borderTopWidth: 1, borderTopColor: C.lineSoft }}>
                   {waiting && (
                     <Pressable onPress={() => go("/couple/new", { book: couple.id })} style={rowStyle}>
-                      <Text style={rowLabel}>초대 코드 다시 보기</Text>
+                      <Text style={rowLabel}>연인 신청 · 초대 코드</Text>
                       <Text style={{ fontSize: 14, color: C.faint }}>›</Text>
                     </Pressable>
                   )}

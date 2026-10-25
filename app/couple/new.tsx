@@ -3,14 +3,17 @@ import { requireOptionalNativeModule } from "expo";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, ScrollView, Share, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, Share, TextInput, View } from "react-native";
 import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BackButton, Button, Eyebrow } from "@/components/ui";
+import { BackButton, Button, Eyebrow, fieldStyle } from "@/components/ui";
 import {
-  createCoupleBook, formatCode, latestInvite, renewInvite, setActiveBook, useActiveBook, useBooks, type Invite,
+  cancelCoupleRequest, createCoupleBook, formatCode, latestInvite, renewInvite, requestCouple, setActiveBook, useActiveBook, useBooks,
+  useSentRequest, type Invite,
 } from "@/data/books";
+import { searchPeople, type PublicProfile } from "@/features/community/api";
+import { Avatar } from "@/features/community/ui";
 import { dayCount, dottedWithDay, hundredDay, nextMilestone, todayIso, yearAnniversary } from "@/lib/anniversary";
 import { C, F } from "@/theme";
 
@@ -35,8 +38,9 @@ const hoursLeft = (iso: string) => Math.max(0, Math.ceil((new Date(iso).getTime(
 /**
  * 연인 기록 만들기 2단계(HANDOFF-couple §3-3, 시안 1c·1d).
  *  1/2 사귄 날 — 연·월·일 휠과 기념일 미리보기
- *  2/2 초대 코드 — 크게 보여주고 메시지로 보내기·복사, 상대가 수락할 때까지 기다립니다(24시간).
- * params.book 이 있으면(서랍의 「초대 코드 다시 보기」) 바로 2단계.
+ *  2/2 함께 쓸 사람 — 닉네임으로 찾아 연인 신청(7일), 또는 초대 코드를 메시지로 보내기·복사(24시간).
+ *      상대가 수락할 때까지 기다립니다.
+ * params.book 이 있으면(서랍의 「연인 신청 · 초대 코드」) 바로 2단계.
  */
 export default function CoupleNew() {
   const { book: bookParam } = useLocalSearchParams<{ book?: string }>();
@@ -51,6 +55,10 @@ export default function CoupleNew() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [q, setQ] = useState("");
+  const [found, setFound] = useState<PublicProfile[]>([]);
+  const [sending, setSending] = useState<string | null>(null);
+  const [reqError, setReqError] = useState("");
 
   const startedOn = isoOf(date);
   const today = todayIso();
@@ -82,6 +90,39 @@ export default function CoupleNew() {
     refetchInterval: 10000,
     queryFn: async () => { await qc.invalidateQueries({ queryKey: ["books"] }); return Date.now(); },
   });
+  const { data: sent } = useSentRequest(step === 2 ? bookId : null);
+
+  useEffect(() => {
+    const t = setTimeout(() => { searchPeople(q).then(setFound); }, 250);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  async function sendRequest(p: PublicProfile) {
+    if (!bookId || sending) return;
+    setSending(p.id);
+    setReqError("");
+    try {
+      await requestCouple(qc, bookId, p.id);
+      setQ("");
+    } catch (e) {
+      setReqError(e instanceof Error ? e.message : "신청을 보내지 못했어요");
+    } finally {
+      setSending(null);
+    }
+  }
+
+  async function cancelRequest() {
+    if (!sent || sending) return;
+    setSending(sent.to.id);
+    try {
+      await cancelCoupleRequest(qc, sent.code);
+    } catch (e) {
+      setReqError(e instanceof Error ? e.message : "신청을 취소하지 못했어요");
+    } finally {
+      setSending(null);
+    }
+  }
+
   const joined = !!bookId && (books?.all.find((b) => b.id === bookId)?.members.length ?? 0) >= 2;
   useEffect(() => {
     if (!joined || !bookId) return;
@@ -134,7 +175,7 @@ export default function CoupleNew() {
         <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.faint, paddingRight: 10 }}>{step} / 2</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 6, paddingBottom: insets.bottom + 40 }}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 6, paddingBottom: insets.bottom + 40 }}>
         <Eyebrow wide>COUPLE BOOK</Eyebrow>
 
         {step === 1 ? (
@@ -182,14 +223,62 @@ export default function CoupleNew() {
             </View>
 
             {!!error && <Text style={{ marginTop: 14, fontFamily: F.sans, fontSize: 12, color: "#a8412a" }}>{error}</Text>}
-            <Button style={{ marginTop: 22 }} label={busy ? "만드는 중…" : "다음 · 초대 코드 만들기"} disabled={busy} onPress={create} />
+            <Button style={{ marginTop: 22 }} label={busy ? "만드는 중…" : "다음"} disabled={busy} onPress={create} />
           </>
         ) : (
           <>
-            <Text style={{ marginTop: 8, fontFamily: F.serif, fontSize: 26, color: C.ink }}>상대에게 코드를 보내 주세요</Text>
+            <Text style={{ marginTop: 8, fontFamily: F.serif, fontSize: 26, color: C.ink }}>함께 쓸 사람을 찾아 주세요</Text>
+            <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: C.faint }}>닉네임으로 찾아 신청하면 상대는 알림에서 수락만 하면 돼요.</Text>
+
+            {sent ? (
+              <View style={{ marginTop: 18, borderRadius: 18, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <Avatar name={sent.to.nickname} url={null} size={38} seed={sent.to.id} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text numberOfLines={1} style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{sent.to.nickname}님에게 신청했어요</Text>
+                  <Text style={{ marginTop: 3, fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{Math.ceil(hoursLeft(sent.expires_at) / 24)}일 안에 수락하면 시작돼요</Text>
+                </View>
+                <Pressable onPress={cancelRequest} disabled={!!sending} hitSlop={8} style={{ opacity: sending ? 0.5 : 1 }}>
+                  <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>취소</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <>
+                <TextInput
+                  value={q}
+                  onChangeText={setQ}
+                  placeholder="닉네임"
+                  placeholderTextColor="#c4bcae"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={[fieldStyle, { marginTop: 18 }]}
+                />
+                {!!q.trim() && found.length === 0 && <Text style={{ paddingVertical: 12, fontFamily: F.sans, fontSize: 12, color: C.faint }}>그 닉네임을 찾지 못했어요</Text>}
+                {found.length > 0 && (
+                  <View style={{ marginTop: 8, borderRadius: 18, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card }}>
+                    {found.map((p, i) => (
+                      <View key={p.id} style={{ minHeight: 56, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 12, borderTopWidth: i ? 1 : 0, borderTopColor: C.lineSoft }}>
+                        <Avatar name={p.nickname} url={p.avatarUrl} size={34} seed={p.id} />
+                        <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{p.nickname}</Text>
+                        <Pressable
+                          onPress={() => sendRequest(p)}
+                          disabled={!!sending}
+                          style={{ minHeight: 30, borderRadius: 15, paddingHorizontal: 12, justifyContent: "center", backgroundColor: C.ink, opacity: sending === p.id ? 0.5 : 1 }}
+                        >
+                          <Text style={{ fontFamily: F.sansMd, fontSize: 11.5, color: C.card }}>{sending === p.id ? "보내는 중…" : "연인 신청"}</Text>
+                        </Pressable>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+
+            {!!reqError && <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12, color: "#a8412a" }}>{reqError}</Text>}
+
+            <Text style={{ marginTop: 28, fontFamily: F.mono, fontSize: 10, letterSpacing: 1.6, color: C.faint }}>또는 초대 코드</Text>
             <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: C.faint }}>상대가 지도 ≡ 메뉴의 「초대 코드를 받았어요」에 넣으면 함께 쓰기 시작해요.</Text>
 
-            <View style={{ marginTop: 22, borderRadius: 22, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingVertical: 26, alignItems: "center" }}>
+            <View style={{ marginTop: 14, borderRadius: 22, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingVertical: 26, alignItems: "center" }}>
               {invite ? (
                 <>
                   <Text selectable style={{ fontFamily: F.mono, fontSize: 34, letterSpacing: 3, color: expired ? C.faint : C.ink }}>{formatCode(invite.code)}</Text>
@@ -219,7 +308,7 @@ export default function CoupleNew() {
             )}
             {invite && expired && <Button style={{ marginTop: 16 }} label={busy ? "만드는 중…" : "새 코드 만들기"} disabled={busy} onPress={renew} />}
 
-            {invite && !expired && (
+            {((invite && !expired) || sent) && (
               <View style={{ marginTop: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <ActivityIndicator size="small" color={C.faint} />
                 <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>상대의 수락을 기다리는 중</Text>

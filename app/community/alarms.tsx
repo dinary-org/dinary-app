@@ -10,11 +10,12 @@ import { AddPersonIcon } from "@/components/icons";
 import { useAccount } from "@/data/profile";
 import { useAlarms, useAlarmsSeen, type Alarm } from "@/features/community/alarms";
 import { acceptFriend, removeFriend } from "@/features/community/api";
+import { acceptCoupleRequest, declineCoupleRequest } from "@/features/couple/requests";
 import { Avatar, CommunityHeader, K, RoundButton, timeAgo, TitleBlock } from "@/features/community/ui";
 import { C, F, TAB_BAR_H } from "@/theme";
 
 /**
- * 알림 — 친구 탭 종에서 엽니다. 받은 친구 신청(받기 · 거절) · 내 소식에 달린 댓글 · 공감을 최신순으로.
+ * 알림 — 친구 탭 종에서 엽니다. 받은 친구 신청(받기 · 거절) · 연인 신청(수락 · 거절) · 내 소식에 달린 댓글 · 공감을 최신순으로.
  * 댓글 · 공감을 누르면 친구 소식의 그 카드로(댓글이면 댓글 창까지) 갑니다.
  */
 export default function AlarmsScreen() {
@@ -36,7 +37,8 @@ export default function AlarmsScreen() {
     setMarked(true);
     markSeen();
   }, [ready, marked, seenAt, markSeen]);
-  const isNew = (a: Alarm) => a.kind === "request" || (marked && !!since.current && a.at > since.current);
+  const pending = (a: Alarm) => a.kind === "request" || a.kind === "couple";
+  const isNew = (a: Alarm) => pending(a) || (marked && !!since.current && a.at > since.current);
 
   async function act(id: string, f: () => Promise<void>) {
     setBusy(id);
@@ -45,7 +47,7 @@ export default function AlarmsScreen() {
   }
 
   function open(a: Alarm) {
-    if (a.kind === "request" || !me) return;
+    if (pending(a) || !me) return;
     Haptics.selectionAsync();
     router.navigate({
       pathname: "/community/friends",
@@ -63,6 +65,7 @@ export default function AlarmsScreen() {
     const name = <Text style={{ fontFamily: F.sansMd, color: C.ink }}>{a.who.nickname}</Text>;
     switch (a.kind) {
       case "request": return <>{name}님이 친구 신청을 보냈어요</>;
+      case "couple": return <>{name}님이 연인 기록을 함께 쓰자고 해요</>;
       case "comment": return <>{name}님이 <Text style={{ color: C.ink }}>{a.place}</Text> 소식에 댓글을 남겼어요</>;
       case "cheer": return <>{name}님이 <Text style={{ color: C.ink }}>{a.place}</Text> 소식에 공감했어요</>;
     }
@@ -71,7 +74,7 @@ export default function AlarmsScreen() {
   const row = ({ item: a }: { item: Alarm }) => (
     <Pressable
       onPress={() => open(a)}
-      disabled={a.kind === "request"}
+      disabled={pending(a)}
       style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.lineSoft }}
     >
       <Avatar name={a.who.nickname} url={a.who.avatarUrl} size={38} seed={a.who.id} />
@@ -87,6 +90,12 @@ export default function AlarmsScreen() {
         <View style={{ flexDirection: "row", gap: 6 }}>
           {btn("거절", () => act(a.key, () => removeFriend(qc, a.who.id)), false, a.key)}
           {btn("받기", () => act(a.key, () => acceptFriend(qc, a.who.id)), true, a.key)}
+        </View>
+      )}
+      {a.kind === "couple" && (
+        <View style={{ flexDirection: "row", gap: 6 }}>
+          {btn("거절", () => declineCoupleRequest(qc, a.request), false, a.key)}
+          {btn("수락", () => acceptCoupleRequest(qc, a.request), true, a.key)}
         </View>
       )}
     </Pressable>
@@ -107,7 +116,7 @@ export default function AlarmsScreen() {
         ListHeaderComponent={<View style={{ marginHorizontal: -20, marginBottom: 6 }}><TitleBlock eyebrow="FRIENDS" title="알림" /></View>}
         ListEmptyComponent={isPending ? null : (
           <Text style={{ paddingVertical: 40, textAlign: "center", fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>
-            아직 알림이 없습니다.{"\n"}친구 신청 · 내 소식에 달린 댓글 · 공감이 여기 모입니다.
+            아직 알림이 없습니다.{"\n"}친구 · 연인 신청 · 내 소식에 달린 댓글 · 공감이 여기 모입니다.
           </Text>
         )}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: TAB_BAR_H + insets.bottom + 32 }}

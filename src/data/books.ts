@@ -174,6 +174,9 @@ const ERRORS: Record<string, string> = {
   pending_record: "보관함 기록은 먼저 저장해 주세요",
   not_couple_record: "연인 기록에서만 쓸 수 있어요",
   not_found: "기록을 찾지 못했어요",
+  request_self: "나에게는 보낼 수 없어요",
+  request_blocked: "이 사람에게는 신청할 수 없어요",
+  partner_in_couple: "상대가 이미 다른 연인 기록장을 쓰고 있어요",
 };
 
 const friendly = (message: string) => {
@@ -204,6 +207,7 @@ export async function latestInvite(bookId: string): Promise<Invite | null> {
     .select("book_id, code, expires_at")
     .eq("book_id", bookId)
     .is("used_by", null)
+    .is("to_user", null)
     .order("created_at", { ascending: false })
     .limit(1);
   return (data?.[0] as Invite | undefined) ?? null;
@@ -225,9 +229,79 @@ export async function peekInvite(code: string): Promise<InvitePeek> {
 export async function joinBook(qc: QueryClient, code: string) {
   const { data, error } = await supabase.rpc("join_book", { p_code: cleanCode(code) });
   if (error) throw friendly(error.message);
-  await qc.invalidateQueries({ queryKey: ["books"] });
+  await Promise.all([
+    qc.invalidateQueries({ queryKey: ["books"] }),
+    qc.invalidateQueries({ queryKey: ["couple-requests"] }),
+    qc.invalidateQueries({ queryKey: ["community", "alarms"] }),
+  ]);
   setActiveBook(data as string);
 }
+
+/* ───────────── 연인 신청(닉네임으로 찾아 보내기) ───────────── */
+
+/** 혼자 기다리는 내 연인 기록장에서 그 사람에게 신청 — 전에 보낸 신청은 닫힙니다. 7일 동안 유효. */
+export async function requestCouple(qc: QueryClient, bookId: string, toId: string): Promise<Invite> {
+  const { data, error } = await supabase.rpc("request_couple", { p_book: bookId, p_to: toId });
+  if (error) throw friendly(error.message);
+  await qc.invalidateQueries({ queryKey: ["couple-sent", bookId] });
+  return data as Invite;
+}
+
+/** 신청 지우기 — 보낸 쪽은 취소, 받은 쪽은 거절. */
+export async function cancelCoupleRequest(qc: QueryClient, code: string) {
+  const { error } = await supabase.rpc("cancel_couple_request", { p_code: code });
+  if (error) throw friendly(error.message);
+  await Promise.all([
+    qc.invalidateQueries({ queryKey: ["couple-sent"] }),
+    qc.invalidateQueries({ queryKey: ["couple-requests"] }),
+    qc.invalidateQueries({ queryKey: ["community", "alarms"] }),
+  ]);
+}
+
+export type CoupleRequest = {
+  code: string;
+  book_id: string;
+  created_at: string;
+  started_on: string | null;
+  inviter: { id: string; nickname: string | null; avatar_url: string | null; character_id: string | null; title_label_id: string | null };
+};
+
+/** 나에게 온 연인 신청 — 지도 ≡ 서랍과 친구 알림에 뜹니다. */
+export async function fetchCoupleRequests(): Promise<CoupleRequest[]> {
+  const { data, error } = await supabase.rpc("my_couple_requests");
+  // 마이그레이션 전이면 함수가 없습니다 — 빈 목록으로.
+  if (error) return [];
+  return (data ?? []) as CoupleRequest[];
+}
+
+export const useCoupleRequests = () => {
+  const session = useSession();
+  return useQuery({ queryKey: ["couple-requests", session?.user.id ?? null], enabled: !!session?.user.id, queryFn: fetchCoupleRequests });
+};
+
+export type SentRequest = { code: string; expires_at: string; to: { id: string; nickname: string } };
+
+/** 이 기록장에서 보내 둔 신청(아직 유효한 것) — 만든 사람만 읽힙니다. */
+export const useSentRequest = (bookId: string | null) =>
+  useQuery({
+    queryKey: ["couple-sent", bookId],
+    enabled: !!bookId,
+    queryFn: async (): Promise<SentRequest | null> => {
+      const { data } = await supabase
+        .from("book_invites")
+        .select("code, expires_at, to_user")
+        .eq("book_id", bookId!)
+        .is("used_by", null)
+        .not("to_user", "is", null)
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const row = data?.[0] as { code: string; expires_at: string; to_user: string } | undefined;
+      if (!row) return null;
+      const { data: p } = await supabase.from("public_profiles").select("nickname").eq("id", row.to_user).maybeSingle();
+      return { code: row.code, expires_at: row.expires_at, to: { id: row.to_user, nickname: (p?.nickname as string | undefined)?.trim() || "상대" } };
+    },
+  });
 
 export async function closeBook(qc: QueryClient, bookId: string) {
   const { error } = await supabase.rpc("close_book", { p_book: bookId });

@@ -2,29 +2,14 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import { Text } from "@/components/Text";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from "react-native-reanimated";
-import Svg, { Circle, Polygon } from "react-native-svg";
-import { BURST_POINTS } from "@/components/icons";
+import { VerifiedMark } from "@/components/icons";
 import { STAMPS_PER_BOARD } from "@/lib/labels";
 import { C, F } from "@/theme";
 
-/**
- * 도장 한 개 — 인증마크와 같은 24각 톱니 seal 안에 흰 「D」(지시서 4 §2). 숫자는 넣지 않고, 기울이지도 않습니다.
- * ring 이면 안쪽에 흰 점선 원(리캡 표지의 큰 도장) — 그만큼 D 를 조금 작게.
- */
+/** 도장 한 개 — 인증 마크(VerifiedMark)와 같은 그림. ring 이면 안쪽에 흰 점선 원(리캡 표지의 큰 도장). */
 export function Stamp({ size = 44, ring }: { size?: number; ring?: boolean }) {
-  return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-      <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: "absolute" }}>
-        <Polygon points={BURST_POINTS} fill={C.brick} />
-        {ring && <Circle cx={50} cy={50} r={36} fill="none" stroke="#fff" strokeOpacity={0.7} strokeWidth={1.5} strokeDasharray="4 3.5" />}
-      </Svg>
-      <Text style={{ fontFamily: F.serif, fontSize: size * (ring ? 0.27 : 0.31), lineHeight: size * (ring ? 0.33 : 0.38), color: "#fff", ...WHITE_BOLD }}>D</Text>
-    </View>
-  );
+  return <VerifiedMark size={size} ring={ring} />;
 }
-
-/** 고운돋움은 굵기가 하나라 흰 그림자를 둘러 700 처럼 보이게. */
-const WHITE_BOLD = { textShadowColor: "#fff", textShadowRadius: 1.4, textShadowOffset: { width: 0, height: 0 } };
 
 /** 빈 칸 — 점선 원. label 이 있으면 가운데 Mono 다음 번호. */
 export function EmptySlot({ size = 44, label }: { size?: number; label?: number }) {

@@ -1,37 +1,29 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { FlatList, Pressable, TextInput, View } from "react-native";
 import { Text } from "@/components/Text";
 import { SearchLineIcon } from "@/components/icons";
-import { usePersonalRows } from "@/data/queries";
 import { setState, useAppState, type BoardTab } from "@/data/store";
 import {
-  useBoardFeed, useCourseStops, useCurrentTheme, useIsAdmin, useLastTheme, type PostType,
+  useBoardFeed, useCourseStops, useCurrentTheme, useLastTheme, type PostType,
 } from "@/features/community/api";
 import { NoticeRow, PostCard } from "@/features/community/BoardPost";
 import { CommunityHeader, FilterChips, K, RoundButton, TitleBlock } from "@/features/community/ui";
 import { C, F } from "@/theme";
 
-const MIN_VERIFIED = 5;
-
 /**
  * 게시판(HANDOFF-board-v2 01~05) — DINARY 사용자 모두가 봅니다. 자유 · 주제 · 맛집 · 카페 · 코스 다섯 칸,
- * 제목 · 본문은 자유롭게 쓰고 내 기록(인증 안 된 것도)을 붙일 수 있습니다. 올리기는 인증 기록 5건부터, 댓글은 누구나.
+ * 제목 · 본문은 자유롭게 쓰고 내 기록(인증 안 된 것도)을 붙일 수 있습니다. 글 · 댓글 모두 로그인한 누구나.
  */
 export default function BoardHome() {
   const router = useRouter();
   const { author } = useLocalSearchParams<{ author?: string }>();
-  const { data: rows = [] } = usePersonalRows();
-  const { data: isAdmin } = useIsAdmin();
   const { boardTab: tab } = useAppState();
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [tag, setTag] = useState<string | null>(null);
   const [pastTheme, setPastTheme] = useState(false);
   const [searching, setSearching] = useState(false);
   const [q, setQ] = useState("");
-
-  // my_verified_count 와 같은 기준 — 보관함 · 연인 복사본 제외.
-  const verified = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null), [rows]);
 
   const { data: theme } = useCurrentTheme();
   const { data: lastTheme } = useLastTheme();
@@ -50,7 +42,6 @@ export default function BoardHome() {
   const shown = needle
     ? posts.filter((p) => [p.title, p.body, p.place_name, ...p.tags, ...(p.course_names ?? [])].some((v) => (v ?? "").toLowerCase().includes(needle)))
     : posts;
-  const canPost = verified.length >= MIN_VERIFIED || !!isAdmin;
 
   function pickTab(t: BoardTab) {
     setState({ boardTab: t });
@@ -116,8 +107,7 @@ export default function BoardHome() {
                 <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: "#a8a196" }}>답 {theme.count} · {theme.daysLeft === 0 ? "오늘까지" : `${theme.daysLeft}일 남음`}</Text>
                 <Pressable
                   onPress={() => router.push({ pathname: "/community/board/new", params: { type: "theme" } })}
-                  disabled={!canPost}
-                  style={{ minHeight: 34, borderRadius: 17, backgroundColor: C.brick, paddingHorizontal: 16, justifyContent: "center", opacity: canPost ? 1 : 0.4 }}
+                  style={{ minHeight: 34, borderRadius: 17, backgroundColor: C.brick, paddingHorizontal: 16, justifyContent: "center" }}
                 >
                   <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: C.card }}>답하기</Text>
                 </Pressable>
@@ -170,19 +160,13 @@ export default function BoardHome() {
         }
       />
 
-      {/* 글쓰기 — 모든 칸에서. 인증 기록 5건 전에는 버튼 대신 안내 띠(댓글은 누구나 쓸 수 있습니다). */}
-      {canPost ? (
-        <Pressable
+      {/* 글쓰기 — 모든 칸에서, 누구나. */}
+      <Pressable
           onPress={() => router.push({ pathname: "/community/board/new", params: { type: tab === "all" ? "free" : tab } })}
           style={{ position: "absolute", right: 18, bottom: 22, height: 46, borderRadius: 23, backgroundColor: C.ink, paddingHorizontal: 18, justifyContent: "center", shadowColor: C.ink, shadowOpacity: 0.25, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 8 }}
         >
           <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.card }}>+ 글쓰기</Text>
-        </Pressable>
-      ) : (
-        <View style={{ position: "absolute", left: 18, right: 18, bottom: 22, minHeight: 46, borderRadius: 23, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 16, alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.muted }}>인증 기록 {MIN_VERIFIED}건부터 글을 쓸 수 있습니다 · 지금 {verified.length}건</Text>
-        </View>
-      )}
+      </Pressable>
     </View>
   );
 }

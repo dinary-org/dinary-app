@@ -1,13 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { CheckIcon, DocIcon, PhotoIcon, RankBarsIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePersonalRows } from "@/data/queries";
 import {
   createPost, hasContact, updatePost, useBoardPost, useCurrentTheme, useIsAdmin, usePopularTags, usePostsToday, type PostType,
 } from "@/features/community/api";
@@ -19,7 +18,6 @@ import { pickAlbumUris, removePhotoObjects, uploadAlbumPhoto } from "@/lib/photo
 import { coverPhoto, type Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
-const MIN_VERIFIED = 5;
 const DAILY = 3;
 const TITLE_MAX = 60;
 const BODY_MAX = 2000;
@@ -47,7 +45,6 @@ export default function BoardCompose() {
   const params = useLocalSearchParams<{ type?: string; edit?: string }>();
   const editId = params.edit ? Number(params.edit) : null;
   const { data: editing } = useBoardPost(editId ?? -1, editId != null);
-  const { data: rows = [] } = usePersonalRows();
   const { data: theme } = useCurrentTheme();
   const { data: today = 0 } = usePostsToday();
   const { data: isAdmin } = useIsAdmin();
@@ -90,10 +87,8 @@ export default function BoardCompose() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
 
-  const verifiedN = useMemo(() => rows.filter((r) => r.verified && !r.pending && r.source_record_id == null && r.copied_at == null).length, [rows]);
   const blocked = editId || isAdmin
     ? null
-    : verifiedN < MIN_VERIFIED ? `인증 기록 ${MIN_VERIFIED}건부터 글을 쓸 수 있습니다 · 지금 ${verifiedN}건`
     : today >= DAILY ? "오늘은 3개를 다 올렸습니다" : null;
 
   const kindFor = type === "food" ? "restaurant" : type === "cafe" ? "cafe" : null;

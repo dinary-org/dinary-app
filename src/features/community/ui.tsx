@@ -23,14 +23,18 @@ export const K = {
   stripe: "#ece7dc",
 } as const;
 
-/** 커뮤니티를 통째로 닫고 원래 탭으로 — 어느 탭 · 어느 깊이에서든 루트 스택에서 한 칸 내립니다. */
+/**
+ * 커뮤니티를 통째로 닫고 원래 탭으로 — 어느 탭 · 어느 깊이에서든 「community」가 든 루트 스택에서 한 칸 내립니다.
+ * 맨 위까지 올라가면 안 됩니다: expo-router 가 앱 루트 Stack 위에 route 하나짜리 내부 스택(__root)을 두어서
+ * 거기선 canGoBack 이 늘 false 라 replace("/") 로 빠지고, (tabs) 가 하나 더 새로 떠 빈 화면이 됩니다.
+ */
 export function useExitCommunity() {
   const nav = useNavigation();
   const router = useRouter();
   return () => {
-    let root = nav;
-    while (root.getParent()) root = root.getParent()!;
-    if (root.canGoBack()) root.goBack();
+    let stack: typeof nav | undefined = nav;
+    while (stack && !stack.getState()?.routes.some((r) => r.name === "community")) stack = stack.getParent<typeof nav | undefined>();
+    if (stack?.canGoBack()) stack.goBack();
     else router.replace("/");
   };
 }

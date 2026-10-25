@@ -21,7 +21,7 @@ export default function Welcome() {
   const [nickname, setNickname] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fromOAuth, setFromOAuth] = useState(false);
-  const [provider, setProvider] = useState("카카오");
+  const [provider, setProvider] = useState("");
   const [touched, setTouched] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -36,7 +36,7 @@ export default function Welcome() {
       setNickname(name.slice(0, MAX_LEN));
       setFromOAuth(Boolean(name));
       setAvatarUrl((meta.avatar_url as string) || (meta.picture as string) || null);
-      setProvider(user.app_metadata?.provider === "google" ? "구글" : "카카오");
+      setProvider(user.app_metadata?.provider === "google" ? "구글" : "애플");
     });
   }, []);
 

@@ -223,6 +223,13 @@ export function openDirections(p: { name: string; lat: number; lng: number }) {
   Linking.openURL(app).catch(() => Linking.openURL(`https://map.naver.com/p/search/${encodeURIComponent(p.name)}`).catch(() => {}));
 }
 
+/** 가게 보기 — 네이버 지도 앱에서 이름(+ 구)으로 찾고, 앱이 없으면 웹 검색. 영업시간은 여기서 확인합니다. */
+export function openNaverPlace(p: { name: string; address?: string | null }) {
+  const gu = p.address?.split(" ").find((w) => /[구군시]$/.test(w) && w.length > 1 && !/특별시|광역시/.test(w));
+  const q = encodeURIComponent(gu ? `${p.name} ${gu}` : p.name);
+  Linking.openURL(`nmap://search?query=${q}&appname=app.dinary`).catch(() => Linking.openURL(`https://map.naver.com/p/search/${q}`).catch(() => {}));
+}
+
 /** 이 가게가 후보인 열린 투어 — 촬영 완료 화면의 「평양냉면 투어 3/3 완주」(§10). */
 export const useToursAt = (placeKey: string | null) =>
   useQuery({

@@ -97,12 +97,12 @@ function Item({ name, category, wish, onMilestone }: { name: string; category: s
 }
 
 type MonthProps = {
-  year: number; month: number; width: number; height: number; todayKey: string; startedOn: string | null; showWishes: boolean;
+  year: number; month: number; width: number; height: number; todayKey: string; startedOn: string | null;
   byDate: Map<string, Restaurant[]>; byDateWish: Map<string, Wish[]>; onOpenDay: (key: string) => void;
 };
 
 /** 한 달 = 한 화면 — 주 줄이 화면 높이를 나눠 채웁니다. 칸을 나누지 않고 주마다 가는 줄만 긋습니다(애플 캘린더처럼). 오늘은 벽돌 동그라미, 기념일은 옅은 벽돌 동그라미 + 이름. */
-const MonthBlock = memo(function MonthBlock({ year, month, width, height, todayKey, startedOn, showWishes, byDate, byDateWish, onOpenDay }: MonthProps) {
+const MonthBlock = memo(function MonthBlock({ year, month, width, height, todayKey, startedOn, byDate, byDateWish, onOpenDay }: MonthProps) {
   const weeks = monthWeeks(year, month);
   const weekH = height / weeks.length;
   const maxItems = Math.max(1, Math.floor((weekH - DATE_H) / ITEM_H));
@@ -114,7 +114,7 @@ const MonthBlock = memo(function MonthBlock({ year, month, width, height, todayK
             if (!date) return <View key={di} style={{ flex: 1 }} />;
             const key = keyOf(date);
             const visits = byDate.get(key) ?? [];
-            const wishItems = showWishes ? (byDateWish.get(key) ?? []) : [];
+            const wishItems = byDateWish.get(key) ?? [];
             const isToday = key === todayKey;
             const milestone = startedOn ? milestoneOn(startedOn, key) : null;
             // 줄 높이 안에 들어가는 만큼만 — 넘치면 마지막 줄을 「+N」으로. 기념일 이름이 있으면 한 줄 덜.
@@ -158,7 +158,6 @@ export default function CalendarTab() {
   const { data: allRows = [] } = useRows();
   const { data: wishes = [] } = useWishes();
   const rows = useMemo(() => allRows.filter((r) => !r.pending), [allRows]);
-  const [showWishes, setShowWishes] = useState(true);
   const [cursorState, setCursorState] = useState<{ year: number; month: number } | null>(null);
   const { data: account } = useAccount();
   const recaps = useRecaps();
@@ -246,13 +245,6 @@ export default function CalendarTab() {
         </View>
         <View style={{ marginTop: 6, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Animated.Text style={[ANDROID_TEXT, { fontFamily: F.sans, fontSize: 12, color: C.faint }, flipStyle(flipMonth)]}>이 달 기록 {countThisMonth}건</Animated.Text>
-          <Pressable
-            onPress={() => setShowWishes((v) => !v)}
-            style={[s.toggle, showWishes && { borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: C.brickSoft }]}
-          >
-            {showWishes && <View style={{ width: 6, height: 6, borderRadius: 3, borderWidth: 1, borderColor: C.brick }} />}
-            <Text style={{ fontFamily: F.sans, fontSize: 11, color: showWishes ? C.brick : C.faint }}>{showWishes ? "예정 보임" : "예정 숨김"}</Text>
-          </Pressable>
         </View>
       </View>
 
@@ -282,7 +274,7 @@ export default function CalendarTab() {
             pagingEnabled
             keyExtractor={(m) => `${m.year}-${m.month}`}
             renderItem={({ item }) => (
-              <MonthBlock year={item.year} month={item.month} width={page.w} height={page.h} todayKey={todayKey} startedOn={startedOn} showWishes={showWishes} byDate={byDate} byDateWish={byDateWish} onOpenDay={openDay} />
+              <MonthBlock year={item.year} month={item.month} width={page.w} height={page.h} todayKey={todayKey} startedOn={startedOn} byDate={byDate} byDateWish={byDateWish} onOpenDay={openDay} />
             )}
             getItemLayout={(_, index) => ({ length: page.h, offset: page.h * index, index })}
             initialScrollIndex={monthIndex(cursor)}
@@ -339,7 +331,6 @@ const s = StyleSheet.create({
     position: "absolute", borderRadius: 16, backgroundColor: C.card, borderWidth: 1, borderColor: C.line,
     ...Platform.select({ ios: { shadowColor: C.ink, shadowOpacity: 0.16, shadowRadius: 16, shadowOffset: { width: 0, height: 12 } }, default: { elevation: 8 } }),
   },
-  toggle: { minHeight: 30, borderRadius: 15, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 6 },
   weekday: { flex: 1, textAlign: "center", fontFamily: F.mono, fontSize: 10, color: C.faint },
   dateDot: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 3, alignItems: "center", justifyContent: "center" },
 });

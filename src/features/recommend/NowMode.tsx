@@ -1,7 +1,7 @@
 import * as Haptics from "expo-haptics";
 import { useIsFocused, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, AppState, Linking, PanResponder, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Animated, AppState, PanResponder, Pressable, ScrollView, View } from "react-native";
 import { Text } from "@/components/Text";
 import { PaperMap } from "@/components/PaperMap";
 import { setState, type RecHere } from "@/data/store";
@@ -12,7 +12,7 @@ import type { Scored } from "@/lib/rec/score";
 import type { MealSlot } from "@/lib/rec/time";
 import type { RecFilter } from "@/lib/recommend";
 import { C, F, FAINT_BOLD } from "@/theme";
-import { openDirections } from "./api";
+import { openDirections, openNaverPlace } from "./api";
 import { logRec, rememberShown, type RecSession } from "./log";
 import { HereLegend, HereMarker, NumberMarker, REC } from "./ui";
 
@@ -264,7 +264,6 @@ function PickPage({ p, n, width, session }: { p: Scored; n: number; width: numbe
     setState({ recHeading: { placeKey: p.c.key, name: p.c.name, lat: p.c.lat, lng: p.c.lng, at: Date.now(), sessionId: session?.id } });
     openDirections(p.c);
   };
-  const kakaoUrl = p.c.placeUrl ?? (p.c.kakaoId ? `https://place.map.kakao.com/${p.c.kakaoId}` : null);
   const mine = placeKeyOf(p);
   const sub = [p.c.cat.recCat ?? p.c.cat.sub ?? "식당", formatDistance(p.c.distance)].join(" · ");
 
@@ -288,7 +287,7 @@ function PickPage({ p, n, width, session }: { p: Scored; n: number; width: numbe
       <Text numberOfLines={1} style={{ marginTop: 6, fontFamily: F.sans, fontSize: 12, color: C.muted }}>{sub}</Text>
 
       <View style={{ marginTop: 6, flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 14, rowGap: 4 }}>
-        {!!kakaoUrl && link("카카오맵에서 보기", () => { log("kakao_open"); Linking.openURL(kakaoUrl).catch(() => {}); })}
+        {link("네이버지도에서 보기", () => { log("kakao_open", { map: "naver" }); openNaverPlace(p.c); })}
         {!!mine && link("내 기록 보기", () => { log("detail_open", { target: "place" }); router.push({ pathname: "/place/[key]", params: { key: mine } }); })}
         {p.c.wish
           ? link("위시에 담김 ✓", () => router.push({ pathname: "/wish/[id]", params: { id: p.c.wish!.id } }), "brick")

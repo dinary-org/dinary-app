@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PaperMap } from "@/components/PaperMap";
 import { setState } from "@/data/store";
 import { openDirections, useRecCourses, useRecPoint } from "@/features/recommend/api";
-import { BackPill, HereMarker, KakaoLink, NumberMarker, REC, RouteLabelMarker } from "@/features/recommend/ui";
+import { BackPill, HereMarker, NaverLink, NumberMarker, REC, RouteLabelMarker } from "@/features/recommend/ui";
 import { todayIso } from "@/lib/anniversary";
 import { formatDistance } from "@/lib/distance";
 import { courseTitle, pctOf, recCategoryOf, todayLine } from "@/lib/recommend";
@@ -65,7 +65,7 @@ export default function CourseDetail() {
     router.navigate("/");
   };
 
-  const row = (n: number, name: string, category: string | null, today: string | null, rate: number | string | null, url: string | null) => (
+  const row = (n: number, name: string, category: string | null, today: string | null, rate: number | string | null) => (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: n === 1 ? 1 : 0, borderColor: C.lineSoft }}>
       <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: C.brick, alignItems: "center", justifyContent: "center" }}>
         <Text style={{ fontFamily: F.mono, fontSize: 11, color: "#ffffff" }}>{n}</Text>
@@ -76,7 +76,7 @@ export default function CourseDetail() {
           <Text style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>{`  ${recCategoryOf(category, name) ?? category ?? ""}`}</Text>
         </Text>
         {!!today && <Text numberOfLines={1} style={{ marginTop: 2, fontFamily: F.sans, fontSize: 11, color: C.muted }}>{today}</Text>}
-        {!!url && <KakaoLink url={url} />}
+        <NaverLink name={name} />
       </View>
       {rate != null && <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.brick }}>재방문 {pctOf(rate)}%</Text>}
     </View>
@@ -119,8 +119,8 @@ export default function CourseDetail() {
         </View>
 
         <View style={{ marginTop: 6 }}>
-          {row(1, c.a_name, c.a_category, todayLine(c.a_today_count, c.a_last_at), c.a_revisit_rate, c.a_place_url)}
-          {row(2, c.b_name, c.b_category, todayLine(c.b_today_count, c.b_last_at), c.b_revisit_rate, c.b_place_url)}
+          {row(1, c.a_name, c.a_category, todayLine(c.a_today_count, c.a_last_at), c.a_revisit_rate)}
+          {row(2, c.b_name, c.b_category, todayLine(c.b_today_count, c.b_last_at), c.b_revisit_rate)}
         </View>
 
         <Text style={{ marginTop: 18, fontFamily: F.serif, fontSize: 16, color: C.ink }}>이 코스를 고른 까닭</Text>

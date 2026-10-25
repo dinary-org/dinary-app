@@ -1,10 +1,11 @@
 import { NaverMapMarkerOverlay } from "@mj-studio/react-native-naver-map";
 import { memo } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Text } from "@/components/Text";
 import Svg, { Circle, Path } from "react-native-svg";
 import { useResnap } from "@/features/map/Markers";
 import { C, F } from "@/theme";
+import { openNaverPlace } from "./api";
 
 /**
  * 추천 탭 v2 의 작은 조각들 — 알약 뒤로가기 · 지도 번호 마커 · 내 위치 · 투어 도장.
@@ -147,16 +148,16 @@ export function SectionHead({ title, right }: { title: string; right?: string })
   );
 }
 
-/** 「카카오맵에서 보기」 — 영업시간은 여기서 확인합니다. 12 #8a8377, 밑줄 없음, 터치 44. place_url 이 없으면 그리지 않습니다. */
-export function KakaoLink({ url }: { url: string }) {
+/** 「네이버지도에서 보기」 — 영업시간은 여기서 확인합니다. 12 #8a8377, 밑줄 없음, 터치 44. */
+export function NaverLink({ name, address }: { name: string; address?: string | null }) {
   return (
     <Pressable
-      onPress={() => Linking.openURL(url).catch(() => {})}
+      onPress={() => openNaverPlace({ name, address })}
       accessibilityRole="link"
       hitSlop={{ top: 12, bottom: 12, left: 4, right: 12 }}
       style={{ alignSelf: "flex-start", minHeight: 20, justifyContent: "center", marginTop: 2 }}
     >
-      <Text style={{ fontFamily: F.sans, fontSize: 12, color: REC.label }}>카카오맵에서 보기</Text>
+      <Text style={{ fontFamily: F.sans, fontSize: 12, color: REC.label }}>네이버지도에서 보기</Text>
     </Pressable>
   );
 }

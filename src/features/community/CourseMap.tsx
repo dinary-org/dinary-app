@@ -1,4 +1,3 @@
-import { NaverMapPolylineOverlay } from "@mj-studio/react-native-naver-map";
 import { useMemo } from "react";
 import { View } from "react-native";
 import { PaperMap } from "@/components/PaperMap";
@@ -20,7 +19,7 @@ function fit(pts: { lat: number; lng: number }[]) {
 }
 
 /**
- * 코스 지도 — 네이버 지도 위에 번호 핀 + 가게 이름, 순서대로 점선. 가게가 모두 들어오게 맞춥니다.
+ * 코스 지도 — 네이버 지도 위에 번호 핀 + 가게 이름(잇는 선은 없음). 가게가 모두 들어오게 맞춥니다.
  * onTouch 로 바깥 세로 스크롤을 멈춰 지도 끌기 · 확대가 먹히게 합니다. 좌표 있는 가게가 없으면 그리지 않습니다.
  * interactive={false}(목록 카드)면 지도를 만지지 못하게 — 손가락은 카드로 넘어가 목록 스크롤 · 글 열기가 그대로 됩니다.
  */
@@ -47,9 +46,6 @@ export function CourseMap({ stops, height = 200, onTouch, interactive = true }: 
         isStopGesturesEnabled={interactive}
         isShowIndoorLevelPicker={false}
       >
-        {pts.length > 1 && (
-          <NaverMapPolylineOverlay coords={pts.map((p) => ({ latitude: p.lat, longitude: p.lng }))} width={2.5} color={C.brick} pattern={[8, 6]} />
-        )}
         {pts.map((p) => (
           <NumberMarker key={`${p.n}-${p.lat},${p.lng}`} lat={p.lat} lng={p.lng} n={p.n} name={p.name} active={false} label />
         ))}

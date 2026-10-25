@@ -29,7 +29,7 @@ type Ctx = {
 /** 자주 안 바뀌는 쪽 — 자리를 등록하는 화면들이 단계마다 다시 그려지지 않게 따로 둡니다. */
 type Registry = {
   register: (id: string, node: Measurable | null) => void;
-  want: (key: TutorialKey | null) => void;
+  want: (key: TutorialKey, on: boolean) => void;
   restart: () => void;
 };
 
@@ -42,12 +42,13 @@ const measure = (node: Measurable) =>
     try { node.measureInWindow((x, y, w, h) => resolve(w > 0 && h > 0 ? { x, y, w, h } : null)); } catch { resolve(null); }
   });
 
-/** enabled — 로그인 · 닉네임까지 끝나고 부팅 화면이 걷혔을 때만 띄웁니다. */
-export function TutorialProvider({ enabled, children }: { enabled: boolean; children: ReactNode }) {
+/** enabled — 로그인 · 닉네임까지 끝나고 부팅 화면이 걷혔을 때만 띄웁니다. couple — 연인 기록장이면 단계 글을 연인용으로. */
+export function TutorialProvider({ enabled, couple, children }: { enabled: boolean; couple: boolean; children: ReactNode }) {
   const router = useRouter();
   const targets = useRef(new Map<string, Measurable>());
   const [seen, setSeen] = useState<Set<TutorialKey> | null>(null);
-  const [wanted, setWanted] = useState<TutorialKey | null>(null);
+  // 한 화면이 둘을 바랄 수 있어(지도: 지도 → 연인) 바란 순서대로 줄을 세웁니다.
+  const [wanted, setWanted] = useState<TutorialKey[]>([]);
   const [active, setActive] = useState<Active | null>(null);
   const [measured, setMeasured] = useState<{ at: Active; holes: Hole[] } | null>(null);
   const holes = measured?.holes ?? null;
@@ -65,9 +66,13 @@ export function TutorialProvider({ enabled, children }: { enabled: boolean; chil
 
   // 처음 들어온 화면의 튜토리얼 — 다른 튜토리얼(특히 지도)이 떠 있으면 띄우지 않습니다.
   useEffect(() => {
-    if (!enabled || !seen || !wanted || active || seen.has(wanted)) return;
-    setActive({ key: wanted, index: 0 });
+    const key = wanted.find((k) => !seen?.has(k));
+    if (!enabled || !seen || !key || active) return;
+    setActive({ key, index: 0 });
   }, [enabled, seen, wanted, active]);
+  const want = useCallback((key: TutorialKey, on: boolean) => {
+    setWanted((l) => (on ? (l.includes(key) ? l : [...l, key]) : l.filter((k) => k !== key)));
+  }, []);
 
   const close = useCallback(() => {
     setActive((a) => { if (a) markSeen(a.key); return null; });
@@ -82,7 +87,8 @@ export function TutorialProvider({ enabled, children }: { enabled: boolean; chil
     });
   }, [markSeen]);
 
-  const step = active ? STEPS[active.key][active.index] : null;
+  const base = active ? STEPS[active.key][active.index] : null;
+  const step = useMemo(() => (base && couple && base.couple ? { ...base, ...base.couple } : base), [base, couple]);
 
   // 단계가 바뀔 때마다 자리를 잽니다. 시트처럼 막 움직인 자리가 있어 조금 뒤 한 번 더 잽니다.
   useEffect(() => {
@@ -124,11 +130,11 @@ export function TutorialProvider({ enabled, children }: { enabled: boolean; chil
   const value = useMemo<Ctx>(() => {
     const list = active ? STEPS[active.key] : [];
     const counted = list.filter((s) => !s.kind);
-    const number = step && !step.kind ? { n: counted.indexOf(step) + 1, of: counted.length } : null;
+    const number = active && step && !step.kind ? { n: list.slice(0, active.index + 1).filter((s) => !s.kind).length, of: counted.length } : null;
     const fresh = !!measured && measured.at === active;
     return { active, step, holes, fresh, number, last: !!active && active.index === list.length - 1, next, close };
   }, [active, step, holes, measured, next, close]);
-  const registry = useMemo<Registry>(() => ({ register, want: setWanted, restart }), [register, restart]);
+  const registry = useMemo<Registry>(() => ({ register, want, restart }), [register, want, restart]);
 
   return (
     <RegistryCtx.Provider value={registry}>
@@ -164,7 +170,7 @@ export function useTabTutorial(key: TutorialKey, delay = 300, ready = true) {
   const want = useContext(RegistryCtx)?.want;
   useFocusEffect(useCallback(() => {
     if (!want || !ready) return;
-    const t = setTimeout(() => want(key), delay);
-    return () => { clearTimeout(t); want(null); };
+    const t = setTimeout(() => want(key, true), delay);
+    return () => { clearTimeout(t); want(key, false); };
   }, [want, key, delay, ready]));
 }

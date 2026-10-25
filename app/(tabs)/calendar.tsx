@@ -168,10 +168,11 @@ export default function CalendarTab() {
   const { book, isCouple } = useActiveBook();
   const { data: picks = [] } = useAnniversaryPicks();
   const startedOn = isCouple ? book?.startedOn ?? null : null;
-  // 첫 실행 튜토리얼 — 달력 칸 · 리캡 카드.
+  // 첫 실행 튜토리얼 — 달력 칸 · 리캡 카드(연인 기록이면 기념일 배너).
   useTabTutorial("calendar");
   const gridSpot = useTutorialTarget("calendar.grid");
   const recapSpot = useTutorialTarget("calendar.recap");
+  const anniversarySpot = useTutorialTarget("calendar.anniversary");
   const openRecap = (quarter: string) => router.push({ pathname: "/recap/[quarter]", params: { quarter } });
 
   const maxVisitedAt = useMemo(() => rows.reduce<string | null>((m, r) => (r.visited_at && (!m || r.visited_at > m) ? r.visited_at : m), null), [rows]);
@@ -254,7 +255,7 @@ export default function CalendarTab() {
       </View>
 
       {/* 연인 기록이면 리캡 자리에 기념일 배너(HANDOFF-recommend §3-2). */}
-      {startedOn && <AnniversaryBanner startedOn={startedOn} picks={picks} rows={rows} />}
+      {startedOn && <View ref={anniversarySpot} collapsable={false}><AnniversaryBanner startedOn={startedOn} picks={picks} rows={rows} /></View>}
 
       {!isCouple && recaps.latest && (
         <View ref={recapSpot} collapsable={false}>

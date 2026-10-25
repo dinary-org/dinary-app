@@ -3,8 +3,8 @@
  * targets 는 useTutorialTarget(id) 로 등록한 자리입니다. 등록된 자리가 하나도 없으면 그 단계는 건너뜁니다.
  */
 
-export type TutorialKey = "map" | "calendar" | "recommend" | "community.friends" | "community.gallery" | "community.ranking" | "community.board";
-export const TUTORIAL_KEYS: TutorialKey[] = ["map", "calendar", "recommend", "community.friends", "community.gallery", "community.ranking", "community.board"];
+export type TutorialKey = "map" | "couple" | "calendar" | "recommend" | "community.friends" | "community.gallery" | "community.ranking" | "community.board";
+export const TUTORIAL_KEYS: TutorialKey[] = ["map", "couple", "calendar", "recommend", "community.friends", "community.gallery", "community.ranking", "community.board"];
 
 export type Step = {
   title: string;
@@ -17,6 +17,8 @@ export type Step = {
   sim?: "longPress" | "share";
   /** intro · outro 는 번호를 세지 않고 글을 가운데 둡니다. */
   kind?: "intro" | "outro";
+  /** 연인 기록장을 보고 있을 때 바꿔 쓰는 글. */
+  couple?: { title?: string; desc?: string };
 };
 
 export const STEPS: Record<TutorialKey, Step[]> = {
@@ -30,12 +32,21 @@ export const STEPS: Record<TutorialKey, Step[]> = {
     { title: "기록장 바꾸기", desc: "개인 기록장과 연인 기록장을 오가요.", targets: ["map.book"], radius: 22 },
     { title: "라벨첩", desc: "기록이 쌓이면 라벨이 모여요. 닉네임 옆에 달 수 있어요.", targets: ["map.labels"], radius: "circle" },
     { title: "릴스 · 유튜브에서 담기", desc: "릴스나 유튜브에서 공유를 누르고 다이너리를 골라보세요.", targets: [], sim: "share" },
-    { title: "다른 탭", desc: "캘린더 · 추천 · 커뮤니티. 처음 들어가면 그 화면도 짧게 알려드릴게요.", targets: ["tab.calendar", "tab.recommend", "tab.community"], radius: 16, box: { w: 60, h: 54 } },
+    { title: "다른 탭", desc: "캘린더 · 추천 · 커뮤니티. 처음 들어가면 그 화면도 짧게 알려드릴게요.", targets: ["tab.calendar", "tab.recommend", "tab.community", "tab.couple"], radius: 16, box: { w: 60, h: 54 },
+      couple: { desc: "캘린더 · 추천 · 연인. 처음 들어가면 그 화면도 짧게 알려드릴게요." } },
     { kind: "outro", title: "준비 끝", desc: "다음 식사 때 이 버튼으로 첫 기록을 남겨보세요.", targets: ["tab.camera"], radius: "circle" },
+  ],
+  // 연인 기록장을 처음 열었을 때(지도) — 지도 튜토리얼 바로 뒤에 이어질 수도 있습니다.
+  couple: [
+    { title: "우리 기록장", desc: "지금은 둘이 함께 쓰는 기록장이에요. 여기를 누르면 개인 기록장으로 돌아가요.", targets: ["map.book"], radius: 22 },
+    { title: "우리 기록", desc: "둘 중 누가 기록해도 여기 함께 쌓여요. 가게마다 서로 남긴 한 줄이 붙고, 아직 비었으면 상대를 기다려요.", targets: ["map.sheet"], radius: 28 },
+    { title: "연인", desc: "우리의 인증, 기념일 식사, 함께 모은 라벨을 봐요. 나만 한 줄을 쓴 기록은 콕 찔러 상대에게 부탁해요.", targets: ["tab.couple"], radius: 16, box: { w: 60, h: 54 } },
+    { title: "기념일", desc: "캘린더 위에 다음 기념일까지 남은 날이 떠요. 기념일마다 그날 함께 먹은 식사를 남겨 둬요.", targets: ["tab.calendar"], radius: 16, box: { w: 60, h: 54 } },
   ],
   calendar: [
     { title: "날짜별 기록", desc: "먹은 날에 가게 이름이 적혀요. 날짜를 누르면 그날 기록을 봐요.", targets: ["calendar.grid"], radius: 20 },
-    { title: "리캡", desc: "분기마다 내가 먹은 기록을 한 장으로 정리해 줘요.", targets: ["calendar.recap"], radius: 20 },
+    { title: "리캡", desc: "분기마다 내가 먹은 기록을 한 장으로 정리해 줘요.", targets: ["calendar.recap", "calendar.anniversary"], radius: 20,
+      couple: { title: "기념일", desc: "다음 기념일까지 남은 날이에요. 누르면 지난 기념일마다 함께 먹은 식사를 봐요." } },
   ],
   recommend: [
     { title: "지금 뭐 먹지", desc: "지금 위치와 시간에 맞는 한 곳을 골라줘요.", targets: ["recommend.now"], radius: 20 },

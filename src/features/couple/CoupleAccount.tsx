@@ -23,6 +23,7 @@ import { C, F, TAB_BAR_H } from "@/theme";
 import { Pair } from "./Avatars";
 import { OurStamps, wroteLine } from "./OurStamps";
 import { SinceDays } from "./Since";
+import { useRestartTutorial } from "@/features/tutorial/TutorialProvider";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -63,6 +64,7 @@ export default function CoupleAccount() {
   const { data: notes = [] } = useRecordNotes();
   const [editDate, setEditDate] = useState(false);
   const [busy, setBusy] = useState(false);
+  const restartTutorial = useRestartTutorial();
 
   const rows = useMemo(() => allRows.filter((r) => !r.pending), [allRows]);
   const today = todayIso();
@@ -320,6 +322,7 @@ export default function CoupleAccount() {
           </>
         )}
         {/* 기념일 알림 줄은 알림 기능이 생기면 여기에(§2-9). */}
+        <Row label="튜토리얼 다시 보기" onPress={restartTutorial} right={chevron} />
         <Row label="연인 기록 내려받기" border={!readOnly} onPress={exportRecords} right={chevron} />
         {personal && <Row label="내 계정 · 개인 기록·캐릭터·로그아웃" onPress={goPersonal} right={chevron} />}
         {!readOnly && (

@@ -50,7 +50,7 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
   const { data: communityUnseen = 0 } = useCommunityUnseen();
   // 첫 실행 튜토리얼이 구멍을 뚫는 자리.
   const tutorialRef: Record<string, ReturnType<typeof useTutorialTarget>> = {
-    calendar: useTutorialTarget("tab.calendar"), recommend: useTutorialTarget("tab.recommend"),
+    calendar: useTutorialTarget("tab.calendar"), recommend: useTutorialTarget("tab.recommend"), account: useTutorialTarget("tab.couple"),
   };
   const communityRef = useTutorialTarget("tab.community");
   const cameraRef = useTutorialTarget("tab.camera");

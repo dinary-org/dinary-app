@@ -131,6 +131,8 @@ export default function MapTab() {
 
   // 첫 실행 튜토리얼 — 처음 로그인 · 온보딩 뒤 지도에 오면 한 번.
   useTabTutorial("map", 600);
+  // 연인 기록장을 처음 열면 — 지도 튜토리얼이 남아 있으면 그 뒤에.
+  useTabTutorial("couple", 600, isCouple);
   const plusSpot = useTutorialTarget("map.plus"), draftsSpot = useTutorialTarget("map.drafts"), bookSpot = useTutorialTarget("map.book");
   const labelsSpot = useTutorialTarget("map.labels"), sheetSpot = useTutorialTarget("map.sheet"), openSpot = useTutorialTarget("map.open");
   // 목록 시트 자리(윗변 ~ 탭바 위)와, 검색줄과 시트 사이 빈 지도 가운데 200px 원 — 시트를 따라 움직입니다.

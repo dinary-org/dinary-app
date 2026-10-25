@@ -8,7 +8,7 @@ import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
 import { AppState } from "react-native";
 import { bootState } from "@/lib/reliability/boot";
 import { BootScreen } from "@/components/BootScreen";
-import { useBooks } from "@/data/books";
+import { useActiveBook, useBooks } from "@/data/books";
 import { useSession } from "@/data/session";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
@@ -71,6 +71,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { data: account, isPending: accountPending, isError: accountError } = useAccount();
   const { data: wishes } = useWishes();
   const books = useBooks();
+  const { isCouple } = useActiveBook();
   const net = useNetInfo();
   const [boot, setBoot] = useState<{ owner: string | null | undefined; at: number; hidden: boolean }>(() => ({ owner: undefined, at: Date.now(), hidden: false }));
   const [captureEscape, setCaptureEscape] = useState(false);
@@ -181,7 +182,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   if (!fontsLoaded || session === undefined) return null;
 
   return (
-    <TutorialProvider enabled={signedIn && !showBoot}>
+    <TutorialProvider enabled={signedIn && !showBoot} couple={isCouple}>
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.paper } }}>
       <Stack.Screen name="(tabs)" />
       {/* 커뮤니티 — 들어갈 때는 전환 판이 덮고, 나갈 때(‹ 내 기록 · 밀기)는 판 없이 아래로 내려갑니다. */}

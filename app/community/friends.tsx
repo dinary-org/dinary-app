@@ -363,7 +363,7 @@ const FeedCard = memo(function FeedCard({ p, who, mine, social, onComments, onMe
         <View style={{ marginLeft: "auto", flexDirection: "row", alignItems: "center", gap: 6 }}>
           {mine ? (
             <Pressable onPress={onMenu} hitSlop={8} accessibilityLabel="소식 메뉴"
-              style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: K.seg, alignItems: "center", justifyContent: "center" }}>
+              style={{ width: 28, height: 28, alignItems: "center", justifyContent: "center" }}>
               <Text style={{ marginTop: -6, fontFamily: F.sansMd, fontSize: 14, color: K.text2 }}>···</Text>
             </Pressable>
           ) : (

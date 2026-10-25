@@ -75,7 +75,7 @@ export default function Login() {
   return (
     <View style={[s.root, { paddingTop: insets.top + 96, paddingBottom: insets.bottom + 24 }]}>
       <Text style={s.logo}>DINARY</Text>
-      <Text style={s.sub}>가본 곳을 남기는 식당 기록</Text>
+      <Text style={s.sub}>다이닝에 다이어리를 더하다</Text>
       <View style={{ flex: 1 }} />
       {!!err && <Text style={s.err}>{err}</Text>}
       <View style={{ gap: 11 }}>

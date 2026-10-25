@@ -8,6 +8,7 @@ import { regionFromAddress } from "@/lib/regions";
 import { coverPhoto } from "@/lib/types";
 import { C, F } from "@/theme";
 import { setReaction, usePoll, votePoll, type BoardPost, type CourseStop, type PostType } from "./api";
+import { CourseMap } from "./CourseMap";
 import { MoreButton, type MenuTarget } from "./ItemMenu";
 import { useOpenProfile } from "./ProfileSheet";
 import { useAddWish } from "./useAddWish";
@@ -62,7 +63,7 @@ export function AuthorRow({
   );
 }
 
-/** 붙인 기록 한 장 — 사진 · 가게 · 별점 · (인증이면) ✓ 인증 MM.DD. */
+/** 붙인 기록 한 장 — 사진 · 가게 · 별점 · (인증이면) MM.DD 인증. */
 export function RecordMini({
   name, photo, rating, category, address, verifiedAt, size = 56, right,
 }: { name: string | null; photo: string | null; rating?: number | null; category?: string | null; address?: string | null; verifiedAt?: string | null; size?: number; right?: React.ReactNode }) {
@@ -75,7 +76,7 @@ export function RecordMini({
           {rating != null && <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>★ {rating}</Text>}
         </View>
         {size > 40 && !!(category || address) && <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>{metaLine(category, shortAddr(address ?? null, null))}</Text>}
-        {!!verifiedAt && <Text style={{ fontFamily: F.mono, fontSize: size > 40 ? 10 : 9.5, color: C.brick }}>✓ 인증{size > 40 ? ` ${monthDay(verifiedAt)}` : ""}</Text>}
+        {!!verifiedAt && <Text style={{ fontFamily: F.mono, fontSize: size > 40 ? 10 : 9.5, color: C.brick }}>{size > 40 ? `${monthDay(verifiedAt)} ` : ""}인증</Text>}
       </View>
       {right}
     </View>
@@ -118,12 +119,15 @@ function RouteMap({ stops, height = 110 }: { stops: CourseStop[]; height?: numbe
   );
 }
 
-/** 코스 — (요약 자리) · 동선 지도 · 번호 원 세로 줄 + 메모 · ✓ 인증 n/m. */
-export function CourseBlock({ post, stops }: { post: BoardPost; stops: CourseStop[] }) {
+/**
+ * 코스 — (요약 자리) · 동선 지도 · 번호 원 세로 줄 + 메모 · ✓ 인증 n/m.
+ * 상세(onMapTouch 가 있으면)는 네이버 지도에 가게 이름까지, 목록 카드는 가벼운 선 그림으로.
+ */
+export function CourseBlock({ post, stops, onMapTouch }: { post: BoardPost; stops: CourseStop[]; onMapTouch?: (touching: boolean) => void }) {
   return (
     <View style={{ gap: 10 }}>
       {/* TODO(코스 요약): 시안의 「도보 12분 · 저녁 · 2인 약 6만 원」 자리 — 이번에는 비워 둡니다. */}
-      <RouteMap stops={stops} />
+      {onMapTouch ? <CourseMap stops={stops} onTouch={onMapTouch} /> : <RouteMap stops={stops} />}
       <View>
         {stops.map((s, i) => (
           <View key={s.position} style={{ flexDirection: "row", gap: 10 }}>

@@ -69,7 +69,7 @@ export function RecordPickerSheet({
                   <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>
                     {metaLine(r.category, r.region, r.rating != null ? `★ ${r.rating}` : null)}
                   </Text>
-                  {r.verified && <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: C.brick }}>✓ 인증 {monthDay(r.verified_at)}</Text>}
+                  {r.verified && <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: C.brick }}>{monthDay(r.verified_at)} 인증</Text>}
                 </View>
                 {max > 1 && (
                   <View style={{ width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: order >= 0 ? C.brick : "transparent", borderWidth: order >= 0 ? 0 : 1.5, borderColor: K.dashed }}>

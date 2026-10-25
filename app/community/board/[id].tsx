@@ -31,6 +31,8 @@ export default function BoardPostScreen() {
   const { data: stopsMap } = useCourseStops(post?.type === "course" ? [postId] : []);
   const stops = stopsMap?.get(postId) ?? [];
   const [replyTo, setReplyTo] = useState<BoardComment | null>(null);
+  // 코스 지도를 만지는 동안 세로 스크롤을 멈춥니다.
+  const [mapTouch, setMapTouch] = useState(false);
   // ⋯ 「수정」으로 고르는 내 댓글 — 아래 입력줄에서 고칩니다(답글과 함께 쓰지 않음).
   const [editing, setEditing] = useState<BoardComment | null>(null);
   const inputRef = useRef<TextInput>(null);
@@ -65,13 +67,13 @@ export default function BoardPostScreen() {
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper }}>
       {header}
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
+      <ScrollView scrollEnabled={!mapTouch} contentContainerStyle={{ paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
         <View style={{ paddingHorizontal: 20, paddingTop: 10, gap: 12 }}>
           <AuthorRow userId={post.author_id} name={post.nickname} url={post.avatar_url} titleId={post.title_label_id} role={post.author_role} time={timeAgo(post.created_at) + (post.edited_at ? " · 고침" : "")} />
           {hidden ? (
             <Text style={{ paddingVertical: 20, fontFamily: F.sans, fontSize: 13, color: K.inactive }}>{HIDDEN_POST}</Text>
           ) : (
-            <PostContent post={post} stops={stops} />
+            <PostContent post={post} stops={stops} onMapTouch={setMapTouch} />
           )}
           {post.hidden_at && isAdmin && <Text style={{ fontFamily: F.mono, fontSize: 10, color: C.brick }}>숨긴 글 · 운영자에게만 보입니다</Text>}
         </View>
@@ -111,7 +113,7 @@ export default function BoardPostScreen() {
 }
 
 /** 본문 전체 · 태그 · 투표 카드 · 기록 카드 · 코스 · 반응. */
-function PostContent({ post, stops }: { post: BoardPost; stops: Parameters<typeof CourseBlock>[0]["stops"] }) {
+function PostContent({ post, stops, onMapTouch }: { post: BoardPost; stops: Parameters<typeof CourseBlock>[0]["stops"]; onMapTouch: (touching: boolean) => void }) {
   const hasRecord = !!post.place_name && post.type !== "course";
   return (
     <>
@@ -128,7 +130,7 @@ function PostContent({ post, stops }: { post: BoardPost; stops: Parameters<typeo
           <RecordMini name={post.place_name} photo={postPhoto(post)} rating={post.rating} category={post.category} address={post.address} verifiedAt={post.verified ? post.verified_at : null} />
         </View>
       )}
-      {post.type === "course" && <CourseBlock post={post} stops={stops} />}
+      {post.type === "course" && <CourseBlock post={post} stops={stops} onMapTouch={onMapTouch} />}
       <Reactions post={post} stops={stops} />
     </>
   );

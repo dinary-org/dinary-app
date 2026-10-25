@@ -48,9 +48,12 @@ export default function Labels() {
   const shownStories = allStories ? stories : stories.slice(0, STORY_FOLD);
   // 인증 기록이 한 건이라도 있는 구는 모두 — 칭호를 받기 전이면 회색으로 다음 칭호까지 보여 줍니다.
   const districts = regionTitles(rows);
+  const [allDistricts, setAllDistricts] = useState(false);
   // 투어 칭호 — 받은 것 먼저, 그다음 진행 중인 투어. 받지 못한 채 끝난 투어는 숨깁니다.
   const { data: tourDefs = [] } = useTourDefs();
-  const tours = tourTitles(tourDefs, rows).filter((t) => !t.closed).sort((a, b) => Number(b.earned) - Number(a.earned) || b.have / b.need - a.have / a.need);
+  const tours = tourTitles(tourDefs, rows).filter((t) => !t.closed)
+    .sort((a, b) => Number(b.titleId === titleId) - Number(a.titleId === titleId) || Number(b.earned) - Number(a.earned) || b.have / b.need - a.have / a.need);
+  const [allTours, setAllTours] = useState(false);
   // 대표 라벨 — 라벨이거나 완주한 투어 칭호. 투어 칭호는 아이콘 대신 ✓ 원.
   const titleLabel = labels.find((l) => l.id === titleId && l.earned) ?? null;
   const titleTour = tours.find((t) => t.titleId === titleId && t.earned) ?? null;
@@ -166,7 +169,7 @@ export default function Labels() {
         <SectionHead title="동네 칭호" right={`${districts.filter((t) => t.tier).length}`} />
         {districts.length > 0 ? (
           <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-            {districts.map((t) =>
+            {(allDistricts ? districts : districts.slice(0, CHIP_FOLD)).map((t) =>
               t.tier ? (
                 <View key={t.region} style={{ flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 13, borderWidth: 1, borderColor: `${t.tier.color}66`, backgroundColor: `${t.tier.color}1a`, paddingHorizontal: 11, paddingVertical: 5 }}>
                   <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: t.tier.color }}>{t.region} {t.tier.suffix}</Text>
@@ -179,6 +182,7 @@ export default function Labels() {
                 </View>
               )
             )}
+            <FoldChip total={districts.length} open={allDistricts} onToggle={() => setAllDistricts((v) => !v)} />
           </View>
         ) : (
           <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12, color: C.faint }}>한 구에서 인증 기록 10건이면 첫 칭호를 받아요</Text>
@@ -187,7 +191,7 @@ export default function Labels() {
         <SectionHead title="투어 칭호" right={`${tours.filter((t) => t.earned).length}`} />
         {tours.length > 0 ? (
           <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-            {tours.map((t) => (
+            {(allTours ? tours : tours.slice(0, CHIP_FOLD)).map((t) => (
               <Pressable
                 key={t.id}
                 onPress={() => router.push({ pathname: "/recommend/tour/[id]", params: { id: t.id } })}
@@ -201,6 +205,7 @@ export default function Labels() {
                 <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: t.earned ? C.brick : "#bdb4a3" }}>{t.earned ? "✓" : `${t.have} / ${t.need}`}</Text>
               </Pressable>
             ))}
+            <FoldChip total={tours.length} open={allTours} onToggle={() => setAllTours((v) => !v)} />
           </View>
         ) : (
           <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12, color: C.faint }}>추천 탭 「둘러보기」의 투어를 완주하면 칭호를 받아요</Text>
@@ -326,6 +331,21 @@ function StampCard({ stamps, bowls, titleId, isNew, onOpen, onLongPress }: {
 }
 
 const STORY_FOLD = 8;
+/** 동네 · 투어 칭호는 두 개만 바로 보이고, 나머지는 「+N」을 눌러 펼칩니다. */
+const CHIP_FOLD = 2;
+
+const FoldChip = ({ total, open, onToggle }: { total: number; open: boolean; onToggle: () => void }) =>
+  total > CHIP_FOLD ? (
+    <Pressable
+      onPress={onToggle}
+      hitSlop={6}
+      accessibilityRole="button"
+      accessibilityLabel={open ? "칭호 접기" : `칭호 ${total - CHIP_FOLD}개 더 보기`}
+      style={{ justifyContent: "center", borderRadius: 13, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 11, paddingVertical: 5 }}
+    >
+      <Text style={{ fontFamily: F.mono, fontSize: 11, color: C.muted }}>{open ? "접기" : `+${total - CHIP_FOLD}`}</Text>
+    </Pressable>
+  ) : null;
 
 const SectionHead = ({ title, right }: { title: string; right: string }) => (
   <View style={{ paddingTop: 24, flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>

@@ -11,8 +11,9 @@ import {
   createPost, hasContact, updatePost, useBoardPost, useCurrentTheme, useIsAdmin, usePopularTags, usePostsToday, type PostType,
 } from "@/features/community/api";
 import { BOARD_LABEL, guOf, RecordMini } from "@/features/community/BoardPost";
+import { CourseMap } from "@/features/community/CourseMap";
 import { RecordPickerSheet } from "@/features/community/RecordPicker";
-import { K, Segmented } from "@/features/community/ui";
+import { K, monthDay, Segmented } from "@/features/community/ui";
 import { coverPhoto, type Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 
@@ -349,6 +350,7 @@ function CourseEditor({ stops, onChange, onAdd, onDragging }: { stops: Stop[]; o
         <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 1.4, color: C.faint }}>코스 · {stops.length}곳{stops.length < 2 ? " · 2곳부터" : ""}</Text>
         {stops.length > 1 && <Text style={{ fontFamily: F.sans, fontSize: 10.5, color: K.inactive }}>≡ 를 끌어 순서 바꾸기</Text>}
       </View>
+      <CourseMap stops={stops.map((s) => ({ lat: s.r.lat, lng: s.r.lng, name: s.r.name }))} height={180} onTouch={onDragging} />
       <View style={{ borderRadius: 16, borderWidth: stops.length ? 1 : 0, borderColor: C.lineSoft, backgroundColor: C.card }}>
         {stops.map((s, i) => (
           <CourseRow
@@ -367,7 +369,7 @@ function CourseEditor({ stops, onChange, onAdd, onDragging }: { stops: Stop[]; o
       </View>
       {stops.length < COURSE_MAX && (
         <Pressable onPress={onAdd} style={{ minHeight: 48, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: K.dashed, alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>{stops.length ? "+ 기록 더하기 · 빼기" : "+ 내 기록에서 코스 고르기"}</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.muted }}>{stops.length ? "+ 기록 추가" : "+ 내 기록에서 코스 고르기"}</Text>
         </Pressable>
       )}
     </View>
@@ -412,7 +414,7 @@ function CourseRow({
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text numberOfLines={1} style={{ fontFamily: F.serif, fontSize: 13.5, color: C.ink }}>
-          {stop.r.name}{stop.r.verified ? <Text style={{ fontFamily: F.mono, fontSize: 10, color: C.brick }}>  ✓ 인증</Text> : null}
+          {stop.r.name}{stop.r.verified ? <Text style={{ fontFamily: F.mono, fontSize: 10, color: C.brick }}>  {stop.r.verified_at ? `${monthDay(stop.r.verified_at)} ` : ""}인증</Text> : null}
         </Text>
         <TextInput
           value={stop.memo}

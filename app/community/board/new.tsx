@@ -353,7 +353,7 @@ export default function BoardCompose() {
             label={type === "course" ? "코스 가게" : "내 기록"}
             sub={
               type === "course" ? (course.length ? `${course.length}곳 · 더하기 · 빼기` : "내 기록에서 2~5곳 골라요")
-              : record ? `${record.name} · 다른 기록으로 바꾸기` : "다녀온 가게를 카드로 붙여요"
+              : record ? `${record.name} · 다른 기록으로 바꾸기` : undefined
             }
             done={type === "course" ? course.length >= 2 : !!record}
             onPress={() => addThen(() => setPicking(type === "course" ? "course" : "single"))}
@@ -361,7 +361,7 @@ export default function BoardCompose() {
           <AddRow
             icon={<PhotoIcon size={17} stroke={C.brick} />}
             label="사진"
-            sub={photos.length >= PHOTO_MAX ? `${PHOTO_MAX}장 다 붙였어요` : photos.length ? `${photos.length}장 붙임 · ${PHOTO_MAX}장까지` : `앨범에서 ${PHOTO_MAX}장까지 골라요`}
+            sub={photos.length >= PHOTO_MAX ? `${PHOTO_MAX}장 다 붙였어요` : photos.length ? `${photos.length}장 붙임 · ${PHOTO_MAX}장까지` : undefined}
             done={photos.length > 0}
             disabled={photos.length >= PHOTO_MAX}
             onPress={() => addThen(addPhotos)}
@@ -369,7 +369,7 @@ export default function BoardCompose() {
           <AddRow
             icon={<RankBarsIcon size={17} stroke={C.brick} />}
             label="투표"
-            sub={type !== "free" ? "자유 게시판에서만 열 수 있어요" : pollOn ? "이미 붙였어요 · 글 아래에서 고쳐요" : "선택지 2~5개 · 1 · 3 · 7일"}
+            sub={type !== "free" ? "자유 게시판에서만 열 수 있어요" : pollOn ? "이미 붙였어요 · 글 아래에서 고쳐요" : undefined}
             done={pollOn}
             disabled={type !== "free" || pollOn}
             onPress={() => { Haptics.selectionAsync(); setPollOn(true); setAdding(false); }}
@@ -398,7 +398,7 @@ export default function BoardCompose() {
 }
 
 /** 「추가하기」 시트의 한 줄 — 둥근 아이콘 · 이름 · 설명, 붙인 것은 ✓. */
-function AddRow({ icon, label, sub, onPress, done, disabled, last }: { icon: React.ReactNode; label: string; sub: string; onPress?: () => void; done?: boolean; disabled?: boolean; last?: boolean }) {
+function AddRow({ icon, label, sub, onPress, done, disabled, last }: { icon: React.ReactNode; label: string; sub?: string; onPress?: () => void; done?: boolean; disabled?: boolean; last?: boolean }) {
   return (
     <Pressable
       onPress={onPress}
@@ -415,7 +415,7 @@ function AddRow({ icon, label, sub, onPress, done, disabled, last }: { icon: Rea
       </View>
       <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
         <Text style={{ fontFamily: F.sansMd, fontSize: 14, color: disabled && !done ? K.inactive : C.ink }}>{label}</Text>
-        <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{sub}</Text>
+        {!!sub && <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{sub}</Text>}
       </View>
       {done ? <CheckIcon size={13} /> : !disabled && <Text style={{ fontFamily: F.sans, fontSize: 16, color: K.inactive }}>›</Text>}
     </Pressable>

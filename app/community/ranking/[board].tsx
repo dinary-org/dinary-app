@@ -52,7 +52,7 @@ export default function RankingDetail() {
         <Avatar name={r.nickname} url={r.avatar_url} size={34} seed={r.user_id} />
         <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-            <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{isMe ? `${r.nickname} · 나` : r.nickname}</Text>
+            <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{r.nickname}</Text>
             <Character id={isCharacterId(r.character_id) ? r.character_id : DEFAULT_CHARACTER} size={22} />
           </View>
           <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 10.5, color: C.faint }}>{title ?? "칭호 없음"}</Text>

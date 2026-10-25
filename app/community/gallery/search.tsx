@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, TextInput, useWindowDimensions, View } from "react-native";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SearchLineIcon } from "@/components/icons";
+import { HeartIcon, SearchLineIcon } from "@/components/icons";
 import { useGallerySearch, useGalleryTopMenus, type GalleryScope } from "@/features/community/api";
 import { useTourDefs } from "@/features/recommend/api";
 import { StaffAvatar } from "@/features/community/BoardPost";
@@ -106,7 +106,10 @@ export default function GallerySearch() {
                     <SignedImage uri={p.photo_ref} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
                   </View>
                   <Text numberOfLines={1} style={{ fontFamily: F.serif, fontSize: 12, color: C.ink }}>{p.place_name}</Text>
-                  <Text numberOfLines={1} style={{ fontFamily: F.mono, fontSize: 9.5, color: C.faint }}>♥ {p.like_count}{p.area ? ` · ${p.area.split(" ").slice(-1)[0]}` : ""}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                    <HeartIcon size={10} stroke={p.my_like ? C.brick : C.faint} fill={p.my_like ? C.brick : "none"} strokeWidth={2} />
+                    <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.mono, fontSize: 9.5, color: C.faint }}>{p.like_count}{p.area ? ` · ${p.area.split(" ").slice(-1)[0]}` : ""}</Text>
+                  </View>
                 </Pressable>
               ))}
             </View>

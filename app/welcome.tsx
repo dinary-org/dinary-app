@@ -73,43 +73,46 @@ export default function Welcome() {
   }
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper, paddingHorizontal: 30, paddingTop: insets.top + 54, paddingBottom: insets.bottom + 20 }}>
-      <Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 1.8, color: C.faint }}>STEP 1 / 1</Text>
-      <Text style={{ marginTop: 12, fontFamily: F.serif, fontSize: 24, color: C.ink }}>어떻게 부를까요?</Text>
-      <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12.5, lineHeight: 22, color: C.faint }}>기록장 맨 위에 쓰입니다. 나중에 바꿀 수 있습니다.</Text>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper }}>
+      {/* Keep safe-area padding separate: KeyboardAvoidingView replaces its own bottom padding. */}
+      <View style={{ flex: 1, paddingHorizontal: 30, paddingTop: insets.top + 54, paddingBottom: insets.bottom + 20 }}>
+        <Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 1.8, color: C.faint }}>STEP 1 / 1</Text>
+        <Text style={{ marginTop: 12, fontFamily: F.serif, fontSize: 24, color: C.ink }}>어떻게 부를까요?</Text>
+        <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12.5, lineHeight: 22, color: C.faint }}>기록장 맨 위에 쓰입니다. 나중에 바꿀 수 있습니다.</Text>
 
-      <View style={{ marginTop: 34, flexDirection: "row", alignItems: "center", gap: 16 }}>
-        <View style={{ width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderColor: C.line, backgroundColor: "#ded8cb", overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
-          {avatarUrl ? <SignedImage uri={avatarUrl} style={{ width: 78, height: 78 }} /> : <Text style={{ fontFamily: F.mono, fontSize: 8.5, letterSpacing: 0.5, color: C.faint }}>{uploading ? "…" : "PHOTO"}</Text>}
+        <View style={{ marginTop: 34, flexDirection: "row", alignItems: "center", gap: 16 }}>
+          <View style={{ width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderColor: C.line, backgroundColor: "#ded8cb", overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+            {avatarUrl ? <SignedImage uri={avatarUrl} style={{ width: 78, height: 78 }} /> : <Text style={{ fontFamily: F.mono, fontSize: 8.5, letterSpacing: 0.5, color: C.faint }}>{uploading ? "…" : "PHOTO"}</Text>}
+          </View>
+          <Pressable onPress={pickPhoto} disabled={uploading} style={{ minHeight: 38, borderRadius: 19, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 14, justifyContent: "center", opacity: uploading ? 0.7 : 1 }}>
+            <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.ink }}>{uploading ? "올리는 중…" : "사진 고르기"}</Text>
+          </Pressable>
         </View>
-        <Pressable onPress={pickPhoto} disabled={uploading} style={{ minHeight: 38, borderRadius: 19, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 14, justifyContent: "center", opacity: uploading ? 0.7 : 1 }}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.ink }}>{uploading ? "올리는 중…" : "사진 고르기"}</Text>
+
+        <View style={{ marginTop: 34 }}>
+          <Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 1.6, color: C.faint }}>NICKNAME</Text>
+          <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 10, borderBottomWidth: 1.5, borderBottomColor: C.brick, paddingBottom: 10 }}>
+            <TextInput
+              value={nickname}
+              onChangeText={(t) => { setTouched(true); setNickname(t.slice(0, MAX_LEN)); }}
+              placeholder="닉네임" placeholderTextColor={C.faint}
+              style={{ flex: 1, padding: 0, fontFamily: F.serif, fontSize: 21, color: C.ink }}
+            />
+            <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{nickname.length}/{MAX_LEN}</Text>
+          </View>
+          {fromOAuth && !touched && <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{provider} 계정 이름을 가져왔습니다.</Text>}
+          {!!error && <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>{error}</Text>}
+        </View>
+
+        <View style={{ flex: 1 }} />
+
+        <Pressable
+          onPress={submit} disabled={!nickname.trim() || saving}
+          style={[{ minHeight: 54, borderRadius: 16, backgroundColor: C.brick, alignItems: "center", justifyContent: "center", opacity: !nickname.trim() || saving ? 0.6 : 1 }, SHADOW.card]}
+        >
+          <Text style={{ fontFamily: F.sansMd, fontSize: 15, color: C.card }}>{saving ? "저장하는 중…" : "기록 시작하기"}</Text>
         </Pressable>
       </View>
-
-      <View style={{ marginTop: 34 }}>
-        <Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 1.6, color: C.faint }}>NICKNAME</Text>
-        <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 10, borderBottomWidth: 1.5, borderBottomColor: C.brick, paddingBottom: 10 }}>
-          <TextInput
-            value={nickname}
-            onChangeText={(t) => { setTouched(true); setNickname(t.slice(0, MAX_LEN)); }}
-            placeholder="닉네임" placeholderTextColor={C.faint}
-            style={{ flex: 1, padding: 0, fontFamily: F.serif, fontSize: 21, color: C.ink }}
-          />
-          <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{nickname.length}/{MAX_LEN}</Text>
-        </View>
-        {fromOAuth && !touched && <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{provider} 계정 이름을 가져왔습니다.</Text>}
-        {!!error && <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>{error}</Text>}
-      </View>
-
-      <View style={{ flex: 1 }} />
-
-      <Pressable
-        onPress={submit} disabled={!nickname.trim() || saving}
-        style={[{ minHeight: 54, borderRadius: 16, backgroundColor: C.brick, alignItems: "center", justifyContent: "center", opacity: !nickname.trim() || saving ? 0.6 : 1 }, SHADOW.card]}
-      >
-        <Text style={{ fontFamily: F.sansMd, fontSize: 15, color: C.card }}>{saving ? "저장하는 중…" : "기록 시작하기"}</Text>
-      </Pressable>
     </KeyboardAvoidingView>
   );
 }

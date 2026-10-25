@@ -12,11 +12,11 @@ import { C, F } from "@/theme";
 import type { BootState } from "@/lib/reliability/boot";
 export type { BootState };
 const copy = {
-  loading: "기록장을 펼치는 중이에요",
+  loading: "기록을 펼치는 중이에요",
   slow: "연결이 느려요. 계속 불러오고 있어요",
   offline: "인터넷에 연결되어 있지 않아요",
   failed: "기록장을 불러오지 못했어요",
-  done: "기록장을 펼치는 중이에요",
+  done: "기록을 펼치는 중이에요",
 };
 function Dot({ index, reduced }: { index: number; reduced: boolean }) {
   const opacity = useSharedValue(reduced ? 1 : 0.25);

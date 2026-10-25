@@ -4,6 +4,7 @@ import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { metersBetweenLL } from "@/lib/geo";
 import { WISH_NEAR_M, type Wish } from "@/lib/types";
+import { CHANNEL, ensureChannel } from "./channel";
 
 /**
  * 담아둔 위시 50m 안에 들어오면 알림(핸드오프 §7).
@@ -22,13 +23,14 @@ TaskManager.defineTask<{ eventType: Location.GeofencingEventType; region: Locati
   const [wishId, ...rest] = (data.region.identifier ?? "").split(SEP);
   const name = rest.join(SEP);
   if (!wishId) return;
+  await ensureChannel();
   await Notifications.scheduleNotificationAsync({
     content: {
       title: `${name || "담아둔 곳"}, 지금 앞에 계신가요?`,
       body: "눌러서 사진을 찍으면 방문이 인증됩니다.",
       data: { wishId },
     },
-    trigger: null,
+    trigger: { channelId: CHANNEL },
   });
 });
 
@@ -43,6 +45,7 @@ Notifications.setNotificationHandler({
 export async function askWishPermissions(): Promise<boolean> {
   if ((await AsyncStorage.getItem(ASKED_KEY)) === "1") return hasGeofencePermissions();
   await AsyncStorage.setItem(ASKED_KEY, "1");
+  await ensureChannel();
   await Notifications.requestPermissionsAsync();
   const fg = await Location.requestForegroundPermissionsAsync();
   if (fg.granted) await Location.requestBackgroundPermissionsAsync();

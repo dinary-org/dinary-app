@@ -2,7 +2,7 @@
   "name": "dinary-expo",
   "version": "0.1.0",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "index.js",
   "scripts": {
     "start": "expo start --dev-client",
     "ios": "expo run:ios",
@@ -55,6 +55,7 @@
     "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
     "react-native": "0.86.3",
+    "react-native-android-widget": "0.22.1",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",

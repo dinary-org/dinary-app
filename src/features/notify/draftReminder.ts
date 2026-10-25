@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { todayIso } from "@/lib/anniversary";
 import type { Restaurant } from "@/lib/types";
+import { CHANNEL, ensureChannel } from "./channel";
 
 /**
  * 보관함 알림 — 오늘 사진으로 인증하고 «나중에 쓸게요»로 담아 둔 기록이 있으면 오늘 21시에 한 번 알려 줍니다.
@@ -19,6 +20,7 @@ export async function syncDraftReminder(rows: Restaurant[], nickname: string | n
     const at = new Date();
     at.setHours(HOUR, 0, 0, 0);
     if (at.getTime() <= Date.now()) return;
+    await ensureChannel();
     if (!(await Notifications.getPermissionsAsync()).granted) return;
     await Notifications.scheduleNotificationAsync({
       identifier: ID,
@@ -27,7 +29,7 @@ export async function syncDraftReminder(rows: Restaurant[], nickname: string | n
         body: `${nickname ? `${nickname}님이 ` : ""}아직 완성하지 않은 기록이 ${drafts.length}개 있어요.`,
         data: { drafts: true },
       },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: at, channelId: CHANNEL },
     });
   } catch (e) {
     console.warn("보관함 알림 예약 실패", e);
@@ -38,6 +40,7 @@ export const clearDraftReminder = () => Notifications.cancelScheduledNotificatio
 
 /** «나중에 쓸게요»로 처음 담을 때 알림 권한을 여쭙니다 — 이미 답했으면 다시 묻지 않습니다. */
 export async function askDraftReminderPermission() {
+  await ensureChannel();
   const now = await Notifications.getPermissionsAsync().catch(() => null);
   if (now && !now.granted && now.canAskAgain) await Notifications.requestPermissionsAsync().catch(() => {});
 }

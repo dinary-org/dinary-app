@@ -35,7 +35,8 @@ async function send(admin: any, userId: string, messages: Message[]) {
   const { data: rows } = await admin.from("push_tokens").select("token").eq("user_id", userId);
   const tokens = ((rows ?? []) as { token: string }[]).map((r) => r.token);
   if (!tokens.length) return { sent: 0, tokens: 0, errors: [] as string[] };
-  const batch = tokens.flatMap((to) => messages.map((m) => ({ to, sound: "default", ...m })));
+  // channelId — 앱이 만드는 Android 알림 채널(src/features/notify/channel.ts). iOS 는 무시합니다.
+  const batch = tokens.flatMap((to) => messages.map((m) => ({ to, sound: "default", channelId: "dinary", ...m })));
   const res = await fetch(EXPO_PUSH, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(batch) });
   const out = await res.json().catch(() => null) as { data?: Ticket[] } | null;
   const tickets = out?.data ?? [];

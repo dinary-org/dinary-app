@@ -4,6 +4,7 @@ import { AppState } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { iGa } from "@/lib/josa";
 import { useActiveBook } from "@/data/books";
+import { CHANNEL, ensureChannel } from "@/features/notify/channel";
 import { pushPoke } from "@/features/notify/push";
 
 /** 콕 찌르기 — 한 줄을 나만 쓴 기록에서 상대에게. 다시 찌르면 시각만 새로(안 본 상태로). */
@@ -39,11 +40,12 @@ export function usePokeInbox() {
           .select("record_id, from_user, restaurants(name)")
           .eq("to_user", me!.userId)
           .is("seen_at", null);
+        if (data?.length) await ensureChannel();
         for (const p of data ?? []) {
           const place = (p.restaurants as { name?: string } | null)?.name ?? "기록";
           await Notifications.scheduleNotificationAsync({
             content: { title: `${iGa(names.get(p.from_user) ?? "상대")} 콕 찔렀어요`, body: `${place}에 한 줄을 남겨 주세요`, data: { recordId: p.record_id } },
-            trigger: null,
+            trigger: { channelId: CHANNEL },
           }).catch(() => {});
           await supabase.from("pokes").update({ seen_at: new Date().toISOString() }).eq("record_id", p.record_id).eq("from_user", p.from_user);
         }

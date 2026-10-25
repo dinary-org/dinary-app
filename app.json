@@ -3,7 +3,7 @@
     "name": "DINARY",
     "slug": "dinary",
     "scheme": "dinary",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -65,7 +65,8 @@
       [
         "expo-notifications",
         {
-          "color": "#b4552d"
+          "color": "#b4552d",
+          "icon": "./assets/notification-icon.png"
         }
       ],
       [
@@ -112,6 +113,61 @@
       ],
       "./plugins/withShareExtensionDisplayName",
       "./plugins/withNaverMaven",
+      [
+        "react-native-android-widget",
+        {
+          "fonts": [
+            "./targets/widget/fonts/GowunBatang-Regular.ttf",
+            "./targets/widget/fonts/GowunBatang-Bold.ttf",
+            "./targets/widget/fonts/JetBrainsMono-Regular.ttf"
+          ],
+          "widgets": [
+            {
+              "name": "CaptureWidget",
+              "label": "바로 촬영",
+              "description": "누르면 카메라가 바로 열려 방문을 기록합니다.",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical"
+            },
+            {
+              "name": "MonthWidget",
+              "label": "이번 달 인증",
+              "description": "이번 달에 인증한 식사 수와 마지막 한 곳.",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 3600000
+            },
+            {
+              "name": "MonthDotsWidget",
+              "label": "이번 달 인증 · 달력",
+              "description": "이번 달 인증한 날을 달력 점으로.",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 3600000
+            },
+            {
+              "name": "MonthPhotoWidget",
+              "label": "이번 달 인증 · 사진",
+              "description": "마지막으로 인증한 식사 사진과 이번 달 인증 수.",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 3600000
+            }
+          ]
+        }
+      ],
       "@bacons/apple-targets"
     ],
     "experiments": {

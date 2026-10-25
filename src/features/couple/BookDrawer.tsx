@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { Character } from "@/components/Character";
 import { Eyebrow } from "@/components/ui";
-import { closeBook, setActiveBook, updateStartedOn, useActiveBook, useCoupleRequests, type Book } from "@/data/books";
+import { closeBook, leaveCoupleBook, setActiveBook, updateStartedOn, useActiveBook, useCoupleRequests, type Book } from "@/data/books";
 import { useAccount } from "@/data/profile";
 import { useBookRows } from "@/data/queries";
 import { dayCount, todayIso } from "@/lib/anniversary";
@@ -140,6 +140,33 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
     );
   }
 
+  function removeClosed() {
+    if (!couple) return;
+    const name = partner?.nickname ?? "상대";
+    showDialog(
+      "이 기록장을 지울까요?",
+      `내 기록장 목록에서 사라지고 다시 볼 수 없어요. ${name}에게는 그대로 남고, 두 사람 모두 지우면 기록과 사진이 완전히 삭제돼요.\n남기고 싶은 기록은 먼저 기록 화면에서 개인 기록에 남겨 두세요.`,
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "지우기",
+          style: "destructive",
+          onPress: async () => {
+            setBusy(true);
+            try {
+              if (personal) setActiveBook(personal.id);
+              await leaveCoupleBook(qc, couple.id);
+            } catch (e) {
+              showDialog("지우지 못했어요", e instanceof Error ? e.message : undefined);
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
+      ]
+    );
+  }
+
   const card = (b: Book, title: string, sub: string, lead: React.ReactNode, tag?: string) => {
     const selected = active?.id === b.id;
     return (
@@ -196,6 +223,12 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
                   <View style={{ width: 42, alignItems: "center" }}><Pair me={me} partner={partner} size={26} overlap={8} /></View>,
                   couple.closedAt ? "끊긴 기록장" : undefined
                 )}
+
+              {couple?.closedAt && (
+                <Pressable onPress={removeClosed} disabled={busy} style={{ alignSelf: "flex-end", marginTop: -4, paddingVertical: 6, paddingHorizontal: 12, opacity: busy ? 0.5 : 1 }}>
+                  <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: "#a8412a" }}>끊긴 기록장 지우기</Text>
+                </Pressable>
+              )}
 
               {/* 받은 연인 신청 — 아직 짝이 없을 때만(혼자 기다리던 기록장은 수락하면 닫힙니다). */}
               {!(open && partner) && requests.map((r) => (

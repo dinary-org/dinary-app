@@ -177,6 +177,7 @@ const ERRORS: Record<string, string> = {
   request_self: "나에게는 보낼 수 없어요",
   request_blocked: "이 사람에게는 신청할 수 없어요",
   partner_in_couple: "상대가 이미 다른 연인 기록장을 쓰고 있어요",
+  book_open: "먼저 연결을 끊어 주세요",
 };
 
 const friendly = (message: string) => {
@@ -306,6 +307,18 @@ export const useSentRequest = (bookId: string | null) =>
 export async function closeBook(qc: QueryClient, bookId: string) {
   const { error } = await supabase.rpc("close_book", { p_book: bookId });
   if (error) throw friendly(error.message);
+  await qc.invalidateQueries({ queryKey: ["books"] });
+}
+
+/**
+ * 끊긴 연인 기록장을 나에게서 지웁니다 — 상대에게는 남고, 둘 다 지우면 완전히 삭제.
+ * 마지막 사람이면 서버가 돌려준 내 사진 파일을 지웁니다(나머지는 서버가 정리 목록에 둡니다).
+ */
+export async function leaveCoupleBook(qc: QueryClient, bookId: string) {
+  const { data, error } = await supabase.rpc("leave_couple_book", { p_book: bookId });
+  if (error) throw friendly(error.message);
+  const paths = (data ?? []) as string[];
+  if (paths.length) await supabase.storage.from("restaurant-photos").remove(paths).catch(() => {});
   await qc.invalidateQueries({ queryKey: ["books"] });
 }
 

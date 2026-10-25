@@ -5,6 +5,7 @@ import { Pressable, View } from "react-native";
 import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import Svg, { Circle, Polyline, Text as SvgText } from "react-native-svg";
+import { useAccount } from "@/data/profile";
 import { regionFromAddress } from "@/lib/regions";
 import { coverPhoto } from "@/lib/types";
 import { C, F, FAINT_BOLD } from "@/theme";
@@ -206,7 +207,7 @@ const pollLeft = (iso: string) => {
   return h >= 24 ? `${Math.round(h / 24)}일` : `${Math.max(h, 1)}시간`;
 };
 
-/** 목록의 빠른 투표 — 「N명 투표 · 댓글 N」 + 「투표 열기 / 결과 보기」. 누르면 그 자리에서 펼칩니다. */
+/** 목록의 빠른 투표 — ♡ · 「N명 투표 · 댓글 N」 + 「투표 열기 / 결과 보기」. 누르면 그 자리에서 펼칩니다. */
 function QuickPoll({ post }: { post: BoardPost }) {
   const [open, setOpen] = useState(false);
   const closed = !!post.poll_closes_at && Date.parse(post.poll_closes_at) <= Date.now();
@@ -214,7 +215,8 @@ function QuickPoll({ post }: { post: BoardPost }) {
   return (
     <View style={{ gap: 8 }}>
       {open && <PollOptions post={post} />}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Reactions post={post} />
         <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>{post.poll_total}명 투표 · 댓글 {post.comment_count}</Text>
         <Pressable
           onPress={() => { Haptics.selectionAsync(); setOpen((v) => !v); }}
@@ -231,12 +233,14 @@ function QuickPoll({ post }: { post: BoardPost }) {
 /* ───────────── 반응 ───────────── */
 
 /**
- * 맛집 · 카페: ♡ 좋아요 · 「+ 위시에 담기」 / 코스: 「코스 통째로 담기」 / 주제: ♡ 좋아요 / 자유: 없음. 좋아요는 cheer 반응입니다.
+ * 모든 글: ♡ 좋아요(cheer 반응, 내 글은 수만) / 맛집 · 카페: + 「+ 위시에 담기」 / 코스: + 「코스 통째로 담기」.
  */
 export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop[] }) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const { add, addMany, sheet } = useAddWish();
+  const { data: account } = useAccount();
+  const mine = account?.userId === post.author_id;
   const source = `${post.author_role === "admin" ? "DINARY 운영" : post.nickname ?? "게시판"}의 ${post.type === "course" ? "코스" : "기록"}`;
 
   async function toggle(kind: "want" | "been" | "cheer", on: boolean, after?: () => Promise<unknown>) {
@@ -259,12 +263,9 @@ export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop
     </Pressable>
   );
 
-  if (post.type === "free") return null;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-      {(post.type === "theme" || post.type === "food" || post.type === "cafe") && (
-        <LikeButton on={post.my_cheer} count={post.cheer_count} disabled={busy} onPress={() => toggle("cheer", !post.my_cheer)} />
-      )}
+      <LikeButton on={post.my_cheer} count={post.cheer_count} disabled={busy} onPress={mine ? undefined : () => toggle("cheer", !post.my_cheer)} />
       {(post.type === "food" || post.type === "cafe") && chip(post.my_want ? "✓ 위시에 담음" : "+ 위시에 담기", post.my_want, () =>
         toggle("want", !post.my_want, post.place_name
           ? () => add({ name: post.place_name!, where_text: post.address, category: post.category, lat: post.lat, lng: post.lng, source })

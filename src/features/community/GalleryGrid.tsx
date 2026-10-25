@@ -73,7 +73,7 @@ export function GalleryGrid({
             }}
             accessibilityLabel={`${p.place_name}${p.menu ? ` · ${p.menu}` : ""}`}
             accessibilityHint={on ? "한 번 더 누르면 정보를 닫습니다" : "누르면 가게 · 메뉴가 보입니다"}
-            style={{ width: size, height: size, backgroundColor: "#ece7dc" }}
+            style={{ width: size, height: size, backgroundColor: C.lineSoft }}
           >
             <SignedImage uri={p.photo_ref} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
             {on && (

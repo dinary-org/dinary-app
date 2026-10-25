@@ -171,7 +171,7 @@ export default function PostSheet({
       <Pressable
         onPress={() => setStep(2)}
         disabled={!picked}
-        style={{ marginTop: 10, height: 52, borderRadius: 18, backgroundColor: picked ? C.ink : "#d6d0c4", alignItems: "center", justifyContent: "center" }}
+        style={{ marginTop: 10, height: 52, borderRadius: 18, backgroundColor: picked ? C.ink : C.lineStrong, alignItems: "center", justifyContent: "center" }}
       >
         <Text style={{ fontFamily: F.sansMd, fontSize: 14, color: C.card }}>다음</Text>
       </Pressable>
@@ -230,7 +230,7 @@ export default function PostSheet({
       <KeyboardAvoidingView behavior="padding" enabled={Platform.OS === "android"} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(28,26,23,.42)" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} accessibilityLabel="닫기" />
         <View style={[{ height: sheetH, flexShrink: 1, backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: kbOpen ? 6 : insets.bottom + 16 }, SHADOW.sheet]}>
-          <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: "#d6d0c4" }} />
+          <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: C.lineStrong }} />
           <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
             {step === 2 && startRecordId == null && (
               <Pressable onPress={() => setStep(1)} hitSlop={10} accessibilityLabel="기록 다시 고르기">
@@ -251,7 +251,7 @@ export default function PostSheet({
               <Pressable
                 onPress={submit}
                 disabled={!canSubmit}
-                style={{ height: 52, borderRadius: 18, backgroundColor: canSubmit ? C.ink : "#d6d0c4", alignItems: "center", justifyContent: "center" }}
+                style={{ height: 52, borderRadius: 18, backgroundColor: canSubmit ? C.ink : C.lineStrong, alignItems: "center", justifyContent: "center" }}
               >
                 <Text style={{ fontFamily: F.sansMd, fontSize: 14, color: C.card }}>{busy ? "올리는 중…" : existing ? "고치기" : "소식에 올리기"}</Text>
               </Pressable>

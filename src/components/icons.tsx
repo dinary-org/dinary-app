@@ -1,4 +1,5 @@
 import Svg, { Circle, Path, Polygon, Rect } from "react-native-svg";
+import { C } from "@/theme";
 
 type P = { size?: number; stroke?: string; strokeWidth?: number; fill?: string };
 
@@ -52,7 +53,7 @@ export const PersonIcon = ({ size = 21, stroke = "#000", strokeWidth = 1.6 }: P)
   </Svg>
 );
 
-export const CameraIcon = ({ size = 25, stroke = "#fbfaf6", strokeWidth = 1.7 }: P) => (
+export const CameraIcon = ({ size = 25, stroke = C.card, strokeWidth = 1.7 }: P) => (
   <Svg {...base(size, stroke, strokeWidth)}>
     <Rect x="2.5" y="5.5" width="19" height="14" rx="3.5" />
     <Circle cx="12" cy="12.5" r="4" />
@@ -74,26 +75,26 @@ export const SearchIcon = ({ size = 15, stroke = "#8a8377", strokeWidth = 1.6 }:
   </Svg>
 );
 
-export const FlashIcon = ({ size = 19, stroke = "#fbfaf6", strokeWidth = 1.6 }: P) => (
+export const FlashIcon = ({ size = 19, stroke = C.card, strokeWidth = 1.6 }: P) => (
   <Svg {...base(size, stroke, strokeWidth)}>
     <Path d="M13 2.8 5.5 13.2h5.3L10 21.2l8-10.8h-5.4L13 2.8Z" />
   </Svg>
 );
 
-export const FlipIcon = ({ size = 20, stroke = "#fbfaf6", strokeWidth = 1.6 }: P) => (
+export const FlipIcon = ({ size = 20, stroke = C.card, strokeWidth = 1.6 }: P) => (
   <Svg {...base(size, stroke, strokeWidth)}>
     <Path d="M20 11a8 8 0 0 0-14.4-4.2L4 8.6M4 4v4.6h4.6" />
     <Path d="M4 13a8 8 0 0 0 14.4 4.2L20 15.4M20 20v-4.6h-4.6" />
   </Svg>
 );
 
-export const DownloadIcon = ({ size = 16, stroke = "#fbfaf6", strokeWidth = 1.7 }: P) => (
+export const DownloadIcon = ({ size = 16, stroke = C.card, strokeWidth = 1.7 }: P) => (
   <Svg {...base(size, stroke, strokeWidth)}>
     <Path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14" />
   </Svg>
 );
 
-export const RefreshIcon = ({ size = 17, stroke = "#fbfaf6", strokeWidth = 1.7 }: P) => (
+export const RefreshIcon = ({ size = 17, stroke = C.card, strokeWidth = 1.7 }: P) => (
   <Svg {...base(size, stroke, strokeWidth)}>
     <Path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3L19.5 9" />
     <Path d="M19.5 4v5h-5" />
@@ -131,7 +132,7 @@ export const LocateIcon = ({ size = 22, stroke = "#b4552d", strokeWidth = 1.7 }:
 export const VerifiedMark = ({ size = 52 }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 100 100">
     <Polygon points={BURST_POINTS} fill="#b4552d" />
-    <Path d="M30 52l14 14 27-30" stroke="#fbfaf6" strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <Path d="M30 52l14 14 27-30" stroke={C.card} strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </Svg>
 );
 
@@ -238,7 +239,7 @@ export const LinkIcon = ({ size = 20, stroke = "#b4552d", strokeWidth = 1.8 }: P
 );
 
 /** 메뉴 👍 — down 이면 180° 돌린 👎. */
-export const ThumbIcon = ({ size = 19, stroke = "#a29a8c", strokeWidth = 1.7, down = false }: P & { down?: boolean }) => (
+export const ThumbIcon = ({ size = 19, stroke = C.dim, strokeWidth = 1.7, down = false }: P & { down?: boolean }) => (
   <Svg {...base(size, stroke, strokeWidth)} style={down ? { transform: [{ rotate: "180deg" }] } : undefined}>
     <Path d="M7 10.5v9.5H4.2a1.2 1.2 0 0 1-1.2-1.2v-7.1a1.2 1.2 0 0 1 1.2-1.2H7z" />
     <Path d="M7 10.5l3.6-6.6a1.9 1.9 0 0 1 3.5 1.3l-.7 3.8h5.2a2 2 0 0 1 2 2.4l-1.3 6.9a2.3 2.3 0 0 1-2.3 1.9H7" />
@@ -278,7 +279,7 @@ export const CheckIcon = ({ size = 12, stroke = "#b4552d", strokeWidth = 3 }: P)
 );
 
 /** CheckIcon 의 짝 — 「✕」 대신. */
-export const CrossIcon = ({ size = 10, stroke = "#a29a8c", strokeWidth = 3 }: P) => (
+export const CrossIcon = ({ size = 10, stroke = C.dim, strokeWidth = 3 }: P) => (
   <Svg {...base(size, stroke, strokeWidth)}>
     <Path d="M6 6l12 12M18 6L6 18" />
   </Svg>

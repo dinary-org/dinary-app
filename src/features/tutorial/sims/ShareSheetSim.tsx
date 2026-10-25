@@ -63,7 +63,7 @@ export default function ShareSheetSim({ done, onDone, onNext }: Props) {
               <View style={s.ring}><Image source={ICON} style={s.icon} /></View>
               <Text style={[s.label, { color: C.ink }]}>다이너리</Text>
             </Pressable>
-            <Target label="링크 복사"><View style={[s.app, { backgroundColor: "#e6e0d3" }]}><Glyph d={LINK} color={C.muted} /></View></Target>
+            <Target label="링크 복사"><View style={[s.app, { backgroundColor: C.line2 }]}><Glyph d={LINK} color={C.muted} /></View></Target>
           </View>
         </>
       )}

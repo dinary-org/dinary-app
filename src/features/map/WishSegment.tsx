@@ -34,12 +34,12 @@ export function SegmentSwitch({ value, recordLabel, recordCount, wishCount, onCh
         style={{ flex: 1, borderRadius: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: on ? C.ink : "transparent" }}
       >
         <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 13, color: on ? C.card : C.muted }}>{label}</Text>
-        <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: on ? "#e2a585" : "#a29a8c" }}>{count}</Text>
+        <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: on ? "#e2a585" : C.dim }}>{count}</Text>
       </Pressable>
     );
   };
   return (
-    <View style={{ marginTop: 4, marginBottom: 14, height: 42, borderRadius: 21, backgroundColor: "#efebe2", padding: 3, flexDirection: "row", gap: 3 }}>
+    <View style={{ marginTop: 4, marginBottom: 14, height: 42, borderRadius: 21, backgroundColor: C.seg, padding: 3, flexDirection: "row", gap: 3 }}>
       {seg("records", recordLabel, recordCount)}
       {seg("wish", "위시리스트", wishCount)}
     </View>
@@ -154,7 +154,7 @@ export function WishRow({ item }: { item: WishItem }) {
       <Pressable
         onPress={() => router.push({ pathname: "/wish/[id]", params: { id: w.id } })}
         style={{
-          borderRadius: 18, borderWidth: 1, borderStyle: dated ? "solid" : "dashed", borderColor: dated ? "#e0c3b1" : "#ded8cb",
+          borderRadius: 18, borderWidth: 1, borderStyle: dated ? "solid" : "dashed", borderColor: dated ? C.brickLine : C.line2,
           backgroundColor: dated ? C.card : "transparent", paddingVertical: 12, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 12,
         }}
       >
@@ -271,7 +271,7 @@ function GroupRow({ item }: { item: Extract<WishItem, { t: "group" }> }) {
   );
 
   return (
-    <View style={{ borderRadius: 18, borderWidth: 1, borderColor: open ? "#e0c3b1" : date ? "#e0c3b1" : "#ded8cb", borderStyle: open || date ? "solid" : "dashed", backgroundColor: open || date ? C.card : "transparent", overflow: "hidden" }}>
+    <View style={{ borderRadius: 18, borderWidth: 1, borderColor: open ? C.brickLine : date ? C.brickLine : C.line2, borderStyle: open || date ? "solid" : "dashed", backgroundColor: open || date ? C.card : "transparent", overflow: "hidden" }}>
       <Pressable
         onPress={() => { Haptics.selectionAsync(); setOpen((v) => !v); }}
         onLongPress={menu}
@@ -279,7 +279,7 @@ function GroupRow({ item }: { item: Extract<WishItem, { t: "group" }> }) {
         accessibilityState={{ expanded: open }}
         style={{ paddingVertical: 12, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 12 }}
       >
-        <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: "#efebe2", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.seg, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ fontFamily: F.mono, fontSize: 12, color: C.brick }}>{ws.length}</Text>
         </View>
         <View style={{ flex: 1, gap: 3 }}>

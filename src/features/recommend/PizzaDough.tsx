@@ -371,7 +371,7 @@ function Countdown({ drawing, t0 }: { drawing: boolean; t0: number }) {
   return (
     <View style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 10 }}>
       <Text style={{ width: 34, fontFamily: F.mono, fontSize: 16, color: left < 1.5 ? C.brick : C.ink }}>{left.toFixed(1)}</Text>
-      <View style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: "#ece6da", overflow: "hidden" }}>
+      <View style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: C.lineSoft, overflow: "hidden" }}>
         <View style={{ width: `${(left / (DRAW_MS / 1000)) * 100}%`, height: "100%", borderRadius: 3, backgroundColor: C.brick }} />
       </View>
     </View>
@@ -380,7 +380,7 @@ function Countdown({ drawing, t0 }: { drawing: boolean; t0: number }) {
 
 /** 그린 모양 썸네일 — 크기에 맞춰 가운데로. */
 function Thumb({ pts, size }: { pts: Pt[]; size: number }) {
-  if (pts.length < 2) return <View style={{ width: size, height: size, borderRadius: 6, backgroundColor: "#ece6da" }} />;
+  if (pts.length < 2) return <View style={{ width: size, height: size, borderRadius: 6, backgroundColor: C.lineSoft }} />;
   const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
   const x0 = Math.min(...xs), y0 = Math.min(...ys), bw = Math.max(...xs) - x0, bh = Math.max(...ys) - y0;
   const k = (size - 6) / Math.max(bw, bh, 1);

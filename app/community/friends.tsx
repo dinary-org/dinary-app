@@ -232,7 +232,7 @@ export default function FriendsScreen() {
                       { label: "차단하기", onPress: () => block(menuFor), danger: true },
                     ]
               ).map((o, i) => (
-                <Pressable key={o.label} onPress={o.onPress} style={{ minHeight: 52, justifyContent: "center", borderTopWidth: i ? 1 : 0, borderTopColor: "#efeae0" }}>
+                <Pressable key={o.label} onPress={o.onPress} style={{ minHeight: 52, justifyContent: "center", borderTopWidth: i ? 1 : 0, borderTopColor: C.lineSoft }}>
                   <Text style={{ fontFamily: F.sans, fontSize: 14, color: o.danger ? C.brick : C.ink }}>{o.label}</Text>
                 </Pressable>
               ))}
@@ -560,7 +560,7 @@ function FriendMap({ posts, people, onWish, onShowInFeed }: { posts: FriendPost[
       </ScrollView>
 
       {spots.length === 0 && (
-        <View pointerEvents="none" style={{ position: "absolute", top: 56, left: 20, right: 20, borderRadius: 16, backgroundColor: "rgba(251,250,246,.95)", padding: 12 }}>
+        <View pointerEvents="none" style={{ position: "absolute", top: 56, left: 20, right: 20, borderRadius: 16, backgroundColor: "rgba(255,255,255,.95)", padding: 12 }}>
           <Text style={{ textAlign: "center", fontFamily: F.sans, fontSize: 12, color: C.faint }}>친구가 소식에 올린 가게가 아직 없습니다.</Text>
         </View>
       )}

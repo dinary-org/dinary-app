@@ -466,7 +466,7 @@ export default function Capture() {
             <View style={s.shutterInner} />
           </Pressable>
           <Pressable style={s.flip} onPress={() => setFacing(facing === "back" ? "front" : "back")}>
-            <FlipIcon stroke="rgba(251,250,246,.65)" />
+            <FlipIcon stroke="rgba(255,255,255,.65)" />
           </Pressable>
         </View>
         <Text style={[s.note, { bottom: insets.bottom + 56 }]}>갤러리에서 고른 사진은 인증되지 않아요</Text>
@@ -493,7 +493,7 @@ export default function Capture() {
           accessibilityState={{ checked: saveToGallery }}
           accessibilityLabel="사진 앱에 저장"
         >
-          <DownloadIcon size={15} stroke={saveToGallery ? C.card : "rgba(251,250,246,.85)"} />
+          <DownloadIcon size={15} stroke={saveToGallery ? C.card : "rgba(255,255,255,.85)"} />
           <Text style={[s.saveText, saveToGallery && { color: C.card }]}>저장</Text>
         </Pressable>
 
@@ -514,7 +514,7 @@ export default function Capture() {
             <Text style={s.darkText}>이 사진 쓰기</Text>
           </Pressable>
           <Pressable
-            style={({ pressed }) => [s.retakeBtn, pressed && { backgroundColor: "rgba(251,250,246,.08)" }]}
+            style={({ pressed }) => [s.retakeBtn, pressed && { backgroundColor: "rgba(255,255,255,.08)" }]}
             onPress={retake}
           >
             <RefreshIcon size={16} stroke={C.card} strokeWidth={1.7} />
@@ -802,35 +802,35 @@ const s = StyleSheet.create({
 
   darkRoot: { flex: 1, backgroundColor: C.dark },
   roundDark: {
-    position: "absolute", width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(251,250,246,.14)",
+    position: "absolute", width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,.14)",
     alignItems: "center", justifyContent: "center",
   },
   flashTag: { position: "absolute", right: 9, bottom: 7, fontFamily: F.mono, fontSize: 9, color: C.card },
   titleBlock: { position: "absolute", left: 0, right: 0, alignItems: "center", gap: 7 },
   shootTitle: { fontFamily: F.serif, fontSize: 18, color: C.card },
-  pill: { borderRadius: 14, backgroundColor: "rgba(251,250,246,.12)", paddingVertical: 5, paddingHorizontal: 12 },
-  pillText: { fontFamily: F.sans, fontSize: 11, color: "rgba(251,250,246,.8)" },
+  pill: { borderRadius: 14, backgroundColor: "rgba(255,255,255,.12)", paddingVertical: 5, paddingHorizontal: 12 },
+  pillText: { fontFamily: F.sans, fontSize: 11, color: "rgba(255,255,255,.8)" },
   zooms: { position: "absolute", left: 0, right: 0, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8 },
-  zoomBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(251,250,246,.14)", alignItems: "center", justifyContent: "center" },
-  zoomOn: { width: 50, height: 50, borderRadius: 25, backgroundColor: "rgba(251,250,246,.26)" },
+  zoomBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,.14)", alignItems: "center", justifyContent: "center" },
+  zoomOn: { width: 50, height: 50, borderRadius: 25, backgroundColor: "rgba(255,255,255,.26)" },
   zoomText: { fontFamily: F.mono, fontSize: 11, color: C.card },
   shootRow: { position: "absolute", left: 0, right: 0, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 34 },
-  gallery: { width: 46, height: 46, borderRadius: 12, backgroundColor: "rgba(251,250,246,.2)", overflow: "hidden" },
-  shutterOuter: { width: 78, height: 78, borderRadius: 39, borderWidth: 3, borderColor: "rgba(251,250,246,.85)", alignItems: "center", justifyContent: "center" },
+  gallery: { width: 46, height: 46, borderRadius: 12, backgroundColor: "rgba(255,255,255,.2)", overflow: "hidden" },
+  shutterOuter: { width: 78, height: 78, borderRadius: 39, borderWidth: 3, borderColor: "rgba(255,255,255,.85)", alignItems: "center", justifyContent: "center" },
   shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: C.card },
-  flip: { width: 46, height: 46, borderRadius: 23, backgroundColor: "rgba(251,250,246,.1)", alignItems: "center", justifyContent: "center" },
+  flip: { width: 46, height: 46, borderRadius: 23, backgroundColor: "rgba(255,255,255,.1)", alignItems: "center", justifyContent: "center" },
   savePill: {
     position: "absolute", right: 16, height: 44, borderRadius: 22, paddingHorizontal: 15, flexDirection: "row",
     alignItems: "center", gap: 6, backgroundColor: "rgba(23,22,20,.4)",
   },
-  saveText: { fontFamily: F.sansMd, fontSize: 12, color: "rgba(251,250,246,.85)" },
-  reviewChip: { fontFamily: F.mono, fontSize: 10.5, color: "rgba(251,250,246,.8)" },
+  saveText: { fontFamily: F.sansMd, fontSize: 12, color: "rgba(255,255,255,.85)" },
+  reviewChip: { fontFamily: F.mono, fontSize: 10.5, color: "rgba(255,255,255,.8)" },
   // 확인 단계 단추 — 높이는 고정 56(글꼴과 무관), 너비만 화면에 맞춰 늘어납니다.
   reviewBottom: { position: "absolute", left: 24, right: 24, flexDirection: "column", gap: 10 },
-  reviewNote: { marginBottom: 6, textAlign: "center", fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: "rgba(251,250,246,.6)" },
+  reviewNote: { marginBottom: 6, textAlign: "center", fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: "rgba(255,255,255,.6)" },
   useBtn: { height: 56, borderRadius: 20, backgroundColor: C.brick, alignItems: "center", justifyContent: "center" },
   retakeBtn: {
-    height: 56, borderRadius: 20, borderWidth: 1, borderColor: "rgba(251,250,246,.3)", backgroundColor: "transparent",
+    height: 56, borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,.3)", backgroundColor: "transparent",
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
   },
   toast: {
@@ -838,7 +838,7 @@ const s = StyleSheet.create({
     paddingVertical: 10, paddingHorizontal: 16,
   },
   toastText: { fontFamily: F.sans, fontSize: 12.5, color: C.card },
-  note: { position: "absolute", left: 0, right: 0, textAlign: "center", fontFamily: F.sans, fontSize: 11.5, color: "rgba(251,250,246,.45)" },
+  note: { position: "absolute", left: 0, right: 0, textAlign: "center", fontFamily: F.sans, fontSize: 11.5, color: "rgba(255,255,255,.45)" },
 
   h18: { fontFamily: F.serif, fontSize: 18, color: C.ink },
   thumb74: { width: 74, height: 74, borderRadius: 18 },
@@ -849,19 +849,19 @@ const s = StyleSheet.create({
   segOn: { backgroundColor: C.brick },
   segText: { fontFamily: F.sans, fontSize: 11.5, color: C.muted },
   input: {
-    marginTop: 12, minHeight: 48, borderRadius: 16, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card,
+    marginTop: 12, minHeight: 48, borderRadius: 16, borderWidth: 1, borderColor: C.line2, backgroundColor: C.card,
     paddingHorizontal: 15, fontFamily: F.sans, fontSize: 13.5, color: C.ink,
   },
   cand: {
     flexDirection: "row", alignItems: "center", gap: 12, minHeight: 62, borderRadius: 20, borderWidth: 1,
-    borderColor: "#ded8cb", backgroundColor: C.card, paddingVertical: 13, paddingHorizontal: 15,
+    borderColor: C.line2, backgroundColor: C.card, paddingVertical: 13, paddingHorizontal: 15,
   },
   dist: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
   distText: { fontFamily: F.mono, fontSize: 9.5 },
   wishHead: { fontFamily: F.mono, fontSize: 10.5, color: C.brick },
   candName: { fontFamily: F.serif, fontSize: 16, color: C.ink },
   candMeta: { marginTop: 3, fontFamily: F.sans, fontSize: 11.5, color: C.faint },
-  far: { marginTop: 3, fontFamily: F.sans, fontSize: 10.5, color: "#a29a8c" },
+  far: { marginTop: 3, fontFamily: F.sans, fontSize: 10.5, color: C.dim },
   manual: {
     marginTop: 9, minHeight: 48, borderRadius: 20, borderWidth: 1, borderStyle: "dashed", borderColor: C.line,
     alignItems: "center", justifyContent: "center",
@@ -869,35 +869,35 @@ const s = StyleSheet.create({
   manualText: { fontFamily: F.sans, fontSize: 12.5, color: C.muted },
   hint: { fontFamily: F.sans, fontSize: 11.5, color: C.muted, textAlign: "center" },
   notice: {
-    flexDirection: "row", gap: 10, alignItems: "center", borderRadius: 18, borderWidth: 1, borderColor: "#e4dfd3",
+    flexDirection: "row", gap: 10, alignItems: "center", borderRadius: 18, borderWidth: 1, borderColor: C.line2,
     backgroundColor: C.card, padding: 13,
   },
   offline: {
-    flexDirection: "row", gap: 10, alignItems: "center", borderRadius: 18, borderWidth: 1, borderColor: "#e0c3b1",
+    flexDirection: "row", gap: 10, alignItems: "center", borderRadius: 18, borderWidth: 1, borderColor: C.brickLine,
     backgroundColor: "#f9f0e9", padding: 13,
   },
   noticeText: { flex: 1, fontFamily: F.sans, fontSize: 11.5, lineHeight: 18, color: C.muted },
 
   doneCard: { borderRadius: 30, backgroundColor: C.card, padding: 14, paddingBottom: 20 },
-  donePhoto: { height: 296, borderRadius: 22, width: "100%", backgroundColor: "#ded8cb" },
+  donePhoto: { height: 296, borderRadius: 22, width: "100%", backgroundColor: C.line2 },
   timeBadge: { position: "absolute", left: 14, top: 14, borderRadius: 14, backgroundColor: "rgba(28,26,23,.55)", paddingVertical: 4, paddingHorizontal: 10 },
   timeText: { fontFamily: F.mono, fontSize: 9.5, letterSpacing: 1, color: C.card },
   doneTitle: { marginTop: 18, textAlign: "center", fontFamily: F.serif, fontSize: 22, color: C.ink },
   doneSub: { marginTop: 7, textAlign: "center", fontFamily: F.sans, fontSize: 12, color: C.muted },
   wishMet: {
     marginTop: 12, alignSelf: "center", flexDirection: "row", gap: 6, alignItems: "center", borderRadius: 14,
-    borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9f0e9", paddingVertical: 7, paddingHorizontal: 12,
+    borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9f0e9", paddingVertical: 7, paddingHorizontal: 12,
   },
   wishMetText: { fontFamily: F.sans, fontSize: 11, color: C.brick },
   labelBand: {
-    marginTop: 12, flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 18, borderWidth: 1, borderColor: "#e0c3b1",
+    marginTop: 12, flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 18, borderWidth: 1, borderColor: C.brickLine,
     backgroundColor: "#f9f0e9", paddingVertical: 12, paddingHorizontal: 14,
   },
   labelNo: { width: 34, height: 34, borderRadius: 17, backgroundColor: C.brick, alignItems: "center", justifyContent: "center" },
   stampCard: { width: "100%", maxWidth: 340, borderRadius: 28, backgroundColor: C.card, paddingTop: 24, paddingBottom: 20, paddingHorizontal: 22, alignItems: "center" },
   upload: {
     marginTop: 16, flexDirection: "row", gap: 11, alignItems: "center", borderRadius: 18, borderWidth: 1,
-    borderColor: "#e4dfd3", backgroundColor: C.card, paddingVertical: 14, paddingHorizontal: 16,
+    borderColor: C.line2, backgroundColor: C.card, paddingVertical: 14, paddingHorizontal: 16,
   },
   uploadMain: { fontFamily: F.sansMd, fontSize: 12.5, color: C.ink },
   uploadSub: { fontFamily: F.sans, fontSize: 11, color: C.faint },

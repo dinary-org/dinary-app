@@ -48,7 +48,7 @@ export function WinPopup({ label, action, onClose }: {
             <Text style={{ fontFamily: F.mono, fontSize: 11, letterSpacing: 2.4, color: C.brick }}>오늘은 이걸로</Text>
             <Text adjustsFontSizeToFit numberOfLines={2} style={[FAINT_BOLD, { marginTop: 12, fontFamily: F.serif, fontSize: 34, lineHeight: 44, color: C.ink, textAlign: "center" }]}>{label}</Text>
             <View style={{ marginTop: 26, alignSelf: "stretch", flexDirection: "row", gap: 8 }}>
-              <Pressable onPress={onClose} accessibilityRole="button" style={{ flex: 1, height: 48, borderRadius: 16, borderWidth: 1, borderColor: "#ded8cb", alignItems: "center", justifyContent: "center" }}>
+              <Pressable onPress={onClose} accessibilityRole="button" style={{ flex: 1, height: 48, borderRadius: 16, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ fontFamily: F.sans, fontSize: 13.5, color: C.muted }}>닫기</Text>
               </Pressable>
               {action && (

@@ -5,6 +5,7 @@ import Animated, { Easing, useAnimatedReaction, useAnimatedStyle, useDerivedValu
 import Svg, { Path, Polygon } from "react-native-svg";
 import { scheduleOnRN } from "react-native-worklets";
 import { BURST_POINTS } from "@/components/icons";
+import { C } from "@/theme";
 
 /**
  * 리캡 등장 애니메이션 — 재생기 시제품의 data-a 어휘(HANDOFF quarterly recap §1 Entrance animation).
@@ -103,6 +104,6 @@ export const Star = ({ size, fill }: { size: number; fill: string }) => (
 export const Rosette = ({ size, fill }: { size: number; fill: string }) => (
   <Svg width={size} height={size} viewBox="0 0 100 100">
     <Polygon points={BURST_POINTS} fill={fill} />
-    <Path d="M30 52l14 14 27-30" stroke="#fbfaf6" strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <Path d="M30 52l14 14 27-30" stroke={C.card} strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </Svg>
 );

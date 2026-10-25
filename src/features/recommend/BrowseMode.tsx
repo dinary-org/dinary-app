@@ -41,7 +41,7 @@ export function BrowseMode({ courses, tours, revisits }: { courses: Course[]; to
         </View>
       )}
       {empty && (
-        <View style={{ borderRadius: 20, borderWidth: 1, borderStyle: "dashed", borderColor: "#cdc6b8", padding: 18 }}>
+        <View style={{ borderRadius: 20, borderWidth: 1, borderStyle: "dashed", borderColor: C.lineStrong, padding: 18 }}>
           <Text style={{ fontFamily: F.sans, fontSize: 12.5, lineHeight: 20, color: C.faint }}>
             이 동네는 아직 인증 기록이 적어 보여 드릴 코스 · 투어가 없어요. 인증한 사람이 3명 넘는 곳부터 하나씩 채워져요.
           </Text>

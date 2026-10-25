@@ -171,7 +171,7 @@ export function RandomGames({ picks, exclude, onPlace, onCategory, onDrawTouch }
         : mode === "pizza" ? <PizzaDough names={names} setNames={setNames} onTouch={onDrawTouch} /> : (
         <>
         {/* 고를 거리 — 세 칸 전환 */}
-        <View style={{ height: 38, borderRadius: 19, backgroundColor: "#efebe2", padding: 3, flexDirection: "row", gap: 3 }}>
+        <View style={{ height: 38, borderRadius: 19, backgroundColor: C.seg, padding: 3, flexDirection: "row", gap: 3 }}>
           {TABS.map((t) => {
             const on = tab === t.id;
             return (
@@ -221,17 +221,17 @@ export function RandomGames({ picks, exclude, onPlace, onCategory, onDrawTouch }
                 returnKeyType="done"
                 style={{ flex: 1, height: "100%", fontFamily: F.sans, fontSize: 13, color: C.ink }}
               />
-              <Pressable onPress={addDraft} disabled={!draft.trim()} style={{ height: 32, borderRadius: 11, paddingHorizontal: 12, justifyContent: "center", backgroundColor: draft.trim() ? C.ink : "#d8d3c8" }}>
+              <Pressable onPress={addDraft} disabled={!draft.trim()} style={{ height: 32, borderRadius: 11, paddingHorizontal: 12, justifyContent: "center", backgroundColor: draft.trim() ? C.ink : C.line }}>
                 <Text style={{ fontFamily: F.sansMd, fontSize: 12, color: C.card }}>추가</Text>
               </Pressable>
               <Pressable onPress={() => { setAdding(false); setDraft(""); }} hitSlop={6} accessibilityLabel="닫기" style={{ width: 30, height: 32, alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontSize: 12, color: "#a29a8c" }}>✕</Text>
+                <Text style={{ fontSize: 12, color: C.dim }}>✕</Text>
               </Pressable>
             </View>
             {restorable.length > 0 && (
               <View style={{ marginTop: 8, flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                 {restorable.map((o) => (
-                  <Pressable key={o.key} onPress={() => restore(o)} accessibilityLabel={`${o.label} 다시 넣기`} style={{ height: 30, borderRadius: 15, paddingHorizontal: 11, justifyContent: "center", borderWidth: 1, borderStyle: "dashed", borderColor: "#cdc6b8" }}>
+                  <Pressable key={o.key} onPress={() => restore(o)} accessibilityLabel={`${o.label} 다시 넣기`} style={{ height: 30, borderRadius: 15, paddingHorizontal: 11, justifyContent: "center", borderWidth: 1, borderStyle: "dashed", borderColor: C.lineStrong }}>
                     <Text numberOfLines={1} style={{ maxWidth: 140, fontFamily: F.sans, fontSize: 12, color: C.muted }}>+ {o.label}</Text>
                   </Pressable>
                 ))}
@@ -293,6 +293,6 @@ export function RandomGames({ picks, exclude, onPlace, onCategory, onDrawTouch }
 }
 
 const s = StyleSheet.create({
-  minus: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#efebe2", alignItems: "center", justifyContent: "center" },
+  minus: { width: 22, height: 22, borderRadius: 11, backgroundColor: C.seg, alignItems: "center", justifyContent: "center" },
   plus: { width: 44, height: 32, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: C.brick, alignItems: "center", justifyContent: "center" },
 });

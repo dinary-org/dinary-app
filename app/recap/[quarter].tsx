@@ -352,10 +352,10 @@ const s = StyleSheet.create({
   cardShadow: { shadowColor: "#1c1a17", shadowOpacity: 0.2, shadowRadius: 40, shadowOffset: { width: 0, height: 18 }, elevation: 12, borderRadius: 26 },
   shareMain: { height: 52, borderRadius: 26, backgroundColor: C.ink, alignItems: "center", justifyContent: "center" },
   saveBtn: { width: 52, height: 52, borderRadius: 26, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-  saveLight: { borderColor: "#cdc6b8", backgroundColor: C.card },
-  saveDark: { borderColor: "rgba(251,250,246,.35)", backgroundColor: "rgba(251,250,246,.08)" },
+  saveLight: { borderColor: C.lineStrong, backgroundColor: C.card },
+  saveDark: { borderColor: "rgba(255,255,255,.35)", backgroundColor: "rgba(255,255,255,.08)" },
   shareSub: {
-    height: 48, borderRadius: 24, borderWidth: 1, borderColor: "#cdc6b8", backgroundColor: C.card, alignItems: "center", justifyContent: "center",
+    height: 48, borderRadius: 24, borderWidth: 1, borderColor: C.lineStrong, backgroundColor: C.card, alignItems: "center", justifyContent: "center",
   },
   swatch: { width: 30, height: 30, borderRadius: 15 },
   swatchRing: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, borderColor: "#1c1a17", alignItems: "center", justifyContent: "center" },

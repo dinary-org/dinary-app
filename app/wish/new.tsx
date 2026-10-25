@@ -284,7 +284,7 @@ export default function WishForm() {
                   <Text style={{ fontFamily: F.sansMd, fontSize: 12, color: C.card }}>붙여넣기</Text>
                 </Pressable>
                 <Pressable onPress={closeLink} accessibilityLabel="링크 닫기" style={{ width: 44, height: 44, marginRight: -8, alignItems: "center", justifyContent: "center" }}>
-                  <Text style={{ fontSize: 13, color: "#a29a8c" }}>✕</Text>
+                  <Text style={{ fontSize: 13, color: C.dim }}>✕</Text>
                 </Pressable>
               </View>
               {linkError && (
@@ -293,24 +293,24 @@ export default function WishForm() {
             </View>
           )}
           {isNew && source && (
-            <View style={{ borderRadius: 14, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9efe8", paddingVertical: 10, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <View style={{ borderRadius: 14, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9efe8", paddingVertical: 10, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
               <SourceIcon kind={source.kind} size={26} />
               <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sans, fontSize: 12, color: "#8f4323" }}>
                 {sourceStrip(source)}
               </Text>
               <Pressable onPress={() => setSource(null)} accessibilityLabel="출처 지우기" hitSlop={14}>
-                <Text style={{ fontSize: 11, color: "#a29a8c" }}>✕</Text>
+                <Text style={{ fontSize: 11, color: C.dim }}>✕</Text>
               </Pressable>
             </View>
           )}
           {isOwner && (capture ? (
-            <View style={{ borderRadius: 14, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9efe8", paddingVertical: 8, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ borderRadius: 14, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9efe8", paddingVertical: 8, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
               {capture.local
                 ? <Image source={{ uri: capture.local }} style={s.thumb} />
                 : <View style={[s.thumb, { backgroundColor: "#eadfd3" }]}><SignedImage uri={capture.path} style={s.thumb} /></View>}
               <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sans, fontSize: 12, color: "#8f4323" }}>캡처 1장 · 나만 보여요</Text>
               <Pressable onPress={() => setCapture(null)} accessibilityLabel="캡처 지우기" hitSlop={10}>
-                <Text style={{ fontSize: 11, color: "#a29a8c" }}>✕</Text>
+                <Text style={{ fontSize: 11, color: C.dim }}>✕</Text>
               </Pressable>
             </View>
           ) : (
@@ -394,14 +394,14 @@ export default function WishForm() {
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 18, borderWidth: 1, borderColor: "#e2c9bb", backgroundColor: "#f9f0e9", paddingHorizontal: 16, paddingVertical: 14 }}>
             <Text style={{ flex: 1, fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>근처를 지나면 알려주기</Text>
-            <Switch value={notify} onValueChange={setNotify} trackColor={{ true: C.brick, false: "#d8d3c8" }} thumbColor={C.card} />
+            <Switch value={notify} onValueChange={setNotify} trackColor={{ true: C.brick, false: C.line }} thumbColor={C.card} />
           </View>
         </View>
 
         {!!error && <Text style={{ marginTop: 14, fontFamily: F.sans, fontSize: 12.5, color: "#a8412a" }}>{error}</Text>}
 
         {missing ? (
-          <View style={{ marginTop: 18, borderRadius: 20, backgroundColor: "#e4dfd3", padding: 16, alignItems: "center" }}>
+          <View style={{ marginTop: 18, borderRadius: 20, backgroundColor: C.line2, padding: 16, alignItems: "center" }}>
             <Text style={{ fontFamily: F.sans, fontSize: 14.5, color: C.faint }}>{missing}</Text>
           </View>
         ) : (
@@ -419,7 +419,7 @@ export default function WishForm() {
             </View>
           </View>
         ) : (
-          <Pressable onPress={() => setConfirmingDelete(true)} style={{ marginTop: 12, borderRadius: 20, borderWidth: 1, borderColor: "#e4dfd3", padding: 14, alignItems: "center" }}>
+          <Pressable onPress={() => setConfirmingDelete(true)} style={{ marginTop: 12, borderRadius: 20, borderWidth: 1, borderColor: C.line2, padding: 14, alignItems: "center" }}>
             <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.faint }}>계획 삭제</Text>
           </Pressable>
         ))}

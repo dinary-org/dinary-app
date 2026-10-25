@@ -31,8 +31,8 @@ type Phase = "closed" | "drawing" | "open" | "closing";
 function CookerInside() {
   return (
     <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      <Ellipse cx={130} cy={90} rx={92} ry={20} fill="#e4dfd3" stroke={OUT} strokeWidth={4} />
-      <Ellipse cx={130} cy={95} rx={78} ry={13} fill="#fbfaf6" />
+      <Ellipse cx={130} cy={90} rx={92} ry={20} fill={C.line2} stroke={OUT} strokeWidth={4} />
+      <Ellipse cx={130} cy={95} rx={78} ry={13} fill={C.card} />
       <Path d="M86 92q6-3 10 0M150 96q6-3 10 0M118 100q6-3 10 0" stroke="#e4dccc" strokeWidth={2.4} strokeLinecap="round" fill="none" />
     </Svg>
   );
@@ -44,8 +44,8 @@ function CookerBody({ lit }: { lit: Animated.AnimatedInterpolation<number> }) {
       <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute" }}>
         <Rect x={60} y={200} width={28} height={12} rx={5} fill={OUT} />
         <Rect x={172} y={200} width={28} height={12} rx={5} fill={OUT} />
-        <Rect x={22} y={112} width={22} height={30} rx={9} fill="#d8d3c8" stroke={OUT} strokeWidth={3.5} />
-        <Rect x={216} y={112} width={22} height={30} rx={9} fill="#d8d3c8" stroke={OUT} strokeWidth={3.5} />
+        <Rect x={22} y={112} width={22} height={30} rx={9} fill={C.line} stroke={OUT} strokeWidth={3.5} />
+        <Rect x={216} y={112} width={22} height={30} rx={9} fill={C.line} stroke={OUT} strokeWidth={3.5} />
         <Path d="M38 90A92 20 0 0 0 222 90L222 176Q222 206 192 206L68 206Q38 206 38 176Z" fill={C.card} stroke={OUT} strokeWidth={4} strokeLinejoin="round" />
         <Path d="M40 190Q42 204 68 204L192 204Q218 204 220 190" stroke={C.brick} strokeWidth={6} fill="none" />
         <Path d="M54 122Q56 160 66 176" stroke="#ffffff" strokeWidth={6} strokeLinecap="round" fill="none" />
@@ -68,10 +68,10 @@ function CookerLid() {
     <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
       <Path d="M30 86Q32 40 130 38Q228 40 230 86Z" fill="#f1ede4" stroke={OUT} strokeWidth={4} strokeLinejoin="round" />
       <Path d="M62 70Q72 54 102 49" stroke="#ffffff" strokeWidth={5} strokeLinecap="round" fill="none" />
-      <Circle cx={184} cy={62} r={4.5} fill="#d8d3c8" stroke={OUT} strokeWidth={2.4} />
+      <Circle cx={184} cy={62} r={4.5} fill={C.line} stroke={OUT} strokeWidth={2.4} />
       <Rect x={24} y={80} width={212} height={14} rx={7} fill="#f1ede4" stroke={OUT} strokeWidth={4} />
       <Rect x={112} y={25} width={36} height={17} rx={8.5} fill={C.brick} stroke={OUT} strokeWidth={3.5} />
-      <Circle cx={30} cy={86} r={5} fill="#d8d3c8" stroke={OUT} strokeWidth={3} />
+      <Circle cx={30} cy={86} r={5} fill={C.line} stroke={OUT} strokeWidth={3} />
     </Svg>
   );
 }
@@ -83,7 +83,7 @@ function Steam() {
         <Path
           key={x}
           d={`M${x} ${84 - i * 4}q-9-12 0-24t0-24q-6-8 0-16`}
-          stroke="#cfc8ba" strokeWidth={5} strokeLinecap="round" fill="none"
+          stroke={C.lineStrong} strokeWidth={5} strokeLinecap="round" fill="none"
         />
       ))}
     </Svg>
@@ -196,7 +196,7 @@ export default function DrawRoute() {
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 6, paddingBottom: insets.bottom + 28, paddingHorizontal: 20, flexGrow: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginLeft: -6 }}>
           <BackButton />
-          <Text style={{ borderRadius: 12, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9f0e9", paddingHorizontal: 10, paddingVertical: 4, fontFamily: F.sansMd, fontSize: 11.5, color: C.brick, overflow: "hidden" }}>
+          <Text style={{ borderRadius: 12, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9f0e9", paddingHorizontal: 10, paddingVertical: 4, fontFamily: F.sansMd, fontSize: 11.5, color: C.brick, overflow: "hidden" }}>
             뽑기권 {shown}장
           </Text>
         </View>
@@ -258,7 +258,7 @@ export default function DrawRoute() {
 
         <View style={{ flex: 1 }} />
         {phase === "closed" && !result && (
-          <Text style={{ marginTop: 18, textAlign: "center", fontFamily: F.mono, fontSize: 10, color: "#a29a8c" }}>
+          <Text style={{ marginTop: 18, textAlign: "center", fontFamily: F.mono, fontSize: 10, color: C.dim }}>
             {(["common", "rare", "legend"] as const).map((r) => `${RARITY[r].name} ${RARITY[r].percent}`).join(" · ")}
           </Text>
         )}

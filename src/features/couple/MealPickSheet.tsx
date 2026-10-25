@@ -90,7 +90,7 @@ export default function MealPickSheet({
                       {dottedDate(r.visited_at)} · <Text style={{ color: diff === 0 ? C.brick : C.muted }}>{gapLabel(diff)}</Text>
                     </Text>
                   </View>
-                  <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: on ? C.brick : "#cdc6b8", alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 1.5, borderColor: on ? C.brick : C.lineStrong, alignItems: "center", justifyContent: "center" }}>
                     {on && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: C.brick }} />}
                   </View>
                 </Pressable>
@@ -108,7 +108,7 @@ export default function MealPickSheet({
             <Pressable
               onPress={() => save({ record_id: null, cleared: true })}
               disabled={busy}
-              style={{ minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", paddingHorizontal: 18, justifyContent: "center", opacity: busy ? 0.5 : 1 }}
+              style={{ minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: C.line2, paddingHorizontal: 18, justifyContent: "center", opacity: busy ? 0.5 : 1 }}
             >
               <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.muted }}>비워두기</Text>
             </Pressable>

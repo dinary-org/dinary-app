@@ -15,7 +15,7 @@ export const ShareButton = ({ onPress }: { onPress: () => void }) => (
     onPress={onPress}
     hitSlop={8}
     accessibilityLabel="기록 공유"
-    style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: "#e4dfd3", alignItems: "center", justifyContent: "center" }}
+    style={{ width: 30, height: 30, borderRadius: 15, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center" }}
   >
     <ShareIcon size={14} stroke={C.muted} />
   </Pressable>
@@ -28,7 +28,7 @@ function ScopeRow({
     <View
       style={{
         flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 13, paddingHorizontal: 15,
-        borderBottomWidth: last ? 0 : 1, borderBottomColor: "#ece7dc", opacity: dim ? 0.45 : 1,
+        borderBottomWidth: last ? 0 : 1, borderBottomColor: C.lineSoft, opacity: dim ? 0.45 : 1,
       }}
     >
       <View style={{ flex: 1 }}>
@@ -87,7 +87,7 @@ export function ShareSheet({ record, visible, onClose }: { record: Restaurant; v
           어디까지 보낼지 고르세요. 아래로 갈수록 더 많이 보입니다.
         </Text>
 
-        <View style={{ marginTop: 14, borderWidth: 1, borderColor: "#ded8cb", borderRadius: 18, backgroundColor: C.card, overflow: "hidden" }}>
+        <View style={{ marginTop: 14, borderWidth: 1, borderColor: C.line2, borderRadius: 18, backgroundColor: C.card, overflow: "hidden" }}>
           <ScopeRow
             title="가게 · 위치 · 메뉴"
             sub="항상 함께 갑니다"
@@ -117,7 +117,7 @@ export function ShareSheet({ record, visible, onClose }: { record: Restaurant; v
         <View style={{ marginTop: 16 }}>
           <Eyebrow>미리보기</Eyebrow>
         </View>
-        <View style={{ marginTop: 7, borderRadius: 16, borderWidth: 1, borderColor: "#e4dfd3", backgroundColor: "#ffffff", paddingVertical: 13, paddingHorizontal: 15 }}>
+        <View style={{ marginTop: 7, borderRadius: 16, borderWidth: 1, borderColor: C.line2, backgroundColor: "#ffffff", paddingVertical: 13, paddingHorizontal: 15 }}>
           <Text selectable style={{ fontFamily: F.sans, fontSize: 12.5, lineHeight: 12.5 * 1.65, color: "#2e2a25" }}>{message}</Text>
         </View>
 

@@ -12,15 +12,15 @@ import { SignedImage } from "@/lib/signedPhoto";
 
 /** 디자인에서 거듭 쓰는 색 — 토큰(src/theme)에 없는 것만. */
 export const K = {
-  inactive: "#a29a8c",
+  inactive: C.dim,
   text2: "#4d4842",
-  brickLine: "#e0c3b1",
+  brickLine: C.brickLine,
   brickInk: "#8f4323",
-  seg: "#ebe6db",
-  segMap: "#efebe2",
-  ivory: "#f3ecdc",
-  dashed: "#cdc6b8",
-  stripe: "#ece7dc",
+  seg: C.lineSoft,
+  segMap: C.seg,
+  ivory: C.chip,
+  dashed: C.lineStrong,
+  stripe: C.lineSoft,
 } as const;
 
 /** 커뮤니티를 통째로 닫고 원래 탭으로 — 어느 탭 · 어느 깊이에서든 루트 스택에서 한 칸 내립니다. */
@@ -166,7 +166,7 @@ export function FilterChips<T extends string>({ value, options, onChange, traili
   );
 }
 
-const AVATAR_BG = ["#e9d6c8", "#d9e0cf", "#d8dbe4", "#ecdcb8", "#e4dfd3"];
+const AVATAR_BG = ["#e9d6c8", "#d9e0cf", "#d8dbe4", "#ecdcb8", C.line2];
 const tint = (seed: string) => AVATAR_BG[[...seed].reduce((n, ch) => n + ch.charCodeAt(0), 0) % AVATAR_BG.length];
 
 /** 동그란 얼굴 — 사진이 있으면 사진, 없으면 첫 글자(Gowun). ring 이면 2px 벽돌 테두리 + 2px 틈. */

@@ -141,7 +141,7 @@ const MonthBlock = memo(function MonthBlock({ year, month, width, height, todayK
                 <View style={{ marginTop: 3, gap: 1.5, overflow: "hidden" }}>
                   {shownVisits.map((v) => <Item key={v.id} name={v.name} category={v.category} onMilestone={!!milestone} />)}
                   {shownWishes.map((w) => <Item key={w.id} name={w.name} category={w.category} wish />)}
-                  {extra > 0 && <Text style={{ paddingLeft: 5, fontFamily: F.mono, fontSize: 8.5, color: "#a29a8c" }}>+{extra}</Text>}
+                  {extra > 0 && <Text style={{ paddingLeft: 5, fontFamily: F.mono, fontSize: 8.5, color: C.dim }}>+{extra}</Text>}
                 </View>
               </Pressable>
             );

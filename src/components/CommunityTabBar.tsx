@@ -36,7 +36,7 @@ export default function CommunityTabBar({ state, navigation }: BottomTabBarProps
     const route = state.routes.find((r) => r.name === t.name);
     if (!route) return <View key={t.name} style={s.tab} />;
     const active = current === t.name;
-    const color = active ? C.brick : "#a29a8c";
+    const color = active ? C.brick : C.dim;
     return (
       <Pressable
         key={t.name}

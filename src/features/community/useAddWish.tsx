@@ -74,7 +74,7 @@ export function useAddWish() {
   const row = (label: string, sub: string, face: React.ReactNode, onPress: () => void, first?: boolean) => (
     <Pressable
       onPress={() => { Haptics.selectionAsync(); onPress(); }}
-      style={{ minHeight: 60, flexDirection: "row", alignItems: "center", gap: 12, borderTopWidth: first ? 0 : 1, borderTopColor: "#efeae0" }}
+      style={{ minHeight: 60, flexDirection: "row", alignItems: "center", gap: 12, borderTopWidth: first ? 0 : 1, borderTopColor: C.lineSoft }}
     >
       <View style={{ width: 52, alignItems: "center" }}>{face}</View>
       <View style={{ flex: 1 }}>
@@ -93,7 +93,7 @@ export function useAddWish() {
         {row("내 위시리스트", "개인 기록장", <Avatar name={me?.nickname ?? "나"} url={me?.avatarUrl} size={30} seed={me?.userId} />, () => finish(personalId), true)}
         {couple && row("우리 위시리스트", `${waGwa(partner?.nickname ?? "연인")} 함께 쓰는 연인 기록장`, <Pair me={meInCouple} partner={partner} size={26} overlap={8} ring={C.paper} />, () => finish(couple.id))}
       </View>
-      <Pressable onPress={() => finish(undefined)} style={{ marginTop: 10, minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: "#ded8cb", alignItems: "center", justifyContent: "center" }}>
+      <Pressable onPress={() => finish(undefined)} style={{ marginTop: 10, minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center" }}>
         <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.muted }}>취소</Text>
       </Pressable>
     </BottomSheetModal>

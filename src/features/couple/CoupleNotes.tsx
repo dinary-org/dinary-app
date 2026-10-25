@@ -28,7 +28,7 @@ function KeepMarker({ kept, onPress }: { kept: boolean; onPress: () => void }) {
       accessibilityLabel={kept ? "개인 기록의 복사본 보기" : "내 기록에도 남기기"}
       style={{
         width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center",
-        ...(kept ? { backgroundColor: C.brick } : { borderWidth: 1, borderColor: "#e0c3b1" }),
+        ...(kept ? { backgroundColor: C.brick } : { borderWidth: 1, borderColor: C.brickLine }),
       }}
     >
       {kept ? (
@@ -68,7 +68,7 @@ export default function CoupleNotes({
         accessibilityLabel={canEdit ? "내 한 줄 쓰기" : undefined}
         style={{
           borderRadius: 18, padding: 14, gap: 8, backgroundColor: line ? C.card : "transparent",
-          borderWidth: 1, borderStyle: line ? "solid" : "dashed", borderColor: line ? C.lineSoft : "#cdc6b8",
+          borderWidth: 1, borderStyle: line ? "solid" : "dashed", borderColor: line ? C.lineSoft : C.lineStrong,
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>

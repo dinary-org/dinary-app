@@ -20,7 +20,7 @@ const FIELDS = 6; // x, y, w, h, r, ring offset
 const TEXT_W = 300;
 /** 글 블록(번호 · 제목 · 두세 줄 설명 · 아랫줄)에 넉넉히 잡는 높이. */
 const TEXT_NEED = 190;
-const HINT = "#a29a8c";
+const HINT = C.dim;
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 export default function CoachOverlay() {

@@ -62,8 +62,8 @@ export default function Drafts() {
           const p = JSON.parse(q.payload) as { name: string };
           const failed = q.failed === 1;
           return (
-            <View key={`q${q.id}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 20, borderWidth: 1, borderColor: failed ? "#d9a89c" : "#e0c3b1", backgroundColor: C.card, padding: 12 }}>
-              <Image source={{ uri: q.photo_uri }} style={{ width: 64, height: 64, borderRadius: 15, backgroundColor: "#ded8cb" }} />
+            <View key={`q${q.id}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 20, borderWidth: 1, borderColor: failed ? "#d9a89c" : C.brickLine, backgroundColor: C.card, padding: 12 }}>
+              <Image source={{ uri: q.photo_uri }} style={{ width: 64, height: 64, borderRadius: 15, backgroundColor: C.line2 }} />
               <View style={{ flex: 1 }}>
                 <Text numberOfLines={1} style={{ fontFamily: F.serif, fontSize: 15.5, color: C.ink }}>{p.name}</Text>
                 <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -81,7 +81,7 @@ export default function Drafts() {
                     ])}
                     style={{ paddingHorizontal: 4, paddingVertical: 8 }}
                   >
-                    <Text style={{ fontFamily: F.sans, fontSize: 12, color: "#a29a8c" }}>버리기</Text>
+                    <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.dim }}>버리기</Text>
                   </Pressable>
                 </View>
               </View>
@@ -90,7 +90,7 @@ export default function Drafts() {
         })}
 
         {drafts.map((r) => (
-          <View key={r.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 20, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: C.card, padding: 12 }}>
+          <View key={r.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 20, borderWidth: 1, borderColor: C.brickLine, backgroundColor: C.card, padding: 12 }}>
             <View>
               <PhotoBox src={coverPhoto(r)} category={r.category} size={64} radius={15} />
               {r.verified && <View style={{ position: "absolute", right: -3, bottom: -3 }}><VerifiedMark size={22} /></View>}
@@ -103,7 +103,7 @@ export default function Drafts() {
                   <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.card }}>기록 쓰기</Text>
                 </Pressable>
                 <Pressable onPress={() => discard(r.id)} disabled={busyId === r.id} style={{ paddingHorizontal: 4, paddingVertical: 8, opacity: busyId === r.id ? 0.5 : 1 }}>
-                  <Text style={{ fontFamily: F.sans, fontSize: 12, color: "#a29a8c" }}>버리기</Text>
+                  <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.dim }}>버리기</Text>
                 </Pressable>
               </View>
             </View>

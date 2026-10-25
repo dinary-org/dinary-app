@@ -47,7 +47,7 @@ export const PaperMap = forwardRef<NaverMapViewRef, Props>(function PaperMap(pro
         {...rest}
         logoMargin={liveLogoBottom == null ? logoMargin : { ...logoMargin, bottom: liveLogoBottom }}
       />
-      {!STYLE_ID && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(246,243,236,0.18)" }]} />}
+      {!STYLE_ID && <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,255,255,0.18)" }]} />}
     </View>
   );
 });

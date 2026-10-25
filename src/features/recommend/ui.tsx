@@ -15,9 +15,9 @@ import { openNaverPlace } from "./api";
 export type GameOption = { key: string; label: string };
 
 export const REC = {
-  ink: "#1c1a17", paper: "#fbfaf6", accent: "#e08a63", sub: "#c9c2b4", quiet: "#a8a196", label: "#8a8377",
-  dot: "#d8d3c8", here: "#4f6b7a", ring: "#c9a593", excBg: "#f2e0d5", excInk: "#a34d27", trend: "#6b5a8e", season: "#4f6b7a",
-  noteBg: "#f7ece5", noteInk: "#8f4323", chipLine: "#e0c3b1",
+  ink: "#1c1a17", paper: C.card, accent: "#e08a63", sub: "#c9c2b4", quiet: "#a8a196", label: "#8a8377",
+  dot: C.line, here: "#4f6b7a", ring: "#c9a593", excBg: "#f2e0d5", excInk: "#a34d27", trend: "#6b5a8e", season: "#4f6b7a",
+  noteBg: C.brickSoft, noteInk: "#8f4323", chipLine: C.brickLine,
 } as const;
 
 /** 「‹ 둘러보기」 알약 — 높이 40, radius 20. */
@@ -97,7 +97,7 @@ export const RingLabelMarker = memo(function RingLabelMarker({ lat, lng, text }:
   return (
     <NaverMapMarkerOverlay latitude={lat} longitude={lng} width={w} height={22} anchor={{ x: 0.5, y: 0.5 }} zIndex={100}>
       <View key={snapKey} collapsable={false} style={{ width: w, height: 22, alignItems: "center", justifyContent: "center" }}>
-        <View style={{ borderRadius: 9, backgroundColor: "rgba(251,250,246,.92)", paddingHorizontal: 6, paddingVertical: 2 }}>
+        <View style={{ borderRadius: 9, backgroundColor: "rgba(255,255,255,.92)", paddingHorizontal: 6, paddingVertical: 2 }}>
           <Text style={[textBase, { fontFamily: F.mono, fontSize: 9.5, lineHeight: 12, color: REC.excInk }]}>{text}</Text>
         </View>
       </View>
@@ -111,7 +111,7 @@ export const RouteLabelMarker = RingLabelMarker;
 /** 「● 내 위치」 범례 — 지도 오른쪽 아래. */
 export function HereLegend({ label = "내 위치" }: { label?: string }) {
   return (
-    <View pointerEvents="none" style={{ position: "absolute", right: 10, bottom: 10, flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 10, backgroundColor: "rgba(251,250,246,.92)", paddingHorizontal: 8, paddingVertical: 4 }}>
+    <View pointerEvents="none" style={{ position: "absolute", right: 10, bottom: 10, flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 10, backgroundColor: "rgba(255,255,255,.92)", paddingHorizontal: 8, paddingVertical: 4 }}>
       <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: REC.here }} />
       <Text style={{ fontFamily: F.sans, fontSize: 10, color: C.muted }}>{label}</Text>
     </View>

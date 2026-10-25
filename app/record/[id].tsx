@@ -65,7 +65,7 @@ function KeepDialog({
           </Text>
           {!!error && <Text style={{ marginTop: 10, textAlign: "center", fontFamily: F.sans, fontSize: 12, color: "#a8412a" }}>{error}</Text>}
           <View style={{ marginTop: 20, flexDirection: "row", gap: 8 }}>
-            <Pressable onPress={onClose} disabled={saving} style={{ flex: 1, height: 48, borderRadius: 16, borderWidth: 1, borderColor: "#ded8cb", alignItems: "center", justifyContent: "center", opacity: saving ? 0.5 : 1 }}>
+            <Pressable onPress={onClose} disabled={saving} style={{ flex: 1, height: 48, borderRadius: 16, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center", opacity: saving ? 0.5 : 1 }}>
               <Text style={{ fontFamily: F.sans, fontSize: 13.5, color: C.muted }}>취소</Text>
             </Pressable>
             <Pressable onPress={save} disabled={saving} style={{ flex: 1, height: 48, borderRadius: 16, backgroundColor: C.ink, alignItems: "center", justifyContent: "center", opacity: saving ? 0.7 : 1 }}>
@@ -256,7 +256,7 @@ export default function RecordRoute() {
         <PhotoBox src={current} category={record.category} radius={0} style={{ width: Dimensions.get("window").width, height: current ? Dimensions.get("window").width : 268, ...(!current && { backgroundColor: "#efeade" }) }}>
           {!current && canAddPhotos && (
             <Pressable onPress={addAlbum} disabled={pending.length > 0} accessibilityLabel="앨범에서 사진 추가"
-              style={{ width: 220, height: 118, borderRadius: 20, borderWidth: 1.5, borderStyle: "dashed", borderColor: "#cdc6b8", alignItems: "center", justifyContent: "center", gap: 4 }}>
+              style={{ width: 220, height: 118, borderRadius: 20, borderWidth: 1.5, borderStyle: "dashed", borderColor: C.lineStrong, alignItems: "center", justifyContent: "center", gap: 4 }}>
               {pending.length > 0 ? <ActivityIndicator color={C.brick} /> : (
                 <>
                   <Text style={{ fontFamily: F.sans, fontSize: 24, color: C.muted }}>+</Text>
@@ -282,10 +282,10 @@ export default function RecordRoute() {
         </PhotoBox>
 
         {photos.length > 0 && (photos.length > 1 || canAddPhotos || pending.length > 0) && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7, paddingHorizontal: 16, paddingVertical: 10, alignItems: "center" }} style={{ borderBottomWidth: 1, borderBottomColor: "#e6e0d3" }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7, paddingHorizontal: 16, paddingVertical: 10, alignItems: "center" }} style={{ borderBottomWidth: 1, borderBottomColor: C.line2 }}>
             {photos.map((url, i) => (
               <Pressable key={url} onPress={() => setShown(i)} onLongPress={canAddPhotos ? () => setSheetIdx(i) : undefined} accessibilityLabel={`사진 ${i + 1}`}
-                style={{ width: 54, height: 54, borderRadius: 14, overflow: "hidden", backgroundColor: "#eae5da", borderWidth: i === cover ? 1.5 : 1, borderColor: i === cover ? C.brick : "#ded8cb" }}>
+                style={{ width: 54, height: 54, borderRadius: 14, overflow: "hidden", backgroundColor: "#eae5da", borderWidth: i === cover ? 1.5 : 1, borderColor: i === cover ? C.brick : C.line2 }}>
                 <SignedImage uri={url} style={{ width: "100%", height: "100%" }} />
                 {i === cover && (
                   <Text style={{ position: "absolute", left: 3, top: 3, borderRadius: 5, backgroundColor: C.brick, paddingHorizontal: 3, fontFamily: F.mono, fontSize: 8, color: C.card, overflow: "hidden" }}>대표</Text>
@@ -304,7 +304,7 @@ export default function RecordRoute() {
             ))}
             {canAddPhotos && room > 0 && (
               <Pressable onPress={addAlbum} accessibilityLabel="앨범에서 사진 더하기"
-                style={{ width: 54, height: 54, borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed", borderColor: "#cdc6b8", alignItems: "center", justifyContent: "center" }}>
+                style={{ width: 54, height: 54, borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed", borderColor: C.lineStrong, alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ fontFamily: F.sansMd, fontSize: 11, color: C.muted }}>+ 앨범</Text>
               </Pressable>
             )}
@@ -330,11 +330,11 @@ export default function RecordRoute() {
           <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
             <MobileStars rating={record.rating} size={15} />
             <Text style={{ fontFamily: F.mono, fontSize: 12, color: C.muted }}>{record.rating?.toFixed(1) ?? "—"}</Text>
-            <View style={{ width: 1, height: 13, backgroundColor: "#ded8cb" }} />
+            <View style={{ width: 1, height: 13, backgroundColor: C.line2 }} />
             <Pigs row={record} w={18} h={17} />
           </View>
 
-          <View style={{ marginTop: 22, paddingTop: 18, borderTopWidth: 1, borderTopColor: "#ded8cb", gap: 18 }}>
+          <View style={{ marginTop: 22, paddingTop: 18, borderTopWidth: 1, borderTopColor: C.line2, gap: 18 }}>
             <Field label="방문">
               {isCouple && record.verified && record.verified_at && record.visited_at ? (
                 <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
@@ -393,7 +393,7 @@ export default function RecordRoute() {
           )}
 
           {record.from_wish && (
-            <View style={{ marginTop: 20, borderRadius: 20, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9f0e9", paddingHorizontal: 16, paddingVertical: 15 }}>
+            <View style={{ marginTop: 20, borderRadius: 20, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9f0e9", paddingHorizontal: 16, paddingVertical: 15 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <BookmarkIcon size={17} fill={C.brick} stroke={C.brick} />
                 <Text style={{ fontFamily: F.mono, fontSize: 9.5, letterSpacing: 1.8, color: C.brick }}>WISH MET</Text>
@@ -416,20 +416,20 @@ export default function RecordRoute() {
             {/* 기록 추가 옆에 「또 갈 예정으로 담기」를 책갈피 단추로 */}
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Button style={{ flex: 1 }} label="기록 추가" onPress={revisit} />
-              <Pressable onPress={addWish} accessibilityLabel="또 갈 예정으로 담기" style={{ width: 50, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", alignItems: "center", justifyContent: "center" }}>
+              <Pressable onPress={addWish} accessibilityLabel="또 갈 예정으로 담기" style={{ width: 50, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center" }}>
                 <BookmarkIcon size={18} fill={C.brick} stroke={C.brick} />
               </Pressable>
             </View>
             {canEdit && <View style={{ flexDirection: "row", gap: 8 }}>
-              <Button style={{ flex: 1, borderColor: "#e4dfd3" }} kind="line" label="기록 수정" onPress={() => router.push({ pathname: "/record/edit", params: { id: String(record.id) } })} />
-              <Pressable onPress={remove} disabled={busy} style={{ flex: 1, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#e4dfd3", alignItems: "center", justifyContent: "center", opacity: busy ? 0.5 : 1 }}>
+              <Button style={{ flex: 1, borderColor: C.line2 }} kind="line" label="기록 수정" onPress={() => router.push({ pathname: "/record/edit", params: { id: String(record.id) } })} />
+              <Pressable onPress={remove} disabled={busy} style={{ flex: 1, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center", opacity: busy ? 0.5 : 1 }}>
                 <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>기록 삭제</Text>
               </Pressable>
             </View>}
           </View>}
         </View>
       </ScrollView>
-      <View style={{ position: "absolute", left: 16, top: insets.top + 8, backgroundColor: "rgba(251,250,246,.92)", borderRadius: 22 }}>
+      <View style={{ position: "absolute", left: 16, top: insets.top + 8, backgroundColor: "rgba(255,255,255,.92)", borderRadius: 22 }}>
         <BackButton />
       </View>
       {!record.pending && (
@@ -438,7 +438,7 @@ export default function RecordRoute() {
             onPress={() => setSharing(true)}
             accessibilityLabel="기록 공유"
             style={[
-              { position: "absolute", right: 16, top: insets.top + 8, width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(251,250,246,.92)", alignItems: "center", justifyContent: "center" },
+              { position: "absolute", right: 16, top: insets.top + 8, width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,.92)", alignItems: "center", justifyContent: "center" },
               Platform.select({ ios: { shadowColor: C.ink, shadowOpacity: 0.14, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }, default: { elevation: 3 } }),
             ]}
           >
@@ -482,7 +482,7 @@ export default function RecordRoute() {
               </View>
             </View>
             {rows.map((r) => (
-              <Pressable key={r.label} onPress={r.onPress} disabled={r.disabled} style={{ paddingVertical: 13, borderTopWidth: 1, borderTopColor: "#e6e0d3" }}>
+              <Pressable key={r.label} onPress={r.onPress} disabled={r.disabled} style={{ paddingVertical: 13, borderTopWidth: 1, borderTopColor: C.line2 }}>
                 <Text style={{ fontFamily: F.sansMd, fontSize: 14, color: r.disabled ? "#b3ada1" : r.danger ? "#a8412a" : C.ink }}>{r.label}</Text>
                 <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 11.5, color: r.disabled ? "#b3ada1" : C.faint }}>{r.sub}</Text>
               </Pressable>

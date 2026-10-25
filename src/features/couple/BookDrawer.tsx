@@ -53,7 +53,7 @@ function AccountPhoto() {
       <View
         style={{
           width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: C.card, overflow: "hidden", alignItems: "center", justifyContent: "center",
-          backgroundColor: account?.avatarUrl ? "#ded8cb" : account?.characterId ? C.brickSoft : C.brick,
+          backgroundColor: account?.avatarUrl ? C.line2 : account?.characterId ? C.brickSoft : C.brick,
         }}
       >
         {account?.avatarUrl ? (
@@ -155,7 +155,7 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Text style={{ fontFamily: F.serif, fontSize: 16, color: C.ink }}>{title}</Text>
             {tag && (
-              <Text style={{ borderRadius: 8, backgroundColor: "#efe9dc", paddingHorizontal: 6, paddingVertical: 1, fontFamily: F.mono, fontSize: 9, color: C.muted, overflow: "hidden" }}>{tag}</Text>
+              <Text style={{ borderRadius: 8, backgroundColor: C.chip, paddingHorizontal: 6, paddingVertical: 1, fontFamily: F.mono, fontSize: 9, color: C.muted, overflow: "hidden" }}>{tag}</Text>
             )}
           </View>
           <Text numberOfLines={1} style={{ marginTop: 4, fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{sub}</Text>
@@ -183,7 +183,7 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
               {personal &&
                 card(
                   personal, "개인 기록", `가게 ${personalCount.places} · 기록 ${personalCount.records}`,
-                  <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "#efe9dc", alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: C.chip, alignItems: "center", justifyContent: "center" }}>
                     <MenuLines stroke={C.ink} />
                   </View>
                 )}
@@ -197,7 +197,7 @@ export default function BookDrawer({ visible, onClose }: { visible: boolean; onC
 
               {/* 열린 연인 기록장이 없으면 만들기 — 끊긴 기록장이 있어도 새로 만들 수 있습니다(§4). */}
               {!open && (
-                <View style={{ borderRadius: 20, borderWidth: 1, borderStyle: "dashed", borderColor: "#cdc6b8", padding: 16 }}>
+                <View style={{ borderRadius: 20, borderWidth: 1, borderStyle: "dashed", borderColor: C.lineStrong, padding: 16 }}>
                   <Text style={{ fontFamily: F.serif, fontSize: 16, color: C.ink }}>연인 기록</Text>
                   <Text style={{ marginTop: 5, fontFamily: F.sans, fontSize: 11.5, lineHeight: 18, color: C.muted }}>둘이 함께 쓰는 기록장을 따로 만들어요. 무료예요.</Text>
                   <Pressable onPress={() => go("/couple/new")} style={{ marginTop: 12, minHeight: 42, borderRadius: 16, backgroundColor: C.ink, alignItems: "center", justifyContent: "center" }}>

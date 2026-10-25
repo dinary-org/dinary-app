@@ -470,7 +470,7 @@ export default function EditRoute() {
 
         <View style={s.revisitBox}>
           <Text style={{ flex: 1, fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>재방문 의사</Text>
-          <Switch value={revisit} onValueChange={setRevisit} trackColor={{ true: C.brick, false: "#d8d3c8" }} thumbColor={C.card} />
+          <Switch value={revisit} onValueChange={setRevisit} trackColor={{ true: C.brick, false: C.line }} thumbColor={C.card} />
         </View>
 
         <View style={{ marginTop: 18, gap: 7 }}>
@@ -490,18 +490,18 @@ export default function EditRoute() {
                     accessibilityLabel={v === 1 ? "좋았어요" : "아쉬웠어요"}
                     style={[s.vote, on && { backgroundColor: onColor, borderColor: onColor }]}
                   >
-                    <ThumbIcon size={19} strokeWidth={1.7} stroke={on ? C.card : "#a29a8c"} down={v === -1} />
+                    <ThumbIcon size={19} strokeWidth={1.7} stroke={on ? C.card : C.dim} down={v === -1} />
                   </Pressable>
                 );
               })}
               {menus.length > 1 && (
                 <Pressable onPress={() => setMenus((l) => l.filter((_, n) => n !== i))} accessibilityLabel="이 메뉴 지우기" style={{ width: 34, alignItems: "center", justifyContent: "center" }}>
-                  <Text style={{ fontSize: 15, color: "#a29a8c" }}>✕</Text>
+                  <Text style={{ fontSize: 15, color: C.dim }}>✕</Text>
                 </Pressable>
               )}
             </View>
           ))}
-          <Pressable onPress={() => setMenus((l) => [...l, { name: "", vote: null }])} style={{ minHeight: 44, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: "#cdc6b8", alignItems: "center", justifyContent: "center" }}>
+          <Pressable onPress={() => setMenus((l) => [...l, { name: "", vote: null }])} style={{ minHeight: 44, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: C.lineStrong, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.muted }}>+ 메뉴 추가</Text>
           </Pressable>
         </View>
@@ -528,7 +528,7 @@ export default function EditRoute() {
 
         <Pressable
           onPress={save} disabled={!canSave || saving}
-          style={{ marginTop: 22, borderRadius: 20, padding: 16, alignItems: "center", backgroundColor: canSave ? C.ink : "#e4dfd3", opacity: saving ? 0.6 : 1 }}
+          style={{ marginTop: 22, borderRadius: 20, padding: 16, alignItems: "center", backgroundColor: canSave ? C.ink : C.line2, opacity: saving ? 0.6 : 1 }}
         >
           {saving ? <ActivityIndicator color={C.card} /> : (
             <Text style={{ fontFamily: F.sansMd, fontSize: 14.5, color: canSave ? C.card : C.faint }}>{canSave ? "기록 저장" : missing}</Text>
@@ -541,24 +541,24 @@ export default function EditRoute() {
 }
 
 const s = StyleSheet.create({
-  bar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: "#e6e0d3" },
+  bar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: C.line2 },
   barBtn: { minHeight: 44, paddingHorizontal: 8, justifyContent: "center" },
   barText: { fontFamily: F.sans, fontSize: 13 },
   barTitle: { fontFamily: F.mono, fontSize: 10.5, letterSpacing: 1.6, color: C.faint },
   verifiedBox: {
     marginTop: 7, minHeight: 48, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1,
-    borderColor: "#e0c3b1", backgroundColor: "#f9efe8", paddingHorizontal: 15,
+    borderColor: C.brickLine, backgroundColor: "#f9efe8", paddingHorizontal: 15,
   },
   // 메뉴 이름·가격 칸은 글꼴이 달라 제 키가 어긋납니다 — 줄을 stretch 로 두어 가격 칸을 이름 칸 키에 맞춥니다.
   menuField: { marginTop: 0, minHeight: 46, height: 46, paddingVertical: 0, borderRadius: 14, textAlignVertical: "center" },
-  vote: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
+  vote: { width: 46, height: 46, borderRadius: 14, borderWidth: 1, borderColor: C.line2, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
   starBase: { fontSize: 27, lineHeight: 34, width: 34, textAlign: "center", color: "#dcd6ca" },
   revisitBox: {
     marginTop: 20, flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 18, borderWidth: 1,
     borderColor: "#e2c9bb", backgroundColor: "#f9f0e9", paddingHorizontal: 16, paddingVertical: 11,
   },
   addTile: {
-    width: 76, height: 76, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: "#cdc6b8",
+    width: 76, height: 76, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: C.lineStrong,
     alignItems: "center", justifyContent: "center",
   },
   addTileText: { fontFamily: F.sansMd, fontSize: 12, color: C.muted },

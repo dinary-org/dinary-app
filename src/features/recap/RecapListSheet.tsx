@@ -49,7 +49,7 @@ export default function RecapListSheet({
                   {[quarterLabel(r.quarter), `${r.count}끼`, r.topPlace].filter(Boolean).join(" · ")}
                 </Text>
               </View>
-              <Text style={{ fontSize: 16, color: "#a29a8c" }}>›</Text>
+              <Text style={{ fontSize: 16, color: C.dim }}>›</Text>
             </Pressable>
           );
         })}

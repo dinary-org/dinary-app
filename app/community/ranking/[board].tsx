@@ -4,7 +4,7 @@ import { FlatList, Pressable, View } from "react-native";
 import { Text } from "@/components/Text";
 import { Character } from "@/components/Character";
 import { useAccount } from "@/data/profile";
-import { useFriends, useIsAdmin, useLeaderboard, type Period, type RankRow, type Scope } from "@/features/community/api";
+import { useIsAdmin, useLeaderboard, type Period, type RankRow, type Scope } from "@/features/community/api";
 import { RankAdminSheet } from "@/features/community/RankAdminSheet";
 import { boardMeta, periodLabel, SCOPES } from "@/features/community/boards";
 import { Avatar, CommunityHeader, K, MiniSegment, TitleBlock, titleName } from "@/features/community/ui";
@@ -25,7 +25,6 @@ export default function RankingDetail() {
   const period: Period = "week";
   const [scope, setScope] = useState<Scope>(params.scope ?? "friends");
   const { data: account } = useAccount();
-  const { data: fr } = useFriends();
   const { data: rows = [], isPending } = useLeaderboard(board.id, period, scope);
   const { data: isAdmin } = useIsAdmin();
   const [managing, setManaging] = useState<RankRow | null>(null);
@@ -34,8 +33,7 @@ export default function RankingDetail() {
   const shown = rows.slice(0, VISIBLE);
   const mine = me ? rows.find((r) => r.user_id === me) : undefined;
   const pinMine = mine && !shown.includes(mine);
-  const notJoined = (fr?.friends ?? []).filter((f) => !f.leaderboardOptIn).length;
-  const sub = `${board.perPeriod ? `${periodLabel(period)} ` : ""}${board.rule} · 인증된 방문만 셉니다`;
+  const sub = `${board.perPeriod ? `${periodLabel(period)} ` : ""}${board.rule}`;
 
   const row = (r: RankRow, pinned = false) => {
     const isMe = r.user_id === me;
@@ -82,16 +80,13 @@ export default function RankingDetail() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 16 }}
         ListHeaderComponent={
           <View style={{ marginHorizontal: -20, marginBottom: 8 }}>
-            <TitleBlock eyebrow={`RANKING · ${board.en}`} title={board.name} sub={sub} />
+            <TitleBlock eyebrow="RANKING" title={board.name} sub={sub} />
           </View>
         }
         ListEmptyComponent={isPending ? null : <Text style={{ paddingVertical: 36, textAlign: "center", fontFamily: F.sans, fontSize: 12.5, color: C.faint }}>아직 이 랭킹에 오른 사람이 없습니다.</Text>}
         ListFooterComponent={
           <View>
             {!me && <Text style={{ marginTop: 14, fontFamily: F.sans, fontSize: 11.5, color: K.inactive }}>구경 중이라 내 자리는 비어 있습니다</Text>}
-            {scope === "friends" && notJoined > 0 && (
-              <Text style={{ marginTop: 14, fontFamily: F.sans, fontSize: 11.5, color: K.inactive }}>참여하지 않은 친구 {notJoined}명은 이 목록에 없습니다</Text>
-            )}
           </View>
         }
       />

@@ -90,7 +90,7 @@ export default function Labels() {
       {!!error && <Text style={{ paddingHorizontal: 22, marginTop: 6, fontFamily: F.sans, fontSize: 11, color: C.brick }}>{error}</Text>}
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: insets.bottom + 40 }}>
-        <View style={{ marginTop: 14, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: C.line2, backgroundColor: C.card, flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ marginTop: 14, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1, borderColor: "#e6e0d3", backgroundColor: C.card, flexDirection: "row", alignItems: "center", gap: 12 }}>
           {title ? (
             <>
               <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: title.color, alignItems: "center", justifyContent: "center" }}>
@@ -137,7 +137,7 @@ export default function Labels() {
                 onPress={() => setDetail(l)}
                 onLongPress={() => toggleTitle(l)}
                 accessibilityLabel={`${l.name}${l.earned ? "" : " · 아직"} 자세히 보기`}
-                style={{ flexDirection: "row", alignItems: "center", gap: 11, paddingVertical: 11, paddingHorizontal: 14, borderTopWidth: i ? 1 : 0, borderTopColor: C.lineSoft }}
+                style={{ flexDirection: "row", alignItems: "center", gap: 11, paddingVertical: 11, paddingHorizontal: 14, borderTopWidth: i ? 1 : 0, borderTopColor: "#ece7dc" }}
               >
                 <LabelBadge label={l} size={46} />
                 <View style={{ flex: 1 }}>
@@ -176,7 +176,7 @@ export default function Labels() {
                   <Text style={{ fontFamily: F.mono, fontSize: 9, color: t.tier.color }}>{"★★★".slice(0, t.tier.stars)}</Text>
                 </View>
               ) : (
-                <View key={t.region} accessibilityLabel={`${t.region} ${t.next!.suffix} · 아직 ${t.have} / ${t.next!.need}`} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: "#d6cfc2", backgroundColor: C.seg, paddingHorizontal: 11, paddingVertical: 5 }}>
+                <View key={t.region} accessibilityLabel={`${t.region} ${t.next!.suffix} · 아직 ${t.have} / ${t.next!.need}`} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: "#d6cfc2", backgroundColor: "#f3efe6", paddingHorizontal: 11, paddingVertical: 5 }}>
                   <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{t.region} {t.next!.suffix}</Text>
                   <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: "#bdb4a3" }}>{t.have} / {t.next!.need}</Text>
                 </View>
@@ -199,7 +199,7 @@ export default function Labels() {
                 accessibilityLabel={t.earned ? `${t.name} · ${t.tour} 완주${t.titleId === titleId ? " · 대표" : ""}` : `${t.name} · ${t.tour} ${t.have} / ${t.need}`}
                 style={t.earned
                   ? { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 13, borderWidth: t.titleId === titleId ? 1.5 : 1, borderColor: t.titleId === titleId ? C.ink : "rgba(180,85,45,.4)", backgroundColor: C.brickSoft, paddingHorizontal: 11, paddingVertical: 5 }
-                  : { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: "#d6cfc2", backgroundColor: C.seg, paddingHorizontal: 11, paddingVertical: 5 }}
+                  : { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: "#d6cfc2", backgroundColor: "#f3efe6", paddingHorizontal: 11, paddingVertical: 5 }}
               >
                 <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: t.earned ? C.brick : C.faint }}>{t.name}</Text>
                 <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: t.earned ? C.brick : "#bdb4a3" }}>{t.earned ? "✓" : `${t.have} / ${t.need}`}</Text>
@@ -257,7 +257,7 @@ function LabelSheet({ label, rows, isTitle, onClose, onRecap }: {
 
         <View style={{ alignSelf: "stretch", marginTop: 20, borderRadius: 16, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card }}>
           {list.length > 0 ? list.map((s, i) => (
-            <View key={s.name + i} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 11, paddingHorizontal: 14, borderTopWidth: i ? 1 : 0, borderTopColor: C.lineSoft }}>
+            <View key={s.name + i} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 11, paddingHorizontal: 14, borderTopWidth: i ? 1 : 0, borderTopColor: "#ece7dc" }}>
               <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sans, fontSize: 13, color: C.ink }}>{s.name}</Text>
               <Text style={{ fontFamily: F.mono, fontSize: 12, color: C.brick }}>{s.n}번</Text>
             </View>

@@ -595,7 +595,7 @@ export default function MapTab() {
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 14 }}>
             {KINDS.map((o) => (
               <Pressable key={o.value} onPress={() => changeKind(o.value)} hitSlop={{ top: 10, bottom: 10, left: 7, right: 7 }} accessibilityRole="button" accessibilityState={{ selected: kind === o.value }}>
-                <Text numberOfLines={1} style={[s.h, FAINT_BOLD, { color: kind === o.value ? C.ink : C.ghost, textShadowColor: kind === o.value ? C.ink : C.ghost }]}>{o.label}</Text>
+                <Text numberOfLines={1} style={[s.h, FAINT_BOLD, { color: kind === o.value ? C.ink : "#c4bdb0", textShadowColor: kind === o.value ? C.ink : "#c4bdb0" }]}>{o.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -787,7 +787,7 @@ export default function MapTab() {
         index={sheetStartIndex}
         snapPoints={sheetSnaps}
         backgroundStyle={[{ backgroundColor: C.paper, borderTopLeftRadius: 28, borderTopRightRadius: 28 }, SHADOW_SHEET]}
-        handleIndicatorStyle={{ width: 42, height: 4, borderRadius: 2, backgroundColor: C.lineStrong }}
+        handleIndicatorStyle={{ width: 42, height: 4, borderRadius: 2, backgroundColor: "#cfc8ba" }}
         handleStyle={{ paddingTop: 11, paddingBottom: 9 }}
         animatedPosition={sheetTop}
         onChange={(i) => { sheetIndex.current = i; Haptics.selectionAsync(); }}
@@ -953,7 +953,7 @@ const s = StyleSheet.create({
   round: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
   regionBand: {
     position: "absolute", left: 16, right: 16, flexDirection: "row", alignItems: "center", gap: 11, borderRadius: 18, borderWidth: 1, borderColor: C.line,
-    backgroundColor: "rgba(255,255,255,.96)", paddingHorizontal: 13, paddingVertical: 11,
+    backgroundColor: "rgba(251,250,246,.96)", paddingHorizontal: 13, paddingVertical: 11,
   },
   floatRight: { position: "absolute", right: 16 },
   floatPlus: { position: "absolute", right: 84 },
@@ -974,10 +974,10 @@ const s = StyleSheet.create({
   count: { fontFamily: F.sans, fontSize: 12.5, color: C.faint },
   compactRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 20, paddingBottom: 12 },
   h: { fontFamily: F.serif, fontSize: 21, color: C.ink },
-  iconBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line2, backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card, alignItems: "center", justifyContent: "center" },
   filterDot: { position: "absolute", top: 2, right: 2, width: 7, height: 7, borderRadius: 3.5, backgroundColor: C.brick },
   searchIn: {
-    flex: 1, minWidth: 0, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line2, backgroundColor: C.card,
+    flex: 1, minWidth: 0, height: 40, borderRadius: 20, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card,
     paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8,
   },
 });

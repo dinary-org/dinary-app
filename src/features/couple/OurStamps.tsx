@@ -112,7 +112,7 @@ export function OurStamps({ rows, notes, me, partner, bookId, readOnly }: {
         </View>
 
         {sel && (
-          <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 14, backgroundColor: C.seg, paddingVertical: 10, paddingHorizontal: 12 }}>
+          <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 14, backgroundColor: "#f3efe6", paddingVertical: 10, paddingHorizontal: 12 }}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text numberOfLines={1} style={{ fontFamily: F.sansMd, fontSize: 13, color: C.ink }}>{sel.row.name}</Text>
               <Text style={{ marginTop: 2, fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>
@@ -141,7 +141,7 @@ export function OurStamps({ rows, notes, me, partner, bookId, readOnly }: {
           <Text style={{ fontFamily: F.serif, fontSize: 15, color: C.ink }}>함께 {bowl.tier.name}까지 <Text style={{ color: C.brick }}>{bowl.left}</Text></Text>
           <View style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
             <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{bowl.from}</Text>
-            <View style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: C.lineSoft, overflow: "hidden", flexDirection: "row" }}>
+            <View style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: "#ece7dc", overflow: "hidden", flexDirection: "row" }}>
               {/* 반반 색 — 둘이 함께 채운 막대 */}
               <View style={{ width: `${((both - bowl.from) / (bowl.tier.need - bowl.from)) * 50}%`, height: 5, backgroundColor: ME_COLOR }} />
               <View style={{ width: `${((both - bowl.from) / (bowl.tier.need - bowl.from)) * 50}%`, height: 5, backgroundColor: PARTNER_COLOR }} />

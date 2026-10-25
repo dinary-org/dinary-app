@@ -56,7 +56,7 @@ export default function DayRoute() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>
-      <View style={{ paddingTop: insets.top + 6, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: C.line2, zIndex: 10 }}>
+      <View style={{ paddingTop: insets.top + 6, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "#e6e0d3", zIndex: 10 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <View style={{ marginLeft: -10 }}><BackButton /></View>
           <Pressable onPress={handlePlus} accessibilityLabel="기록·계획 추가" style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, alignItems: "center", justifyContent: "center" }}>
@@ -65,7 +65,7 @@ export default function DayRoute() {
         </View>
         <Text style={{ marginTop: 8, fontFamily: F.mono, fontSize: 10, letterSpacing: 1.8, color: C.faint }}>{dottedDate(dateKey)}</Text>
         <Text style={{ marginTop: 4, fontFamily: F.serif, fontSize: 26, color: C.ink }}>{visits.length > 0 ? `${month}월 ${day}일 방문한 식당` : `${month}월 ${day}일`}</Text>
-        <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 12, color: C.dim }}>{countLine}</Text>
+        <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 12, color: "#a29a8c" }}>{countLine}</Text>
       </View>
 
       <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={() => setMenuOpen(false)}>
@@ -90,7 +90,7 @@ export default function DayRoute() {
             <Text style={{ textAlign: "center", fontFamily: F.sans, fontSize: 13, lineHeight: 22, color: C.faint }}>
               {isFuture ? "아직 계획한 곳이 없습니다. 계획을 추가해보시겠습니까?" : "아직 방문한 식당이 없습니다. 기록을 추가해보시겠습니까?"}
             </Text>
-            <Pressable onPress={isFuture ? addWish : addRecord} style={{ minHeight: 48, width: "100%", maxWidth: 280, borderRadius: 18, borderWidth: 1, borderStyle: "dashed", borderColor: C.lineStrong, alignItems: "center", justifyContent: "center" }}>
+            <Pressable onPress={isFuture ? addWish : addRecord} style={{ minHeight: 48, width: "100%", maxWidth: 280, borderRadius: 18, borderWidth: 1, borderStyle: "dashed", borderColor: "#cdc6b8", alignItems: "center", justifyContent: "center" }}>
               <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.muted }}>{isFuture ? "+ 계획 추가" : "+ 기록 추가"}</Text>
             </Pressable>
           </View>
@@ -114,8 +114,8 @@ export default function DayRoute() {
 
 function WishRow({ wish, onOpen }: { wish: Wish; onOpen: () => void }) {
   return (
-    <Pressable onPress={onOpen} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 22, borderWidth: 1, borderStyle: "dashed", borderColor: C.line2, padding: 12 }}>
-      <View style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9f0e9", alignItems: "center", justifyContent: "center" }}>
+    <Pressable onPress={onOpen} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 22, borderWidth: 1, borderStyle: "dashed", borderColor: "#ded8cb", padding: 12 }}>
+      <View style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9f0e9", alignItems: "center", justifyContent: "center" }}>
         <BookmarkIcon size={16} fill={C.brick} stroke={C.brick} />
       </View>
       <View style={{ flex: 1 }}>

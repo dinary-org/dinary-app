@@ -36,9 +36,9 @@ export const MONTH_WIDGETS = ["MonthWidget", "MonthDotsWidget", "MonthPhotoWidge
 
 // MARK: 색 · 글꼴 — MonthWidgets.swift 와 같은 값
 
-const brick = "#b4552d", paper = "#fbfaf7", ink = "#1c1a17";
-const line = "#e8e4dd", mute = "#8a8377", sub = "#6b665e", faint = "#d4cfc6", blush = "#f1d9cc";
-const dayPast = "#e8e4dd", dayAhead = "#f1efea";
+const brick = "#b4552d", paper = "#fbfaf6", ink = "#1c1a17";
+const line = "#e2ddd2", mute = "#8a8377", sub = "#6b665e", faint = "#d8d2c6", blush = "#f1d9cc";
+const dayPast = "#e2ddd2", dayAhead = "#efebe3";
 const BATANG = "GowunBatang-Regular", BATANG_B = "GowunBatang-Bold", MONO = "JetBrainsMono-Regular";
 /** 런처가 모서리를 깎지 않는 기기에서도 iOS 위젯처럼 둥글게 */
 const R = 20;
@@ -92,7 +92,7 @@ function CaptureView() {
       accessibilityLabel="바로 촬영"
       style={{ width: "match_parent", height: "match_parent", backgroundColor: brick, borderRadius: R, padding: 16, flexDirection: "column", justifyContent: "space-between" }}
     >
-      <TextWidget text="DINARY" style={{ fontSize: 12, fontWeight: "bold", letterSpacing: 0.12, color: "rgba(255, 255, 255, 0.75)" }} />
+      <TextWidget text="DINARY" style={{ fontSize: 12, fontWeight: "bold", letterSpacing: 0.12, color: "rgba(251, 250, 246, 0.75)" }} />
       <SvgWidget svg={cameraSvg(paper)} style={{ width: 44, height: 44 }} />
       <TextWidget text="바로 촬영" style={{ fontSize: 17, fontWeight: "bold", color: paper }} />
     </FlexWidget>

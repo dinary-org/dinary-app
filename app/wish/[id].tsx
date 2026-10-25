@@ -81,12 +81,12 @@ export default function WishSheetRoute() {
         <Text style={[FAINT_BOLD, { marginTop: groupLine ? 3 : 6, fontFamily: F.serif, fontSize: 22, color: C.ink }]}>{wish.name}</Text>
         <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{[wish.category, wish.where_text].filter(Boolean).join(" · ")}</Text>
         {sourceLabel && (
-          <Text style={{ marginTop: 10, alignSelf: "flex-start", borderRadius: 9, backgroundColor: C.seg, paddingHorizontal: 10, paddingVertical: 4, fontFamily: F.mono, fontSize: 10.5, color: "#4d4842", overflow: "hidden" }}>
+          <Text style={{ marginTop: 10, alignSelf: "flex-start", borderRadius: 9, backgroundColor: "#efebe2", paddingHorizontal: 10, paddingVertical: 4, fontFamily: F.mono, fontSize: 10.5, color: "#4d4842", overflow: "hidden" }}>
             {sourceLabel}에서 담음 · {wish.saved_at.slice(5, 10).replace("-", ".")}
           </Text>
         )}
         {wish.plan_date && (
-          <Text style={{ marginTop: 10, alignSelf: "flex-start", borderRadius: 9, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9f0e9", paddingHorizontal: 10, paddingVertical: 4, fontFamily: F.mono, fontSize: 10.5, color: C.brick, overflow: "hidden" }}>
+          <Text style={{ marginTop: 10, alignSelf: "flex-start", borderRadius: 9, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9f0e9", paddingHorizontal: 10, paddingVertical: 4, fontFamily: F.mono, fontSize: 10.5, color: C.brick, overflow: "hidden" }}>
             {dottedDate(wish.plan_date)} 갈 예정
           </Text>
         )}
@@ -106,7 +106,7 @@ export default function WishSheetRoute() {
             onPress={() => { setState({ kind: wishKind(wish) }); router.replace({ pathname: "/capture", params: { verifyWishId: wish.id, kind: wishKind(wish) } }); }}
             style={{ flex: 1, borderRadius: 18 }}
           />
-          <Pressable onPress={toggleNotify} disabled={busy} accessibilityLabel="근처 알림" style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: wish.notify ? C.brickLine : C.line, backgroundColor: wish.notify ? C.brickSoft : C.card, alignItems: "center", justifyContent: "center" }}>
+          <Pressable onPress={toggleNotify} disabled={busy} accessibilityLabel="근처 알림" style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: wish.notify ? "#e0c3b1" : C.line, backgroundColor: wish.notify ? C.brickSoft : C.card, alignItems: "center", justifyContent: "center" }}>
             <BellIcon size={16} stroke={wish.notify ? C.brick : C.muted} />
           </Pressable>
           {url && (
@@ -119,11 +119,11 @@ export default function WishSheetRoute() {
 
         <View style={{ marginTop: 12, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 }}>
           <Pressable onPress={() => router.replace({ pathname: "/wish/new", params: { id: wish.id } })} style={{ padding: 6 }}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>수정</Text></Pressable>
-          <Text style={{ color: C.line }}>·</Text>
+          <Text style={{ color: "#d8d3c8" }}>·</Text>
           {wish.group_id && (
             <>
               <Pressable onPress={leaveGroup} disabled={busy} style={{ padding: 6 }}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>그룹에서 빼기</Text></Pressable>
-              <Text style={{ color: C.line }}>·</Text>
+              <Text style={{ color: "#d8d3c8" }}>·</Text>
             </>
           )}
           <Pressable onPress={remove} disabled={busy} style={{ padding: 6 }}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>삭제</Text></Pressable>

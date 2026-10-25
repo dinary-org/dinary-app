@@ -116,7 +116,7 @@ export default function PeopleScreen() {
             placeholder="닉네임"
             placeholderTextColor={K.inactive}
             autoCapitalize="none"
-            style={{ marginTop: 8, minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: C.line2, backgroundColor: C.card, paddingHorizontal: 15, fontFamily: F.sans, fontSize: 13.5, color: C.ink }}
+            style={{ marginTop: 8, minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card, paddingHorizontal: 15, fontFamily: F.sans, fontSize: 13.5, color: C.ink }}
           />
           {found.map((p) => row(p, action(p)))}
           {!!q.trim() && found.length === 0 && <Text style={{ paddingVertical: 14, fontFamily: F.sans, fontSize: 12, color: C.faint }}>그 닉네임을 찾지 못했습니다.</Text>}

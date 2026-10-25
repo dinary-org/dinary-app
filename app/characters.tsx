@@ -39,7 +39,7 @@ export default function CharactersRoute() {
         right={<Text style={{ marginRight: 8, fontFamily: F.mono, fontSize: 11, color: C.faint }}>{owned.length} / {CHARACTERS.length}</Text>}
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: insets.bottom + 40 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9f0e9", paddingVertical: 10, paddingLeft: 14, paddingRight: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9f0e9", paddingVertical: 10, paddingLeft: 14, paddingRight: 10 }}>
           <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 12, color: C.ink }}>
             뽑기권 {tickets}장 · 인증 기록 {verified % VERIFIED_PER_TICKET} / {VERIFIED_PER_TICKET}
           </Text>
@@ -56,7 +56,7 @@ export default function CharactersRoute() {
             <View key={rarity} style={{ marginTop: 22 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 1.8, color: tone.ink }}>{tone.name}</Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: C.lineSoft }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: "#e2ddd2" }} />
               </View>
               <View style={{ marginTop: 10, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {CHARACTERS.filter((c) => c.rarity === rarity).map((c) => {
@@ -78,14 +78,14 @@ export default function CharactersRoute() {
                       accessibilityLabel={have ? `${c.name} 대표로` : "아직 없는 캐릭터"}
                       style={{
                         width: "31.6%", alignItems: "center", borderRadius: 16, paddingTop: 8, paddingHorizontal: 4, paddingBottom: 9,
-                        borderWidth: on ? 1.5 : 1, borderColor: on ? C.brick : C.lineSoft, backgroundColor: have ? C.card : "#f1ede4",
+                        borderWidth: on ? 1.5 : 1, borderColor: on ? C.brick : "#e2ddd2", backgroundColor: have ? C.card : "#f1ede4",
                       }}
                     >
                       {on && (
                         <Text style={{ position: "absolute", top: 6, left: 6, borderRadius: 6, backgroundColor: C.brick, paddingHorizontal: 5, paddingVertical: 1, fontFamily: F.sansMd, fontSize: 9, color: C.card, overflow: "hidden", zIndex: 1 }}>대표</Text>
                       )}
                       <Character id={c.id} size={64} locked={!have} />
-                      <Text numberOfLines={1} style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: have ? C.ink : C.dim }}>{have ? c.name : "???"}</Text>
+                      <Text numberOfLines={1} style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: have ? C.ink : "#a29a8c" }}>{have ? c.name : "???"}</Text>
                       {countLine && (
                         <Text style={{ marginTop: 2, fontFamily: F.mono, fontSize: 9.5, color: count === 2 ? C.brick : C.faint }}>{countLine}</Text>
                       )}

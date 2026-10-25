@@ -6,7 +6,6 @@ import { useAccount } from "@/data/profile";
 import type { AnniversaryPick } from "@/lib/anniversary";
 import { DEFAULT_CHARACTER, isCharacterId, type CharacterId } from "@/lib/characters";
 import { supabase } from "@/lib/supabase";
-import { C } from "@/theme";
 
 /**
  * 기록장(HANDOFF-couple.md §1·§3-1) — 개인 기록 / 연인 기록. 지도·시트·캘린더·기념일·촬영 저장 위치는
@@ -40,7 +39,7 @@ export type Books = {
 /** 나 = 벽돌색, 상대 = 청회색. */
 export const ME_COLOR = "#b4552d";
 export const PARTNER_COLOR = "#4f6b7a";
-export const EMPTY_AVATAR = C.lineStrong;
+export const EMPTY_AVATAR = "#cfc8ba";
 
 export const useBooks = () => {
   const session = useSession();

@@ -84,7 +84,7 @@ export default function RecapInvite() {
             <Text style={{ fontFamily: F.sansMd, fontSize: 14.5, color: C.card }}>지금 보기</Text>
           </Pressable>
           <Pressable onPress={dismiss} hitSlop={6} style={{ alignItems: "center" }}>
-            <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.dim }}>나중에 · 캘린더 탭에서 다시 볼 수 있어요</Text>
+            <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: "#a29a8c" }}>나중에 · 캘린더 탭에서 다시 볼 수 있어요</Text>
           </Pressable>
         </View>
       </Animated.View>
@@ -98,7 +98,7 @@ const s = StyleSheet.create({
     shadowColor: "#1c1a17", shadowOpacity: 0.4, shadowRadius: 60, shadowOffset: { width: 0, height: 24 }, elevation: 16,
   },
   x: {
-    position: "absolute", top: 18, right: 18, width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,.14)",
+    position: "absolute", top: 18, right: 18, width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(251,250,246,.14)",
     alignItems: "center", justifyContent: "center",
   },
   watch: { height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },

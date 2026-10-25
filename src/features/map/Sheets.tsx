@@ -74,7 +74,7 @@ export function SortMenu<T extends string>(p: {
                   onPress={() => { p.onChange(o.value); p.onClose(); }}
                   accessibilityRole="button"
                   accessibilityState={{ selected: on }}
-                  style={({ pressed }) => ({ minHeight: 40, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, paddingHorizontal: 14, backgroundColor: pressed ? C.seg : "transparent" })}
+                  style={({ pressed }) => ({ minHeight: 40, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, paddingHorizontal: 14, backgroundColor: pressed ? "#f3efe6" : "transparent" })}
                 >
                   <Text style={{ fontFamily: on ? F.sansMd : F.sans, fontSize: 13, color: on ? C.ink : C.muted }}>{o.label}</Text>
                   <Text style={{ fontFamily: F.sans, fontSize: 13, color: C.ink, opacity: on ? 1 : 0 }}>✓</Text>
@@ -100,7 +100,7 @@ export function FoundSheet(p: {
             <View style={{ flex: 1 }}>
               <Text style={[FAINT_BOLD, { marginTop: p.hit.fromPin ? 0 : 6, fontFamily: F.serif, fontSize: 22, color: C.ink }]}>{r.name}</Text>
               <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{[r.category, r.region].filter(Boolean).join(" · ")}</Text>
-              <Text style={{ marginTop: 6, fontFamily: F.mono, fontSize: 10.5, color: C.dim }}>
+              <Text style={{ marginTop: 6, fontFamily: F.mono, fontSize: 10.5, color: "#a29a8c" }}>
                 {[`★ ${p.hit.place.rating == null ? "—" : p.hit.place.rating.toFixed(1)}`, `기록 ${p.hit.place.visits.length}건`,
                   p.hit.place.latest.visited_at && `${dottedDate(p.hit.place.latest.visited_at)} 방문`].filter(Boolean).join(" · ")}
               </Text>
@@ -110,10 +110,10 @@ export function FoundSheet(p: {
           </View>
           <View style={{ marginTop: 14, flexDirection: "row", gap: 8 }}>
             <Button label="기록 추가" onPress={p.onRevisit} style={{ flex: 1, minHeight: 48, borderRadius: 16 }} />
-            <Pressable onPress={p.onWish} accessibilityLabel="위시리스트에 담기" style={{ width: 48, height: 48, borderRadius: 16, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center" }}>
+            <Pressable onPress={p.onWish} accessibilityLabel="위시리스트에 담기" style={{ width: 48, height: 48, borderRadius: 16, borderWidth: 1, borderColor: "#e4dfd3", alignItems: "center", justifyContent: "center" }}>
               <BookmarkIcon size={16} stroke={C.muted} />
             </Pressable>
-            <Button kind="line" label="기록 보기" onPress={p.onOpen} style={{ minHeight: 48, borderRadius: 16, borderColor: C.line2 }} />
+            <Button kind="line" label="기록 보기" onPress={p.onOpen} style={{ minHeight: 48, borderRadius: 16, borderColor: "#e4dfd3" }} />
           </View>
         </>
   );
@@ -159,7 +159,7 @@ export function WishPinCard(p: { wishes: Wish[] | null; onOpen: (id: string) => 
         onPress={() => setOpen((v) => !v)}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
-        style={{ marginTop: 12, minHeight: 44, borderRadius: 14, borderWidth: 1, borderColor: C.brickLine, backgroundColor: C.brickSoft, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+        style={{ marginTop: 12, minHeight: 44, borderRadius: 14, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: C.brickSoft, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
       >
         <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.brick }}>{p.wishes.length}군데에서 담았어요</Text>
         <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>{open ? "접기 ▴" : "펼치기 ▾"}</Text>
@@ -197,7 +197,7 @@ export function SearchMissSheet(p: { name: string | null; onAddRecord: () => voi
       <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 11.5, lineHeight: 18, color: C.faint }}>기록에도 위시리스트에도 없는 이름입니다. 어느 쪽으로 둘까요?</Text>
       <View style={{ marginTop: 14, gap: 8 }}>
         <Button label="다녀왔어요 · 기록 추가" onPress={p.onAddRecord} style={{ borderRadius: 18 }} />
-        <Pressable onPress={p.onAddWish} style={{ minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: C.line2, flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center" }}>
+        <Pressable onPress={p.onAddWish} style={{ minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", flexDirection: "row", gap: 8, alignItems: "center", justifyContent: "center" }}>
           <BookmarkIcon size={14} stroke={C.ink} />
           <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>가고 싶어요 · 예정 추가</Text>
         </Pressable>

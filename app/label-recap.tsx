@@ -22,7 +22,7 @@ import { WEB_BASE } from "@/lib/web";
 import { C, F } from "@/theme";
 
 const INK = "#1c1a17";
-const PAPER = C.paper;
+const PAPER = "#f6f3ec";
 const MUTED = "#8a8377";
 const LINE = "#e2dccf";
 const LINE2 = "#d6cfc1";
@@ -211,7 +211,7 @@ function SummarySlide({ recap, onShare, onClose }: { recap: LabelRecap; onShare?
           {tiles.map((j) => {
             const uri = photoOf(j.row);
             return (
-              <View key={j.row.id} style={{ width: tile, height: tile, borderRadius: 12, overflow: "hidden", backgroundColor: C.lineSoft, alignItems: "center", justifyContent: "center" }}>
+              <View key={j.row.id} style={{ width: tile, height: tile, borderRadius: 12, overflow: "hidden", backgroundColor: "#ece7dc", alignItems: "center", justifyContent: "center" }}>
                 {uri ? <SignedImage uri={uri} style={StyleSheet.absoluteFill} /> : <Stamp size={tile * 0.42} />}
                 <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingVertical: 4, paddingHorizontal: 7, backgroundColor: "rgba(20,18,16,.55)" }}>
                   <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 10, color: PAPER }}>{j.row.name}</Text>
@@ -289,7 +289,7 @@ function ShareCard({ recap, photos }: { recap: LabelRecap; photos: boolean }) {
         <View style={{ marginTop: 20, marginHorizontal: -14, flexDirection: "row", flexWrap: "wrap", columnGap: PHOTO_GAP, rowGap: 8 }}>
           {Array.from({ length: 10 }, (_, k) => last10[k]).map((j, k) => (
             <View key={k} style={{ width: PHOTO_W }}>
-              <View style={{ width: PHOTO_W, height: PHOTO_W * 4 / 3, borderRadius: 8, overflow: "hidden", backgroundColor: C.line2 }}>
+              <View style={{ width: PHOTO_W, height: PHOTO_W * 4 / 3, borderRadius: 8, overflow: "hidden", backgroundColor: "#e6e0d3" }}>
                 {j && photoOf(j.row) && <SignedImage uri={photoOf(j.row)} style={{ width: PHOTO_W, height: PHOTO_W * 4 / 3 }} />}
               </View>
               <Text numberOfLines={1} style={{ marginTop: 3, fontFamily: F.sans, fontSize: 8, color: "#4d4842" }}>{j?.row.name ?? ""}</Text>
@@ -314,7 +314,7 @@ function ShareCard({ recap, photos }: { recap: LabelRecap; photos: boolean }) {
 }
 
 const CardRow = ({ k, v, last }: { k: string; v: string; last?: boolean }) => (
-  <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: last ? 0 : 1, borderBottomColor: C.lineSoft }}>
+  <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: last ? 0 : 1, borderBottomColor: "#ece7dc" }}>
     <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: "#8a8377" }}>{k}</Text>
     <Text style={{ fontFamily: F.mono, fontSize: 11.5, color: INK }}>{v}</Text>
   </View>
@@ -376,9 +376,9 @@ function ShareView({ recap, onBack }: { recap: LabelRecap; onBack: () => void })
     { id: "ig", label: "인스타 스토리", bg: "#c1446f", icon: <IgGlyph />, run: sendImage },
     { id: "kakao", label: "카카오톡", bg: "#f7e04b", icon: <BubbleGlyph color="#3b1e1e" />, run: sendImage },
     { id: "sms", label: "메시지", bg: "#4caf62", icon: <BubbleGlyph color="#fff" />, run: sendImage },
-    { id: "save", label: "이미지 저장", bg: C.seg, icon: <SaveGlyph />, run: saveImage },
-    { id: "link", label: "링크 복사", bg: C.seg, icon: <LinkGlyph />, run: copyLink },
-    { id: "more", label: "더보기", bg: C.seg, icon: <MoreGlyph />, run: sendImage },
+    { id: "save", label: "이미지 저장", bg: "#efebe2", icon: <SaveGlyph />, run: saveImage },
+    { id: "link", label: "링크 복사", bg: "#efebe2", icon: <LinkGlyph />, run: copyLink },
+    { id: "more", label: "더보기", bg: "#efebe2", icon: <MoreGlyph />, run: sendImage },
   ];
 
   return (

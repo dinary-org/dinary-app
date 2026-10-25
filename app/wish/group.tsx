@@ -291,14 +291,14 @@ function PlaceRow({ place, index, last, dragging, offset, onArm, onMove, onDrop 
           <Text numberOfLines={1} style={{ fontFamily: F.serif, fontSize: 14, color: C.ink }}>{place.name}</Text>
           {!!meta && <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: 11, color: C.faint }}>{meta}</Text>}
         </View>
-        <Text style={{ fontFamily: F.sans, fontSize: 15, color: C.ghost }}>≡</Text>
+        <Text style={{ fontFamily: F.sans, fontSize: 15, color: "#c4bdb0" }}>≡</Text>
       </Pressable>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  strip: { marginTop: 10, borderRadius: 14, borderWidth: 1, borderColor: C.brickLine, backgroundColor: "#f9efe8", paddingVertical: 10, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
+  strip: { marginTop: 10, borderRadius: 14, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: "#f9efe8", paddingVertical: 10, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10 },
   nameBox: { marginTop: 8, height: 52, borderRadius: 14, borderWidth: 1.5, borderColor: C.brick, backgroundColor: C.card, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8 },
   suggest: { height: 32, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: "#c9a593", paddingHorizontal: 12, justifyContent: "center" },
   dateRow: { marginTop: 18, height: 46, borderRadius: 14, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, paddingHorizontal: 14, flexDirection: "row", alignItems: "center" },

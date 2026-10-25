@@ -55,7 +55,7 @@ export default function PlaceRoute() {
         {/* 기록 화면과 같이 가로 5 : 세로 4. 뒤로 버튼은 사진 위에 겹쳐 둡니다. */}
         <PhotoBox src={place.photo} category={place.category} radius={0} style={place.photo ? { width: "100%", aspectRatio: 5 / 4 } : { width: "100%", height: 210 }}>
           {!place.photo && (
-            <Text style={{ position: "absolute", left: 20, bottom: 18, fontFamily: F.mono, fontSize: 9.5, letterSpacing: 1.3, color: "rgba(255,255,255,.85)" }}>
+            <Text style={{ position: "absolute", left: 20, bottom: 18, fontFamily: F.mono, fontSize: 9.5, letterSpacing: 1.3, color: "rgba(251,250,246,.85)" }}>
               {place.category} · {place.visits.length}번 방문
             </Text>
           )}
@@ -66,12 +66,12 @@ export default function PlaceRoute() {
           <Text style={{ marginTop: 8, fontFamily: F.sans, fontSize: 12, color: C.faint }}>
             {[place.category, place.region].filter(Boolean).join(" · ")}
           </Text>
-          {place.address && <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 11.5, color: C.dim }}>{place.address}</Text>}
+          {place.address && <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 11.5, color: "#a29a8c" }}>{place.address}</Text>}
 
           <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
             <MobileStars rating={place.rating} size={15} />
             <Text style={{ fontFamily: F.mono, fontSize: 12, color: C.muted }}>{place.rating?.toFixed(1) ?? "—"}</Text>
-            <View style={{ width: 1, height: 13, backgroundColor: C.line2 }} />
+            <View style={{ width: 1, height: 13, backgroundColor: "#ded8cb" }} />
             <Pigs row={place} w={18} h={17} />
             <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>{feltLabel(feltLevel(place))}</Text>
           </View>
@@ -88,13 +88,13 @@ export default function PlaceRoute() {
             {/* 기록 추가 옆에 「또 갈 예정으로 담기」를 책갈피 단추로 */}
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Button style={{ flex: 1 }} label="기록 추가" onPress={revisit} />
-              <Pressable onPress={addWish} accessibilityLabel="또 갈 예정으로 담기" style={{ width: 50, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: C.line2, alignItems: "center", justifyContent: "center" }}>
+              <Pressable onPress={addWish} accessibilityLabel="또 갈 예정으로 담기" style={{ width: 50, minHeight: 50, borderRadius: 18, borderWidth: 1, borderColor: "#ded8cb", alignItems: "center", justifyContent: "center" }}>
                 <BookmarkIcon size={18} fill={C.brick} stroke={C.brick} />
               </Pressable>
             </View>
           </View>
 
-          <View style={{ marginTop: 26, paddingTop: 18, borderTopWidth: 1, borderTopColor: C.line2, flexDirection: "row", justifyContent: "space-between" }}>
+          <View style={{ marginTop: 26, paddingTop: 18, borderTopWidth: 1, borderTopColor: "#ded8cb", flexDirection: "row", justifyContent: "space-between" }}>
             <Eyebrow>RECORDS</Eyebrow>
             <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>기록 {place.visits.length}개</Text>
           </View>
@@ -106,7 +106,7 @@ export default function PlaceRoute() {
                 <Pressable
                   key={v.id}
                   onPress={() => router.push({ pathname: "/record/[id]", params: { id: String(v.id) } })}
-                  style={{ borderRadius: 18, borderWidth: 1, borderColor: v.verified ? C.brickLine : "#e2dccf", backgroundColor: C.card, paddingHorizontal: 15, paddingVertical: 13 }}
+                  style={{ borderRadius: 18, borderWidth: 1, borderColor: v.verified ? "#e0c3b1" : "#e2dccf", backgroundColor: C.card, paddingHorizontal: 15, paddingVertical: 13 }}
                 >
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <Text style={{ fontFamily: F.mono, fontSize: 12, color: C.ink }}>
@@ -120,7 +120,7 @@ export default function PlaceRoute() {
                   <Text style={{ marginTop: 7, fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>{v.menu || "메뉴를 쓰지 않았습니다"}</Text>
                   <Text numberOfLines={2} style={{ marginTop: 5, fontFamily: F.sans, fontSize: 11.5, lineHeight: 18, color: "#4d4842" }}>{v.review || "메모가 비어 있습니다"}</Text>
                   <View style={{ marginTop: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                    <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: C.dim }}>
+                    <Text style={{ fontFamily: F.mono, fontSize: 9.5, color: "#a29a8c" }}>
                       {shots ? `${shots}장 · PHOTO ${Math.min(v.cover_index ?? 0, shots - 1) + 1}` : "사진 없음"}
                     </Text>
                     {!v.pending && <ShareButton onPress={() => setSharing(v)} />}
@@ -131,7 +131,7 @@ export default function PlaceRoute() {
           </View>
         </View>
       </ScrollView>
-      <View style={{ position: "absolute", left: 16, top: insets.top + 8, backgroundColor: "rgba(255,255,255,.92)", borderRadius: 22 }}>
+      <View style={{ position: "absolute", left: 16, top: insets.top + 8, backgroundColor: "rgba(251,250,246,.92)", borderRadius: 22 }}>
         <BackButton />
       </View>
       {sharing && <ShareSheet record={sharing} visible onClose={() => setSharing(null)} />}

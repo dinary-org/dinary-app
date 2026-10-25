@@ -51,7 +51,7 @@ export function Players({ names, setNames }: { names: string[]; setNames: Dispat
               disabled={names.length <= MIN_PLAYERS}
               hitSlop={6}
               accessibilityLabel={`${players[i]} 빼기`}
-              style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.seg, alignItems: "center", justifyContent: "center", opacity: names.length <= MIN_PLAYERS ? 0.4 : 1 }}
+              style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#efebe2", alignItems: "center", justifyContent: "center", opacity: names.length <= MIN_PLAYERS ? 0.4 : 1 }}
             >
               <Text style={{ fontFamily: F.sansMd, fontSize: 14, lineHeight: 16, color: C.muted }}>−</Text>
             </Pressable>

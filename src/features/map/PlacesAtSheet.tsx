@@ -204,7 +204,7 @@ function Skeleton({ radiusMode, onClose }: { radiusMode: boolean; onClose: () =>
     loop.start();
     return () => loop.stop();
   }, [pulse]);
-  const bar = (w: number | `${number}%`, h: number, mt = 0) => <View style={{ width: w, height: h, marginTop: mt, borderRadius: h / 2, backgroundColor: C.line2 }} />;
+  const bar = (w: number | `${number}%`, h: number, mt = 0) => <View style={{ width: w, height: h, marginTop: mt, borderRadius: h / 2, backgroundColor: "#e6e0d3" }} />;
   const rows = useMemo(() => [0.62, 0.48, 0.55], []);
   return (
     <View accessibilityLabel="불러오는 중">
@@ -223,7 +223,7 @@ function Skeleton({ radiusMode, onClose }: { radiusMode: boolean; onClose: () =>
       <Animated.View style={{ opacity: pulse, marginTop: 18 }}>
         {rows.map((w, i) => (
           <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 11, minHeight: 56, borderBottomWidth: i < 2 ? 1 : 0, borderBottomColor: C.lineSoft }}>
-            <View style={{ width: 8, height: 8, borderRadius: 4, marginHorizontal: 2, backgroundColor: C.line2 }} />
+            <View style={{ width: 8, height: 8, borderRadius: 4, marginHorizontal: 2, backgroundColor: "#e6e0d3" }} />
             <View style={{ flex: 1 }}>
               {bar(`${Math.round(w * 100)}%` as `${number}%`, 12)}
               {bar(`${Math.round(w * 60)}%` as `${number}%`, 9, 7)}

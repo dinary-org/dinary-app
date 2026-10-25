@@ -23,7 +23,7 @@ function BackPill() {
       onPress={() => router.navigate("/calendar")}
       accessibilityRole="button"
       accessibilityLabel="캘린더로 돌아가기"
-      style={{ alignSelf: "flex-start", height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingLeft: 10, paddingRight: 14, flexDirection: "row", alignItems: "center", gap: 4 }}
+      style={{ alignSelf: "flex-start", height: 40, borderRadius: 20, borderWidth: 1, borderColor: "#d8d3c8", backgroundColor: C.card, paddingLeft: 10, paddingRight: 14, flexDirection: "row", alignItems: "center", gap: 4 }}
     >
       <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.ink} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <Path d="M15 5l-7 7 7 7" />
@@ -162,5 +162,5 @@ export default function AnniversaryTab() {
 }
 
 const emptyBox = {
-  flex: 1, minHeight: 72, borderRadius: 18, borderWidth: 1, borderStyle: "dashed" as const, borderColor: C.lineStrong, padding: 14,
+  flex: 1, minHeight: 72, borderRadius: 18, borderWidth: 1, borderStyle: "dashed" as const, borderColor: "#cdc6b8", padding: 14,
 };

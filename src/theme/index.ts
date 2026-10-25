@@ -2,35 +2,21 @@ import { Platform, type TextStyle, type ViewStyle } from "react-native";
 
 /** src/app/globals.css @theme 과 같은 값 — 핸드오프 §3. */
 export const C = {
-  paper: "#fbfaf7",
-  card: "#fdfdfb",
+  paper: "#f6f3ec",
+  card: "#fbfaf6",
   ink: "#1c1a17",
   brick: "#b4552d",
-  brickSoft: "#f8ede6",
+  brickSoft: "#f7ece5",
   /** 좋아요 하트 — 벽돌색보다 붉은 빨강. */
   heart: "#e5303a",
-  line: "#dcd8d1",
-  lineSoft: "#e8e4dd",
-  /** 카드 테두리 · 선 버튼 · 빈 별 · 구분선 */
-  line2: "#e1ddd5",
-  /** 시트 손잡이 · 「|」 구분 · 빈 아바타 */
-  lineStrong: "#d0cbc1",
-  /** 고르지 않은 맛집/카페 글씨 */
-  ghost: "#c5c0b7",
-  /** 꺼진 탭 아이콘 · 글씨, 입력 안내 글씨 */
-  dim: "#a29c91",
-  /** 세그먼트 바탕(맛집 기록/위시리스트, 게임) · 작은 아이콘 칸 */
-  seg: "#f1efe9",
-  /** 개수 배지 · 태그 칩 · 아바타 칸 */
-  chip: "#f1ede5",
-  /** 인증 카드 테두리 · 날짜 정한 위시 테두리 · 칩 테두리 */
-  brickLine: "#e4c7b5",
+  line: "#d8d3c8",
+  lineSoft: "#e2ddd2",
   muted: "#6b665e",
   faint: "#8a8377",
-  map: "#ece9e3",
-  mapGrid: "#e0dcd4",
-  mapRoad: "#f7f5ef",
-  mapPark: "#e1e6db",
+  map: "#e7e3d8",
+  mapGrid: "#dcd7c9",
+  mapRoad: "#f1ede2",
+  mapPark: "#dfe4d6",
   /** 촬영 화면 배경 */
   dark: "#171614",
   /** 첫 실행 튜토리얼 — 화면을 덮는 어둠 · 구멍 둘레 점선 */

@@ -171,7 +171,7 @@ export function MyAccount() {
 
       <View style={{ marginTop: 16, flexDirection: "row", alignItems: "center", gap: 14 }}>
         <Pressable onPress={pickPhoto} disabled={avatarBusy} accessibilityLabel="프로필 사진 바꾸기" style={{ opacity: avatarBusy ? 0.7 : 1 }}>
-          <View style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: C.line, backgroundColor: C.line2, overflow: "hidden" }}>
+          <View style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: C.line, backgroundColor: "#ded8cb", overflow: "hidden" }}>
             {account.avatarUrl && <SignedImage uri={account.avatarUrl} style={{ width: 64, height: 64 }} />}
           </View>
           <View style={{ position: "absolute", right: -2, bottom: -2, width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: C.paper, backgroundColor: C.ink, alignItems: "center", justifyContent: "center" }}>
@@ -236,7 +236,7 @@ export function MyAccount() {
               key={o.id}
               onPress={() => pickCharacter(o.id)}
               accessibilityLabel={`${CHARACTERS.find((c) => c.id === o.id)?.name} 대표로`}
-              style={{ width: 62, height: 62, borderRadius: 16, borderWidth: on ? 1.5 : 1, borderColor: on ? C.brick : C.lineSoft, backgroundColor: on ? C.brickSoft : C.card, alignItems: "center", justifyContent: "center" }}
+              style={{ width: 62, height: 62, borderRadius: 16, borderWidth: on ? 1.5 : 1, borderColor: on ? C.brick : "#e2ddd2", backgroundColor: on ? C.brickSoft : C.card, alignItems: "center", justifyContent: "center" }}
             >
               <Character id={o.id} size={48} />
             </Pressable>
@@ -260,7 +260,7 @@ export function MyAccount() {
               const fresh = isNew(l.id);
               return (
                 <Pressable key={l.id} onPress={() => selectTitleLabel(l.id)} disabled={labelBusy} style={{ borderRadius: 13, borderWidth: 1, borderColor: on || fresh ? C.brick : "rgba(180,85,45,.2)", backgroundColor: on ? C.brick : C.brickSoft, paddingHorizontal: 11, paddingVertical: 5, opacity: labelBusy ? 0.6 : 1 }}>
-                  <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: on ? C.card : C.brick }}>{on ? "✓ " : ""}{l.name}{fresh ? " · 새로" : ""}</Text>
+                  <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: on ? "#fdf9f3" : C.brick }}>{on ? "✓ " : ""}{l.name}{fresh ? " · 새로" : ""}</Text>
                 </Pressable>
               );
             })}

@@ -204,7 +204,7 @@ export default function WishLinkRoute() {
                         </Text>
                       )}
                     </View>
-                    <View style={[s.check, on ? { backgroundColor: C.brick } : { borderWidth: 1.5, borderColor: C.lineStrong }]}>
+                    <View style={[s.check, on ? { backgroundColor: C.brick } : { borderWidth: 1.5, borderColor: "#cdc6b8" }]}>
                       {on && <CheckIcon size={13} stroke="#fff" />}
                     </View>
                   </Pressable>

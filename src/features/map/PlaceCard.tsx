@@ -31,11 +31,11 @@ export default function PlaceCard({ place, onOpen, couple, onShare, noComment }:
   return (
     <Pressable
       onPress={onOpen}
-      style={[{ flexDirection: "row", gap: 12, borderRadius: 20, borderWidth: 1, borderColor: place.verified ? C.brickLine : C.line2, backgroundColor: C.card, padding: 12 }, SHADOW.card]}
+      style={[{ flexDirection: "row", gap: 12, borderRadius: 20, borderWidth: 1, borderColor: place.verified ? "#e0c3b1" : "#ded8cb", backgroundColor: C.card, padding: 12 }, SHADOW.card]}
     >
       <View style={{ alignSelf: "flex-start" }}>
         <PhotoBox src={place.photo} category={place.category} size={74} radius={15}>
-          {!place.photo && <Text style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: 0.7, color: "rgba(255,255,255,.9)" }}>{place.visits.length}장</Text>}
+          {!place.photo && <Text style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: 0.7, color: "rgba(251,250,246,.9)" }}>{place.visits.length}장</Text>}
         </PhotoBox>
         {place.verified && <View style={{ position: "absolute", right: 2, bottom: 2 }}><VerifiedMark size={21} /></View>}
       </View>
@@ -44,7 +44,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare, noComment }:
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Text numberOfLines={1} style={[tight, FAINT_BOLD, { flexShrink: 1, fontFamily: F.serif, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
           {place.visits.length > 1 && (
-            <View style={[badge, { backgroundColor: C.chip }]}>
+            <View style={[badge, { backgroundColor: "#efe9dc" }]}>
               <Text style={[badgeText, { fontFamily: F.mono, fontSize: 9, color: C.muted }]}>기록 {place.visits.length}</Text>
             </View>
           )}
@@ -63,7 +63,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare, noComment }:
         {!!(place.category || place.latest.menu) && (
           <View style={{ marginTop: 3, flexDirection: "row", alignItems: "center" }}>
             {!!place.category && <Text numberOfLines={1} style={[tight, { flexShrink: 0, fontFamily: F.sansMd, fontSize: 11.5, lineHeight: 17, color: C.faint }]}>{place.category}</Text>}
-            {!!place.category && !!place.latest.menu && <Text style={[tight, { paddingHorizontal: 6, fontFamily: F.sans, fontSize: 11.5, lineHeight: 17, color: C.lineStrong }]}>|</Text>}
+            {!!place.category && !!place.latest.menu && <Text style={[tight, { paddingHorizontal: 6, fontFamily: F.sans, fontSize: 11.5, lineHeight: 17, color: "#cfc8ba" }]}>|</Text>}
             {!!place.latest.menu && <Text numberOfLines={1} style={[tight, { flexShrink: 1, fontFamily: F.sans, fontSize: 11.5, lineHeight: 17, color: "#4d4842" }]}>{place.latest.menu}</Text>}
           </View>
         )}
@@ -71,7 +71,7 @@ export default function PlaceCard({ place, onOpen, couple, onShare, noComment }:
         <View style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 8 }}>
           <MobileStars rating={place.rating} />
           <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.muted }}>{place.rating?.toFixed(1) ?? "—"}</Text>
-          <View style={{ width: 1, height: 11, backgroundColor: C.line2 }} />
+          <View style={{ width: 1, height: 11, backgroundColor: "#ded8cb" }} />
           <Pigs row={place} />
         </View>
         {couple ? (

@@ -127,7 +127,7 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
   );
 }
 
-const OFF = C.dim;
+const OFF = "#a29a8c";
 
 const s = StyleSheet.create({
   bar: {

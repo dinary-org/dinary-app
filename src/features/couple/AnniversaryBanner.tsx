@@ -4,7 +4,7 @@ import { Text } from "@/components/Text";
 import { RingsIcon } from "@/components/icons";
 import { daysBetween, mealFor, milestonesUntil, nextMilestone, todayIso, type AnniversaryPick } from "@/lib/anniversary";
 import type { Restaurant } from "@/lib/types";
-import { C, F } from "@/theme";
+import { F } from "@/theme";
 
 /**
  * 캘린더 위 기념일 배너(HANDOFF-recommend §3-2, 시안 4a) — 연인 기록일 때 RecapCard 자리.
@@ -38,14 +38,14 @@ export default function AnniversaryBanner({ startedOn, picks, rows }: { startedO
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
-          <Text style={{ fontFamily: F.serif, fontSize: 14.5, color: C.card }}>다음 {next.label}</Text>
+          <Text style={{ fontFamily: F.serif, fontSize: 14.5, color: "#fbfaf6" }}>다음 {next.label}</Text>
           <Text style={{ fontFamily: F.mono, fontSize: 11, color: "#e08a63" }}>{left === 0 ? "D-DAY" : `D-${left}`}</Text>
         </View>
         {pastLine && <Text numberOfLines={1} style={{ marginTop: 2, fontFamily: F.sans, fontSize: 10.5, color: "#c9c2b4" }}>{pastLine}</Text>}
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
         <Text style={{ fontFamily: F.sans, fontSize: 11, color: "#c9c2b4" }}>기념일</Text>
-        <Text style={{ fontSize: 16, color: C.card }}>›</Text>
+        <Text style={{ fontSize: 16, color: "#fbfaf6" }}>›</Text>
       </View>
     </Pressable>
   );

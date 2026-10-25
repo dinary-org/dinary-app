@@ -79,7 +79,7 @@ export default function Welcome() {
       <Text style={{ marginTop: 10, fontFamily: F.sans, fontSize: 12.5, lineHeight: 22, color: C.faint }}>기록장 맨 위에 쓰입니다. 나중에 바꿀 수 있습니다.</Text>
 
       <View style={{ marginTop: 34, flexDirection: "row", alignItems: "center", gap: 16 }}>
-        <View style={{ width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderColor: C.line, backgroundColor: C.line2, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 78, height: 78, borderRadius: 39, borderWidth: 1, borderColor: C.line, backgroundColor: "#ded8cb", overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
           {avatarUrl ? <SignedImage uri={avatarUrl} style={{ width: 78, height: 78 }} /> : <Text style={{ fontFamily: F.mono, fontSize: 8.5, letterSpacing: 0.5, color: C.faint }}>{uploading ? "…" : "PHOTO"}</Text>}
         </View>
         <Pressable onPress={pickPhoto} disabled={uploading} style={{ minHeight: 38, borderRadius: 19, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 14, justifyContent: "center", opacity: uploading ? 0.7 : 1 }}>

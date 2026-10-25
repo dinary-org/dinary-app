@@ -26,8 +26,8 @@ export function LabelBadge({ label, selected, size = 80 }: { label: EarnedLabel;
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size} viewBox="-4 -4 108 108">
-        <Path d={SCALLOP} fill={earned ? color : C.line2} />
-        <Circle cx={50} cy={50} r={36} fill={earned ? C.card : C.seg} />
+        <Path d={SCALLOP} fill={earned ? color : "#e6e0d3"} />
+        <Circle cx={50} cy={50} r={36} fill={earned ? C.card : "#f3efe6"} />
         {earned && <Circle cx={50} cy={50} r={31} fill="none" stroke={color + "55"} strokeWidth={1} strokeDasharray="2 2.5" />}
         <G transform="translate(29 29) scale(1.75)">
           <Path d={label.icon} fill="none" stroke={earned ? color : "#bdb4a3"} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />

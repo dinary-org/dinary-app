@@ -113,7 +113,7 @@ export default function GalleryPhotoScreen() {
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.paper }}>
       {header}
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }} keyboardShouldPersistTaps="handled">
-        <Pressable onPress={tapPhoto} accessibilityLabel="사진 · 두 번 누르면 좋아요" style={{ width, height: width, backgroundColor: C.lineSoft }}>
+        <Pressable onPress={tapPhoto} accessibilityLabel="사진 · 두 번 누르면 좋아요" style={{ width, height: width, backgroundColor: "#ece7dc" }}>
           <SignedImage uri={photo.photo_ref} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
           <Animated.View
             pointerEvents="none"

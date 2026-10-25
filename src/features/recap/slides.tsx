@@ -3,7 +3,7 @@ import { Text } from "@/components/Text";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { REGION_TIERS } from "@/lib/labels";
 import { pinColor } from "@/lib/types";
-import { C, F } from "@/theme";
+import { F } from "@/theme";
 import { A, CountUp, Rosette, Star } from "./anim";
 import type { RecapData, TopPlace } from "./compute";
 import { eunNeun, gwaWa, mdd, mmdd, nativeCount, parseQuarter, type Season } from "./seasons";
@@ -31,8 +31,8 @@ export type SlideProps = {
 };
 
 const INK = "#1c1a17";
-const CARD = C.card;
-const PAPER = C.paper;
+const CARD = "#fbfaf6";
+const PAPER = "#f6f3ec";
 
 const serif = (size: number, color?: string, lh?: number): TextStyle => ({
   fontFamily: F.serif, fontSize: size, color, lineHeight: lh ? Math.round(size * lh) : undefined,
@@ -45,7 +45,7 @@ const mono = (size: number, color?: string, ls = 0): TextStyle => ({ fontFamily:
 /** 사진이 없을 때 — 분류 색이 비치는 빗금 대신 옅은 면. */
 function Thumb({ uri, category, size, radius, h }: { uri: string | null; category: string | null; size?: number; radius: number; h?: number }) {
   return (
-    <View style={{ width: size ?? "100%", height: h ?? size, borderRadius: radius, overflow: "hidden", backgroundColor: uri ? C.line2 : pinColor(category) + "40" }}>
+    <View style={{ width: size ?? "100%", height: h ?? size, borderRadius: radius, overflow: "hidden", backgroundColor: uri ? "#ded8cb" : pinColor(category) + "40" }}>
       {uri ? <SignedImage uri={uri} style={StyleSheet.absoluteFill} resizeMode="cover" /> : null}
     </View>
   );
@@ -62,7 +62,7 @@ export function Cover({ season, nick, L }: SlideProps) {
         <A k="up" d={210}><Text style={mono(11, "#cdc6b8", 2.2)}>{season.months}</Text></A>
         <A k="up" d={300}><Text style={serif(54, CARD, 1.18)}>{`${nick}의\n${season.name} 식탁`}</Text></A>
         <A k="up" d={390}><Text style={sans(14, "#cdc6b8", 1.8)}>{season.range}, 석 달 동안 남긴 기록을 한 장씩 넘겨 봅니다.</Text></A>
-        <A k="fade" d={900} style={{ marginTop: 18 }}><Text style={mono(10.5, C.dim, 1.6)}>탭해서 넘기기 →</Text></A>
+        <A k="fade" d={900} style={{ marginTop: 18 }}><Text style={mono(10.5, "#a29a8c", 1.6)}>탭해서 넘기기 →</Text></A>
       </View>
     </View>
   );
@@ -99,9 +99,9 @@ export function Numbers({ data, season, L }: SlideProps) {
             <Text style={sans(13, "#6b665e")}>{diffText}</Text>
           </A>
         )}
-        <View style={{ marginTop: 48, flexDirection: "row", borderTopWidth: 1, borderTopColor: C.line }}>
+        <View style={{ marginTop: 48, flexDirection: "row", borderTopWidth: 1, borderTopColor: "#d8d3c8" }}>
           {cols.map((c, i) => (
-            <A key={c.label} k="up" d={c.d} style={[{ flex: 1, paddingTop: 18, gap: 6 }, i > 0 && { paddingLeft: 16, borderLeftWidth: 1, borderLeftColor: C.line }]}>
+            <A key={c.label} k="up" d={c.d} style={[{ flex: 1, paddingTop: 18, gap: 6 }, i > 0 && { paddingLeft: 16, borderLeftWidth: 1, borderLeftColor: "#d8d3c8" }]}>
               <CountUp value={c.n} style={serif(38, c.accent ? season.accent : INK)} />
               <Text style={sans(12, "#6b665e")}>{c.label}</Text>
             </A>
@@ -158,7 +158,7 @@ export function Labels({ data, season, L }: SlideProps) {
                     </Text>
                     <Text style={mono(11, season.accent)}>{p.have} / {p.need}</Text>
                   </View>
-                  <View style={{ height: 6, borderRadius: 3, backgroundColor: C.line2 }}>
+                  <View style={{ height: 6, borderRadius: 3, backgroundColor: "#e6e0d3" }}>
                     <A k="x" d={1100 + i * 100} style={{ width: `${(p.have / p.need) * 100}%`, height: "100%", borderRadius: 3, backgroundColor: season.accent }} />
                   </View>
                 </A>
@@ -229,7 +229,7 @@ function Top5Row({ p, rank, d }: { p: TopPlace; rank: number; d: number }) {
       d={d}
       style={[
         { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 20, paddingVertical: 12, paddingLeft: 12, paddingRight: 16 },
-        first ? { backgroundColor: INK } : { backgroundColor: CARD, borderWidth: 1, borderColor: C.lineSoft },
+        first ? { backgroundColor: INK } : { backgroundColor: CARD, borderWidth: 1, borderColor: "#e2ddd2" },
       ]}
     >
       <Text style={[serif(20, first ? CARD : INK), { width: 22, textAlign: "center" }]}>{rank}</Text>
@@ -268,15 +268,15 @@ export function Districts({ data, season, L }: SlideProps) {
           {d.bars.map((b, i) => (
             <View key={b.name} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <Text style={[sans(13, CARD), { width: 52 }]} numberOfLines={1}>{b.name}</Text>
-              <View style={{ flex: 1, height: 22, borderRadius: 6, backgroundColor: "rgba(255,255,255,.16)" }}>
-                <A k="x" d={700 + i * 100} style={{ width: `${(b.count / max) * 100}%`, height: "100%", borderRadius: 6, backgroundColor: i === 0 ? CARD : C.mapPark }} />
+              <View style={{ flex: 1, height: 22, borderRadius: 6, backgroundColor: "rgba(251,250,246,.16)" }}>
+                <A k="x" d={700 + i * 100} style={{ width: `${(b.count / max) * 100}%`, height: "100%", borderRadius: 6, backgroundColor: i === 0 ? CARD : "#dfe4d6" }} />
               </View>
               <Text style={[mono(11, CARD), { width: 22, textAlign: "right" }]}>{b.count}</Text>
             </View>
           ))}
         </View>
         {fresh.length > 0 && (
-          <A k="up" d={1400} style={{ marginTop: 36, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,.3)", paddingTop: 18 }}>
+          <A k="up" d={1400} style={{ marginTop: 36, borderTopWidth: 1, borderTopColor: "rgba(251,250,246,.3)", paddingTop: 18 }}>
             <Text style={sans(13, CARD, 1.8)}>처음 발 디딘 동네 {d.fresh.length}곳</Text>
             <Text style={serif(17, CARD, 1.6)}>{fresh.join(" · ")}</Text>
           </A>
@@ -291,7 +291,7 @@ export function Taste({ data, season, L }: SlideProps) {
   const t = data.taste;
   // 범례는 여섯 칸까지 — 나머지는 「그 외」로 묶습니다.
   const segs = t.segments.length > 6
-    ? [...t.segments.slice(0, 5), { label: "그 외", color: C.dim, count: t.segments.slice(5).reduce((n, x) => n + x.count, 0) }]
+    ? [...t.segments.slice(0, 5), { label: "그 외", color: "#a29a8c", count: t.segments.slice(5).reduce((n, x) => n + x.count, 0) }]
     : t.segments;
   const untried = t.untried.slice(0, 4);
   const tip = untried.length
@@ -454,7 +454,7 @@ export function Memo({ data, season, L, onOpen }: SlideProps & { onOpen: (id: nu
           </Pressable>
         </A>
         <A k="up" d={1650} style={{ marginTop: 34, alignSelf: "flex-start" }}>
-          <Pressable onPress={() => onOpen(m.id)} style={{ borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,.55)", paddingVertical: 10, paddingHorizontal: 16 }}>
+          <Pressable onPress={() => onOpen(m.id)} style={{ borderRadius: 18, borderWidth: 1, borderColor: "rgba(251,250,246,.55)", paddingVertical: 10, paddingHorizontal: 16 }}>
             <Text style={sans(12.5, CARD)}>기록 열어 보기</Text>
           </Pressable>
         </A>
@@ -503,7 +503,7 @@ export function WishSlide({ data, L, onDirections }: SlideProps & { onDirections
           {w.oldest && (
             <A k="up" d={1150} style={{ borderRadius: 20, backgroundColor: INK, paddingVertical: 14, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={mono(10, C.dim, 1.6)}>가장 오래 기다리는 곳</Text>
+                <Text style={mono(10, "#a29a8c", 1.6)}>가장 오래 기다리는 곳</Text>
                 <Text style={serif(17, CARD)} numberOfLines={1}>
                   {w.oldest.name} <Text style={sans(12.5, "#cdc6b8")}>· {w.oldest.days}일째</Text>
                 </Text>
@@ -534,8 +534,8 @@ export function Odd({ data, season, L }: SlideProps) {
               k="up"
               d={400 + i * 500}
               style={[
-                { flexDirection: "row", gap: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: C.line },
-                i === items.length - 1 && { borderBottomWidth: 1, borderBottomColor: C.line },
+                { flexDirection: "row", gap: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: "#d8d3c8" },
+                i === items.length - 1 && { borderBottomWidth: 1, borderBottomColor: "#d8d3c8" },
               ]}
             >
               <Text style={[mono(11, season.accent), { paddingTop: 5 }]}>{String(i + 1).padStart(2, "0")}</Text>
@@ -558,11 +558,11 @@ export function Next({ data, season, L }: SlideProps) {
   return (
     <View style={[s.fill, { backgroundColor: season.deep }]}>
       <View style={{ position: "absolute", top: L.y(140), left: 28, right: 28 }}>
-        <A k="up" d={120}><Text style={mono(10, C.dim, 2.2)}>NEXT · {season.nextMonths}</Text></A>
+        <A k="up" d={120}><Text style={mono(10, "#a29a8c", 2.2)}>NEXT · {season.nextMonths}</Text></A>
         <A k="up" d={210} style={{ marginTop: 8 }}><Text style={serif(36, CARD, 1.3)}>{`${season.next} 식탁에서\n열릴 것들`}</Text></A>
         <View style={{ marginTop: 40, gap: 12 }}>
           {n.cards.map((c, i) => (
-            <A key={c.title} k="left" d={400 + i * 150} style={{ borderRadius: 20, backgroundColor: "rgba(255,255,255,.08)", padding: 16, gap: 10 }}>
+            <A key={c.title} k="left" d={400 + i * 150} style={{ borderRadius: 20, backgroundColor: "rgba(251,250,246,.08)", padding: 16, gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
                 <Text style={[serif(17, CARD), { flexShrink: 1 }]} numberOfLines={1}>{c.title}</Text>
                 <Text style={mono(11, c.seasonal ? "#c07a2e" : "#cdc6b8")}>{c.right}</Text>
@@ -572,7 +572,7 @@ export function Next({ data, season, L }: SlideProps) {
           ))}
         </View>
         {n.openWishes > 0 && (
-          <A k="fade" d={1100} style={{ marginTop: 28 }}><Text style={sans(12.5, C.dim, 1.8)}>위시 {n.openWishes}곳이 아직 기다리고 있어요.</Text></A>
+          <A k="fade" d={1100} style={{ marginTop: 28 }}><Text style={sans(12.5, "#a29a8c", 1.8)}>위시 {n.openWishes}곳이 아직 기다리고 있어요.</Text></A>
         )}
       </View>
     </View>
@@ -584,7 +584,7 @@ export type ShareTheme = { name: string; bg: string; ink: string; sub: string; l
 
 /** 공유 카드 바탕색 네 가지 — 종이(흰색, 처음 뜨는 색) · 먹색 · 그 분기의 계절색 · 쪽빛 순서. */
 export function shareThemes(season: Season): ShareTheme[] {
-  const light = "rgba(255,255,255,.35)";
+  const light = "rgba(251,250,246,.35)";
   return [
     { name: "종이", bg: PAPER, ink: INK, sub: "#6b665e", line: "rgba(28,26,23,.2)" },
     { name: "먹색", bg: INK, ink: CARD, sub: "#cdc6b8", line: light },
@@ -627,13 +627,13 @@ export function ShareCard({ data, season, nick, height, theme }: SlideProps & { 
 const s = StyleSheet.create({
   fill: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, overflow: "hidden" },
   labelCard: {
-    width: "47%", borderRadius: 22, backgroundColor: CARD, borderWidth: 1, borderColor: C.lineSoft,
+    width: "47%", borderRadius: 22, backgroundColor: CARD, borderWidth: 1, borderColor: "#e2ddd2",
     paddingTop: 22, paddingHorizontal: 14, paddingBottom: 18, alignItems: "center", gap: 10,
   },
   timeRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#4a453d",
   },
-  statCard: { flex: 1, borderRadius: 20, backgroundColor: CARD, borderWidth: 1, borderColor: C.lineSoft, padding: 16, gap: 4 },
+  statCard: { flex: 1, borderRadius: 20, backgroundColor: CARD, borderWidth: 1, borderColor: "#e2ddd2", padding: 16, gap: 4 },
   wishCellOn: { flex: 1, height: 14, borderRadius: 3, backgroundColor: INK },
   wishCell: { flex: 1, height: 14, borderRadius: 3, backgroundColor: "rgba(28,26,23,.18)" },
 });

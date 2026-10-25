@@ -257,7 +257,7 @@ export default function CoupleAccount() {
                   flex: 1, minWidth: 0, height: 62, borderRadius: 12, paddingHorizontal: 6,
                   justifyContent: "center", alignItems: "center",
                   borderWidth: hi ? 1.5 : 1, borderStyle: has ? "solid" : "dashed",
-                  borderColor: hi ? C.brick : has ? C.lineSoft : C.lineStrong,
+                  borderColor: hi ? C.brick : has ? C.lineSoft : "#cdc6b8",
                   backgroundColor: hi ? C.brickSoft : has ? C.card : "transparent",
                 }}
               >
@@ -295,7 +295,7 @@ export default function CoupleAccount() {
           </View>
         ))}
         {progress && (
-          <View style={{ borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: C.lineStrong, paddingHorizontal: 11, paddingVertical: 5 }}>
+          <View style={{ borderRadius: 13, borderWidth: 1, borderStyle: "dashed", borderColor: "#cdc6b8", paddingHorizontal: 11, paddingVertical: 5 }}>
             <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>
               {progress.name} · <Text style={{ fontFamily: F.mono }}>{progress.have}/{progress.need}</Text>
             </Text>

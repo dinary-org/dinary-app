@@ -54,15 +54,15 @@ export const Chip = ({ label, active, onPress }: { label: string; active: boolea
     onPress={onPress}
     style={{
       minHeight: 36, borderRadius: 18, borderWidth: 1, paddingHorizontal: 13, justifyContent: "center",
-      borderColor: active ? C.brick : C.lineStrong, backgroundColor: active ? C.brick : "transparent",
+      borderColor: active ? C.brick : "#cdc6b8", backgroundColor: active ? C.brick : "transparent",
     }}
   >
-    <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: active ? C.card : "#4a453d" }}>{label}</Text>
+    <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: active ? "#fdf9f3" : "#4a453d" }}>{label}</Text>
   </Pressable>
 );
 
 export const fieldStyle = {
-  marginTop: 8, minHeight: 48, borderRadius: 16, borderWidth: 1, borderColor: C.line2, backgroundColor: C.card,
+  marginTop: 8, minHeight: 48, borderRadius: 16, borderWidth: 1, borderColor: "#ded8cb", backgroundColor: C.card,
   paddingHorizontal: 15, fontFamily: F.sans, fontSize: 13.5, color: C.ink,
 } as const;
 
@@ -77,7 +77,7 @@ export const Button = ({
         minHeight: 50, borderRadius: 18, alignItems: "center", justifyContent: "center", paddingHorizontal: 16,
         flexDirection: "row", gap: 7,
         backgroundColor: kind === "dark" ? C.ink : kind === "brick" ? C.brick : "transparent",
-        borderWidth: kind === "line" ? 1 : 0, borderColor: C.line2, opacity: disabled ? 0.5 : 1,
+        borderWidth: kind === "line" ? 1 : 0, borderColor: "#ded8cb", opacity: disabled ? 0.5 : 1,
       },
       style,
     ]}
@@ -93,7 +93,7 @@ export function MobileStars({ rating, size = 12.5 }: { rating: number | null; si
   const row = { fontSize: size, letterSpacing: 1, lineHeight: size + 2 } as const;
   return (
     <View>
-      <Text style={[row, { color: C.line2 }]}>★★★★★</Text>
+      <Text style={[row, { color: "#ded8cb" }]}>★★★★★</Text>
       <View style={{ position: "absolute", top: 0, left: 0, width: `${(value / 5) * 100}%`, overflow: "hidden" }}>
         <Text numberOfLines={1} style={[row, { color: C.brick, width: 200 }]}>★★★★★</Text>
       </View>
@@ -175,7 +175,7 @@ export const Toggle = ({
     accessibilityRole="switch"
     accessibilityLabel={label}
     accessibilityState={{ checked: value, disabled }}
-    style={{ width: 50, height: 28, borderRadius: 14, backgroundColor: value ? C.brick : C.line }}
+    style={{ width: 50, height: 28, borderRadius: 14, backgroundColor: value ? C.brick : "#d8d3c8" }}
   >
     <View style={{ position: "absolute", top: 2, left: value ? 24 : 2, width: 24, height: 24, borderRadius: 12, backgroundColor: C.card }} />
   </Pressable>

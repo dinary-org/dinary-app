@@ -222,7 +222,7 @@ export default function BoardCompose() {
               right={
                 <View style={{ gap: 6, alignItems: "flex-end" }}>
                   <Pressable onPress={() => setPicking("single")} hitSlop={6}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.brick }}>바꾸기</Text></Pressable>
-                  {(type === "free" || type === "theme") && <Pressable onPress={() => setRecord(null)} hitSlop={6}><Text style={{ fontFamily: F.sans, fontSize: 11, color: K.inactive }}>떼기</Text></Pressable>}
+                  {(type === "free" || type === "theme") && <Pressable onPress={() => setRecord(null)} hitSlop={6}><Text style={{ fontFamily: F.sans, fontSize: 11, color: K.inactive }}>삭제</Text></Pressable>}
                 </View>
               }
             />

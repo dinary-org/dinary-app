@@ -36,7 +36,7 @@ export default function Labels() {
   const [detail, setDetail] = useState<EarnedLabel | null>(null);
 
   const titleId = account?.titleLabelId ?? null;
-  const labels = earnedLabels(rows);
+  const labels = earnedLabels(rows, account?.betaTester);
   const bowls = labels.filter((l) => l.group === "bowl");
   const stamps = stampRows(rows).length;
   const seen = useSeenLabels(account?.userId, labels.filter((l) => l.earned).map((l) => l.id), isSuccess);
@@ -134,7 +134,11 @@ export default function Labels() {
             return (
               <Pressable
                 key={l.id}
-                onPress={() => setDetail(l)}
+                onPress={() => {
+                  setDetail(l);
+                  // 리캡이 없는 라벨은 시트를 열면 본 것으로.
+                  if (l.granted) seen.markSeen([l.id]);
+                }}
                 onLongPress={() => toggleTitle(l)}
                 accessibilityLabel={`${l.name}${l.earned ? "" : " · 아직"} 자세히 보기`}
                 style={{ flexDirection: "row", alignItems: "center", gap: 11, paddingVertical: 11, paddingHorizontal: 14, borderTopWidth: i ? 1 : 0, borderTopColor: "#ece7dc" }}
@@ -148,7 +152,7 @@ export default function Labels() {
                   </Text>
                   <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 11, color: C.faint }}>{l.desc}</Text>
                 </View>
-                {l.earned ? (
+                {l.granted ? null : l.earned ? (
                   <Pressable onPress={() => open(l)} hitSlop={10} accessibilityLabel={`${l.name} 기록 보기`}>
                     <Text style={{ fontFamily: F.sansMd, fontSize: 11.5, color: C.brick }}>기록 보기 ›</Text>
                   </Pressable>
@@ -249,6 +253,7 @@ function LabelSheet({ label, rows, isTitle, onClose, onRecap }: {
           {label.desc} · <Text style={{ fontFamily: F.mono, color: label.earned ? label.color : C.faint }}>{Math.min(label.have, label.need)} / {label.need}</Text>
         </Text>
 
+        {!label.granted && <>
         <View style={{ marginTop: 18, flexDirection: "row", flexWrap: "wrap", justifyContent: "center", width: size * 5 + gap * 4, rowGap: gap, columnGap: gap }}>
           {Array.from({ length: label.need }, (_, i) =>
             i < contrib.length ? <Stamp key={i} size={size} /> : <EmptySlot key={i} size={size} label={i + 1} />,
@@ -265,8 +270,9 @@ function LabelSheet({ label, rows, isTitle, onClose, onRecap }: {
             <Text style={{ padding: 14, fontFamily: F.sans, fontSize: 12, color: C.faint, textAlign: "center" }}>아직 채운 가게가 없어요</Text>
           )}
         </View>
+        </>}
       </ScrollView>
-      {label.earned && <Button style={{ marginTop: 14 }} label="기록 보기" onPress={onRecap} />}
+      {label.earned && !label.granted && <Button style={{ marginTop: 14 }} label="기록 보기" onPress={onRecap} />}
     </BottomSheetModal>
   );
 }

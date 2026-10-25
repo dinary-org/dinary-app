@@ -22,6 +22,8 @@ export type AccountInfo = {
   leaderboardOptIn: boolean;
   /** 이용약관 · 개인정보 처리방침에 동의했는지(terms_agreed_at) — 아니면 Gate 가 /agree 로 보냅니다. */
   termsAgreed: boolean;
+  /** 베타 기간에 가입했는지(profiles.beta_tester) — 「하지만 빨랐죠?」 라벨. */
+  betaTester: boolean;
 };
 
 export const useAccount = () => {
@@ -45,7 +47,7 @@ export const useAccount = () => {
       const cacheKey = `account.profile:${user.id}`;
       if (error) {
         const cached = await AsyncStorage.getItem(cacheKey).catch(() => null);
-        if (cached) { try { const value = JSON.parse(cached) as AccountInfo; if (value.userId === user.id) return { ...value, termsAgreed: value.termsAgreed ?? true }; } catch {} }
+        if (cached) { try { const value = JSON.parse(cached) as AccountInfo; if (value.userId === user.id) return { ...value, termsAgreed: value.termsAgreed ?? true, betaTester: value.betaTester ?? false }; } catch {} }
       }
       const account: AccountInfo = {
         userId: user.id,
@@ -58,6 +60,7 @@ export const useAccount = () => {
         leaderboardOptIn: profile?.leaderboard_opt_in === true,
         // 조회가 실패했을 때(오프라인 등)는 막지 않습니다 — 동의 화면에서 저장도 못 하고 갇히니까요.
         termsAgreed: !!error || !!profile?.terms_agreed_at,
+        betaTester: profile?.beta_tester === true,
       };
       if (!error) await AsyncStorage.setItem(cacheKey, JSON.stringify(account)).catch(() => {});
       return account;
@@ -74,8 +77,8 @@ export const verifiedCount = (rows: Restaurant[]) => rows.filter((r) => r.verifi
  * 받은 라벨 수(동네 칭호 · 투어 칭호 포함) — 뽑기권 계산에 씁니다. 동네 칭호는 오른 등급마다 1개(동·은·금), 투어 칭호는 완주한 투어마다 1개.
  * TODO(랭킹 전): 앱이 넘기는 값이라 조작할 수 있습니다. 랭킹 전에 DB 로 옮기세요.
  */
-export const receivedLabelCount = (rows: Restaurant[], tours: TourDef[] = []) =>
-  earnedLabels(rows).filter((l) => l.earned).length +
+export const receivedLabelCount = (rows: Restaurant[], tours: TourDef[] = [], beta = false) =>
+  earnedLabels(rows, beta).filter((l) => l.earned).length +
   regionTitles(rows).reduce((n, t) => n + (t.tier ? REGION_TIERS.indexOf(t.tier) + 1 : 0), 0) +
   tourTitles(tours, rows).filter((t) => t.earned).length;
 
@@ -100,7 +103,8 @@ export const useOwnedCharacters = () =>
 export function useTickets() {
   const { data: rows = [], isSuccess } = usePersonalRows();
   const { data: tours = [] } = useTourDefs();
-  const labelCount = receivedLabelCount(rows, tours);
+  const { data: account } = useAccount();
+  const labelCount = receivedLabelCount(rows, tours, account?.betaTester);
   const verified = verifiedCount(rows);
   const q = useQuery({
     queryKey: ["characters", "tickets", labelCount, verified],

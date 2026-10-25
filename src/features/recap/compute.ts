@@ -1,5 +1,5 @@
 import { usableMealTime } from "../../lib/reliability/guards";
-import { LABELS, regionTitles, type LabelDef, type RegionTier } from "../../lib/labels";
+import { RECORD_LABELS, regionTitles, type LabelDef, type RegionTier } from "../../lib/labels";
 import { ALL_CATEGORIES, coverPhoto, pinColor, type Restaurant, type Wish } from "../../lib/types";
 import {
   currentQuarter, eulReul, ieosseoyo, mmdd, nativeCount, quarterOfDate, quarterRange, seasonOf, seoulParts, seoulToday,
@@ -207,10 +207,10 @@ export function computeRecap(allRows: Restaurant[], wishes: Wish[], quarter: Qua
   const verified = records.filter((r) => r.verified).length;
 
   // 라벨
-  const earned = LABELS.map((def) => ({ def, date: earnedInQuarter(def, all, start, end) }))
+  const earned = RECORD_LABELS.map((def) => ({ def, date: earnedInQuarter(def, all, start, end) }))
     .filter((e): e is { def: LabelDef; date: string } => !!e.date)
     .sort((a, b) => (a.date < b.date ? -1 : 1));
-  const progress = LABELS.map((def) => ({ def, have: def.count(upToEnd), need: def.need }));
+  const progress = RECORD_LABELS.map((def) => ({ def, have: def.count(upToEnd), need: def.need }));
   const near = progress
     .filter((p) => p.have < p.need && p.have > 0)
     .sort((a, b) => b.have / b.need - a.have / a.need)
@@ -281,7 +281,7 @@ export function computeRecap(allRows: Restaurant[], wishes: Wish[], quarter: Qua
   const topCatCount = cCount.get(topCat) ?? 0;
   const dishes = [...new Set(soupRows.map((r) => dishOf(r) || r.name))].slice(0, 3);
   const everCats = new Set(upToEnd.map((r) => r.category).filter(Boolean));
-  const palateDef = LABELS.find((l) => l.id === "palate")!;
+  const palateDef = RECORD_LABELS.find((l) => l.id === "palate")!;
   const palateHave = palateDef.count(upToEnd);
   const taste = {
     soup,
@@ -431,7 +431,7 @@ export function computeRecap(allRows: Restaurant[], wishes: Wish[], quarter: Qua
       earned,
       near,
       total: progress.filter((p) => p.have >= p.need).length,
-      all: LABELS.length,
+      all: RECORD_LABELS.length,
     },
     top,
     top5,

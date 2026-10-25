@@ -24,7 +24,7 @@ import { apiFetch } from "@/lib/api";
 import { CHARACTERS } from "@/lib/characters";
 import { Stamp } from "@/features/stamps/Stamp";
 import { useSeenLabels } from "@/lib/labelSeen";
-import { currentBoard, earnedLabels, nextBowl, stampRows, STAMPS_PER_BOARD, tourTitles } from "@/lib/labels";
+import { BETA_LABEL_ID, currentBoard, earnedLabels, nextBowl, stampRows, STAMPS_PER_BOARD, tourTitles } from "@/lib/labels";
 import { uploadAlbumPhoto } from "@/lib/photos";
 import { unregisterPushToken } from "@/features/notify/push";
 import { useRestartTutorial } from "@/features/tutorial/TutorialProvider";
@@ -71,7 +71,7 @@ export function MyAccount() {
   const stamps = stampRows(rows).length;
   const board = currentBoard(stamps);
   const bowl = nextBowl(stamps);
-  const earnedIds = earnedLabels(rows).filter((l) => l.earned).map((l) => l.id);
+  const earnedIds = earnedLabels(rows, account?.betaTester).filter((l) => l.earned).map((l) => l.id);
   const seen = useSeenLabels(account?.userId, earnedIds, rowsReady);
 
   if (!account) return <View style={{ flex: 1, backgroundColor: C.paper }} />;
@@ -79,7 +79,7 @@ export function MyAccount() {
   const records = rows.filter((r) => !r.pending).length;
   const verified = rows.filter((r) => r.verified).length;
   const places = new Set(rows.map(placeKeyOf)).size;
-  const labels = earnedLabels(rows);
+  const labels = earnedLabels(rows, account.betaTester);
   // 받은 라벨 + 완주한 투어 칭호(벽돌색) — 어느 쪽이든 대표 라벨로 붙일 수 있습니다.
   const tours = tourTitles(tourDefs, rows).filter((t) => !t.closed);
   const got = [
@@ -87,8 +87,8 @@ export function MyAccount() {
     ...tours.filter((t) => t.earned).map((t) => ({ id: t.titleId, name: t.name, color: C.brick })),
   ];
   const titleLabelId = account.titleLabelId;
-  // 「· 새로」는 리캡이 있는 라벨만 — 투어 칭호는 늘 본 것으로.
-  const isNew = (id: string) => !id.startsWith("tour:") && seen.isNew(id);
+  // 「· 새로」는 리캡이 있는 라벨만 — 투어 칭호 · 베타 라벨은 늘 본 것으로.
+  const isNew = (id: string) => !id.startsWith("tour:") && id !== BETA_LABEL_ID && seen.isNew(id);
   const titleLabel = titleLabelId ? got.find((l) => l.id === titleLabelId) ?? null : null;
   const connectedLine = account.providers.length ? account.providers.map((p) => PROVIDER_LABEL[p] ?? p).join(" · ") + " 연결됨" : "연결된 계정 없음";
 

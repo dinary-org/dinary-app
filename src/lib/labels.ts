@@ -6,6 +6,7 @@ import type { Restaurant } from "@/lib/types";
  *  · 도장 — 인증된 기록(verified, 보관함 아님) 1건 = 도장 1개. 10칸 = 도장판 1장, 판을 채울 때마다 뽑기권 1장.
  *  · 도장 수 라벨 — 도장 수 8단계(1 · 5 · 10 · 30 · 50 · 100 · 200 · 300), 「첫 도장 / N번째 도장」(지시서 4 §1).
  *  · 이야기 라벨 — 원래 있던 라벨 13개(첫 한 끼 · 백 그릇은 도장 수 단계로, 만원의 행복은 뺌) + 새 라벨 8개.
+ *  · 베타 라벨 — 기록이 아니라 베타 기간에 가입했는지(profiles.beta_tester)로 받습니다.
  *  · 동네 칭호(동 · 은 · 금)는 아래 REGION_TIERS 그대로.
  */
 export type LabelGroup = "bowl" | "story";
@@ -24,6 +25,8 @@ export type LabelDef = {
   count: (rows: Restaurant[]) => number;
   /** 이 라벨에 들어간 기록 — 리캡의 「여기까지 왔어요」 목록. 오래된 순. */
   contrib: (rows: Restaurant[]) => Restaurant[];
+  /** 기록으로 채우지 않고 서버가 주는 라벨 — 도장 칸 · 가게 목록 · 리캡이 없습니다. */
+  granted?: boolean;
 };
 
 export const STAMPS_PER_BOARD = 10;
@@ -208,7 +211,19 @@ const STORIES: LabelDef[] = [
   story({ id: "december", icon: "M12 3.5v17 M4.6 7.75l14.8 8.5 M4.6 16.25l14.8-8.5", color: "#a8412a", name: "연말의 식탁", desc: "12월 기록 10개", need: 10 }, decemberRows),
 ];
 
-export const LABELS: LabelDef[] = [...BOWLS, ...STORIES];
+/**
+ * 「하지만 빨랐죠?」 — 베타 기간에 가입한 사람은 모두. 가입 때 서버가 profiles.beta_tester 를 정하고
+ * (beta_signup_open), 앱은 그 값을 earnedLabels 에 넘깁니다. 받지 못한 사람에겐 라벨첩에도 안 보입니다.
+ */
+export const BETA_LABEL_ID = "beta";
+const BETA: LabelDef = {
+  id: BETA_LABEL_ID, group: "story", icon: "M13.5 3.5 6 13.5h5.5l-1 7 7.5-10H12.5Z", color: "#6a5a8a",
+  name: "하지만 빨랐죠?", desc: "베타테스트 참여", need: 1, count: () => 0, contrib: () => [], granted: true,
+};
+
+export const LABELS: LabelDef[] = [...BOWLS, ...STORIES, BETA];
+/** 기록으로 채우는 라벨만 — 분기 리캡처럼 기록을 다시 세는 곳에 씁니다. */
+export const RECORD_LABELS = LABELS.filter((l) => !l.granted);
 export const labelById = (id: string | null | undefined) => (id ? LABELS.find((l) => l.id === id) ?? null : null);
 
 /** 다음 도장 수 단계 — 「30번째 도장까지 20」. 다 받았으면 null. */
@@ -347,8 +362,10 @@ export function tourTitles(tours: TourDef[], rows: Restaurant[]): TourTitle[] {
 
 export type EarnedLabel = LabelDef & { have: number; earned: boolean };
 
-export const earnedLabels = (rows: Restaurant[]): EarnedLabel[] =>
-  LABELS.map((l) => {
+/** beta — 베타 기간 가입자(AccountInfo.betaTester). 아니면 베타 라벨은 목록에서 빠집니다. */
+export const earnedLabels = (rows: Restaurant[], beta = false): EarnedLabel[] =>
+  LABELS.flatMap((l) => {
+    if (l.id === BETA_LABEL_ID) return beta ? [{ ...l, have: 1, earned: true }] : [];
     const have = l.count(rows);
-    return { ...l, have, earned: have >= l.need };
+    return [{ ...l, have, earned: have >= l.need }];
   });

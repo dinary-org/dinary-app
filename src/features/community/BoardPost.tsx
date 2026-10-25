@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import Svg, { Circle, Polyline, Text as SvgText } from "react-native-svg";
 import { regionFromAddress } from "@/lib/regions";
@@ -168,7 +169,7 @@ export function PollOptions({ post }: { post: BoardPost }) {
     if (busy || closed) return;
     setBusy(true);
     Haptics.selectionAsync();
-    try { await votePoll(qc, post.id, id); } catch (e) { Alert.alert("투표하지 못했습니다", e instanceof Error ? e.message : ""); }
+    try { await votePoll(qc, post.id, id); } catch (e) { showDialog("투표하지 못했습니다", e instanceof Error ? e.message : ""); }
     setBusy(false);
   }
 
@@ -248,7 +249,7 @@ export function Reactions({ post, stops }: { post: BoardPost; stops?: CourseStop
         if (res === null) { setBusy(false); return; } // 위시리스트 고르기를 닫음
       }
       await setReaction(qc, post.id, kind, on);
-    } catch (e) { Alert.alert("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""); }
+    } catch (e) { showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""); }
     setBusy(false);
   }
 

@@ -1,4 +1,5 @@
 import { restoreShown } from "@/features/recommend/log";
+import { DialogHost } from "@/components/Dialog";
 import { GowunDodum_400Regular } from "@expo-google-fonts/gowun-dodum";
 import { NotoSansKR_400Regular, NotoSansKR_500Medium, NotoSansKR_700Bold } from "@expo-google-fonts/noto-sans-kr";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
@@ -199,6 +200,8 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     <NoticeBanner enabled={signedIn && !showBoot && first === "(tabs)"} />
     {/* 커뮤니티 들어가기 전환 판 — 상태 표시줄까지 모든 화면 위 */}
     <CommunityTransition />
+    {/* 앱 안 알림창(showDialog) — 시트가 없을 때 여기서 */}
+    <DialogHost />
     {showBoot && <BootScreen key={bootOwner ?? "signed-out"} state={bootStatus} characterId={account && account.userId === userId ? account.characterId : undefined}
       fetching={books.isFetching} onRetry={() => { void books.refetch(); }}
       onCapture={session && account && account.userId === userId && account.nickname ? () => { setCaptureEscape(true); router.push("/capture"); } : undefined} onHidden={hideBoot} />}

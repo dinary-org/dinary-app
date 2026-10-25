@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { useAccount } from "@/data/profile";
@@ -57,18 +58,18 @@ export function MoreButton({ target, onEdit, onDeleted, onBlocked }: { target: M
     try {
       await fn();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      if (done) later(() => Alert.alert(done));
+      if (done) later(() => showDialog(done));
     } catch (e) {
-      later(() => Alert.alert("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""));
+      later(() => showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""));
     }
   }
 
-  /** iOS 는 시트가 내려가는 중에 띄운 Alert 를 삼킵니다 — 다 내려간 뒤에. */
+  /** 시트가 다 내려간 뒤에 창을 — 내려가는 시트 위로는 iOS 가 못 띄웁니다. */
   const later = (f: () => void) => setTimeout(f, 380);
 
   function remove() {
     close();
-    later(() => Alert.alert(isPhoto ? "갤러리에서 내릴까요?" : `${what}을 지울까요?`, isPhoto ? "기록과 사진은 그대로 남습니다." : undefined, [
+    later(() => showDialog(isPhoto ? "갤러리에서 내릴까요?" : `${what}을 지울까요?`, isPhoto ? "기록과 사진은 그대로 남습니다." : undefined, [
       { text: "취소", style: "cancel" },
       {
         text: isPhoto ? "내리기" : "삭제", style: "destructive",
@@ -85,7 +86,7 @@ export function MoreButton({ target, onEdit, onDeleted, onBlocked }: { target: M
 
   function block() {
     close();
-    later(() => Alert.alert(`${authorName}님을 차단할까요?`, "이 사람의 글 · 댓글 · 기록이 내 화면에서 빠집니다.", [
+    later(() => showDialog(`${authorName}님을 차단할까요?`, "이 사람의 글 · 댓글 · 기록이 내 화면에서 빠집니다.", [
       { text: "취소", style: "cancel" },
       { text: "차단하기", style: "destructive", onPress: () => run(async () => { await blockUser(qc, authorId); onBlocked?.(); }) },
     ]));

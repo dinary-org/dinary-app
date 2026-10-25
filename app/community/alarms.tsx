@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, FlatList, Pressable, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AddPersonIcon } from "@/components/icons";
@@ -39,7 +40,7 @@ export default function AlarmsScreen() {
 
   async function act(id: string, f: () => Promise<void>) {
     setBusy(id);
-    try { await f(); } catch (e) { Alert.alert("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""); }
+    try { await f(); } catch (e) { showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""); }
     setBusy(null);
   }
 

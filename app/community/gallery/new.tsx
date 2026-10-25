@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, useWindowDimensions, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, useWindowDimensions, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { CheckIcon } from "@/components/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -104,7 +105,7 @@ export default function GalleryCompose() {
     if (!ready || blocked || busy) return;
     // 직접 쓴 메뉴가 그 기록에 없으면 기록에도 남길지 묻습니다.
     if (menu.kind === "custom" && !menus.some((m) => normMenu(m) === normMenu(custom))) {
-      Alert.alert("이 메뉴를 기록에도 남길까요?", `「${custom.trim()}」을 ${pick!.r.name} 기록의 메뉴에 더합니다.`, [
+      showDialog("이 메뉴를 기록에도 남길까요?", `「${custom.trim()}」을 ${pick!.r.name} 기록의 메뉴에 더합니다.`, [
         { text: "아니요", onPress: () => send(false) },
         { text: "남기기", onPress: () => send(true) },
       ]);

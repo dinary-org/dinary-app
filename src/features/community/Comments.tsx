@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Alert, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { useAccount } from "@/data/profile";
@@ -24,7 +25,7 @@ export default function CommentsSheet({ recordId, onClose }: { recordId: number 
   const close = () => { stopEdit(); onClose(); };
 
   function remove(c: Comment) {
-    Alert.alert("댓글을 삭제할까요?", undefined, [
+    showDialog("댓글을 삭제할까요?", undefined, [
       { text: "취소", style: "cancel" },
       {
         text: "삭제", style: "destructive",
@@ -33,7 +34,7 @@ export default function CommentsSheet({ recordId, onClose }: { recordId: number 
             await deleteComment(qc, c.record_id, c.id);
             if (editing?.id === c.id) stopEdit();
           } catch (e) {
-            Alert.alert("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "");
+            showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "");
           }
         },
       },

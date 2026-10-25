@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, KeyboardAvoidingView, Pressable, ScrollView, TextInput, useWindowDimensions, View } from "react-native";
+import { Animated, KeyboardAvoidingView, Pressable, ScrollView, TextInput, useWindowDimensions, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChatIcon, HeartIcon } from "@/components/icons";
@@ -59,7 +60,7 @@ export default function GalleryPhotoScreen() {
     try { await setGalleryLike(qc, photo.id, on); } catch (e) {
       setLiked(!on);
       setLikes((n) => n + (on ? -1 : 1));
-      Alert.alert("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "");
+      showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "");
     }
   }
 

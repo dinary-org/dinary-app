@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { Character } from "@/components/Character";
 import { BottomSheetModal } from "@/components/ui";
@@ -66,7 +67,7 @@ function CardBody({ card, onClose }: { card: ProfileCard; onClose: () => void })
       await qc.invalidateQueries({ queryKey: ["community", "profile-card", card.id] });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e) {
-      Alert.alert("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "");
+      showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : "");
     }
     setBusy(false);
   }
@@ -84,7 +85,7 @@ function CardBody({ card, onClose }: { card: ProfileCard; onClose: () => void })
 
   function sanction() {
     const until = card.sanctioned_until;
-    Alert.alert(`${card.nickname} 정지`, until ? `지금 정지 중 · ${until === "forever" ? "영구" : `${until.slice(0, 10)}까지`}` : "글 · 댓글 쓰기만 막습니다. 기록장은 그대로입니다.", [
+    showDialog(`${card.nickname} 정지`, until ? `지금 정지 중 · ${until === "forever" ? "영구" : `${until.slice(0, 10)}까지`}` : "글 · 댓글 쓰기만 막습니다. 기록장은 그대로입니다.", [
       { text: "7일", onPress: () => run(() => adminSanction(qc, card.id, 7)) },
       { text: "30일", onPress: () => run(() => adminSanction(qc, card.id, 30)) },
       { text: "영구", style: "destructive", onPress: () => run(() => adminSanction(qc, card.id, null)) },
@@ -96,7 +97,7 @@ function CardBody({ card, onClose }: { card: ProfileCard; onClose: () => void })
   /** 랭킹 정지 · 제외 — 기록장 · 게시판은 그대로, 랭킹에만 안 나옵니다. */
   function rankBan() {
     const until = card.rank_banned_until;
-    Alert.alert(`${card.nickname} 랭킹`, until ? `지금 랭킹 정지 중 · ${until === "forever" ? "영구 제외" : `${until.slice(0, 10)}까지`}` : "부정한 기록이 의심되면 랭킹에서만 뺍니다.", [
+    showDialog(`${card.nickname} 랭킹`, until ? `지금 랭킹 정지 중 · ${until === "forever" ? "영구 제외" : `${until.slice(0, 10)}까지`}` : "부정한 기록이 의심되면 랭킹에서만 뺍니다.", [
       { text: "랭킹 7일 정지", onPress: () => run(() => adminRankBan(qc, card.id, 7, "부정 기록 의심")) },
       { text: "랭킹 30일 정지", onPress: () => run(() => adminRankBan(qc, card.id, 30, "부정 기록 의심")) },
       { text: "랭킹에서 영구 제외", style: "destructive", onPress: () => run(() => adminRankBan(qc, card.id, null, "부정 기록 의심")) },

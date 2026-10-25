@@ -1,5 +1,6 @@
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, type TextStyle, View, type ViewStyle } from "react-native";
 import { Text } from "@/components/Text";
+import { DialogHost } from "@/components/Dialog";
 import { useIosKeyboardHeight, useKeyboardOpen } from "@/lib/keyboard";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -155,6 +156,8 @@ export function BottomSheetModal({
         >
           {children}
         </View>
+        {/* 시트가 떠 있는 동안의 알림창은 시트 안에서 — iOS 는 뿌리에서 시트 위로 못 띄웁니다. */}
+        <DialogHost />
         {iosKb > 0 && <View style={{ height: iosKb, backgroundColor: C.paper }} />}
       </KeyboardAvoidingView>
     </Modal>

@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, Share, TextInput, View } from "react-native";
+import { Pressable, ScrollView, Share, TextInput, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Character } from "@/components/Character";
@@ -39,7 +40,7 @@ export default function PeopleScreen() {
 
   async function act(id: string, f: () => Promise<void>) {
     setBusy(id);
-    try { await f(); } catch (e) { Alert.alert("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""); }
+    try { await f(); } catch (e) { showDialog("잠시 뒤 다시 해 주세요", e instanceof Error ? e.message : ""); }
     setBusy(null);
   }
 
@@ -135,7 +136,7 @@ export default function PeopleScreen() {
           {(fr?.friends.length ?? 0) > 0 && (
             <>
               {section(`친구 · ${fr!.friends.length}`)}
-              {fr!.friends.map((p) => row(p, btn("끊기", () => Alert.alert("친구 끊기", `${p.nickname}님과 친구를 끊을까요?`, [
+              {fr!.friends.map((p) => row(p, btn("끊기", () => showDialog("친구 끊기", `${p.nickname}님과 친구를 끊을까요?`, [
                 { text: "취소", style: "cancel" },
                 { text: "끊기", style: "destructive", onPress: () => act(p.id, () => removeFriend(qc, p.id)) },
               ]), false, p.id)))}

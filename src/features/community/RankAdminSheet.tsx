@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { BottomSheetModal } from "@/components/ui";
 import { C, F } from "@/theme";
@@ -27,15 +28,15 @@ export function RankAdminSheet({ row, onClose }: { row: RankRow | null; onClose:
       await adminRankBan(qc, row.user_id, days, reason);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onClose();
-      setTimeout(() => Alert.alert(`${row.nickname} · ${days == null ? "랭킹에서 영구 제외" : `랭킹 ${days}일 정지`}`, "풀려면 내계정 › 운영 › 랭킹"), 380);
+      setTimeout(() => showDialog(`${row.nickname} · ${days == null ? "랭킹에서 영구 제외" : `랭킹 ${days}일 정지`}`, "풀려면 내계정 › 운영 › 랭킹"), 380);
     } catch (e) {
-      Alert.alert("처리하지 못했습니다", e instanceof Error ? e.message : "");
+      showDialog("처리하지 못했습니다", e instanceof Error ? e.message : "");
     }
     setBusy(false);
   }
 
   function confirmForever() {
-    Alert.alert(`${row?.nickname}님을 랭킹에서 영구 제외할까요?`, "기록장 · 게시판은 그대로입니다. 나중에 운영 화면에서 풀 수 있습니다.", [
+    showDialog(`${row?.nickname}님을 랭킹에서 영구 제외할까요?`, "기록장 · 게시판은 그대로입니다. 나중에 운영 화면에서 풀 수 있습니다.", [
       { text: "취소", style: "cancel" },
       { text: "영구 제외", style: "destructive", onPress: () => ban(null) },
     ]);

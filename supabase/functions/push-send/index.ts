@@ -3,7 +3,7 @@
  *
  *   POST /functions/v1/push-send   (Authorization: Bearer <세션 토큰>)
  *   { kind: "poke", recordId }  — 방금 콕 찌른 상대에게. 보낸 사람이 실제로 찌른 기록(pokes)만 보냅니다.
- *                                 한 기기라도 받으면 seen_at 을 채워, 받은 사람이 앱을 열 때 다시 띄우지 않게 합니다.
+ *                                 읽음 처리는 앱에서 기록을 열었을 때 합니다.
  *   { kind: "test" }            — 운영자만, 운영자 자신의 기기에 지금 앱의 알림 세 가지를 견본으로.
  *
  * (SUPABASE_URL · SUPABASE_SERVICE_ROLE_KEY 는 Supabase 가 넣어 줍니다)
@@ -76,11 +76,9 @@ Deno.serve(async (req) => {
     const result = await send(admin, poke.to_user, [{
       title: `${iGa(me?.nickname ?? "상대")} 콕 찔렀어요`,
       body: `${place}에 한 줄을 남겨 주세요`,
-      data: { recordId: poke.record_id },
+      data: { recordId: poke.record_id, recipientId: poke.to_user },
     }]);
-    if (result.sent > 0) {
-      await admin.from("pokes").update({ seen_at: new Date().toISOString() }).eq("record_id", poke.record_id).eq("from_user", user.id);
-    }
+    // An Expo ticket is acceptance, not delivery or reading. Preserve the inbox fallback.
     return json(result);
   }
 

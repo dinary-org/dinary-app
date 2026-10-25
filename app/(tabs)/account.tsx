@@ -1,8 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
+import * as AppleAuthentication from "expo-apple-authentication";
+import { purgeDeletedAccountRecommendations } from "@/features/recommend/log";
+import { pauseQueueForDeletion } from "@/features/queue/process";
+import { purgeDeletedAccountQueue } from "@/features/queue/db";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, ScrollView, Share, View } from "react-native";
 import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
@@ -21,14 +25,14 @@ import { CHARACTERS } from "@/lib/characters";
 import { Stamp } from "@/features/stamps/Stamp";
 import { useSeenLabels } from "@/lib/labelSeen";
 import { currentBoard, earnedLabels, nextBowl, stampRows, STAMPS_PER_BOARD, tourTitles } from "@/lib/labels";
-import { uploadPhoto } from "@/lib/photos";
+import { uploadAlbumPhoto } from "@/lib/photos";
 import { unregisterPushToken } from "@/features/notify/push";
 import { useRestartTutorial } from "@/features/tutorial/TutorialProvider";
 import { supabase } from "@/lib/supabase";
 import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
 import { SignedImage } from "@/lib/signedPhoto";
-import { PRIVACY_URL, TERMS_URL } from "@/lib/web";
+import { DELETE_ACCOUNT_URL, PRIVACY_URL, TERMS_URL } from "@/lib/web";
 
 const PROVIDER_LABEL: Record<string, string> = { apple: "애플", google: "구글" };
 const placeKeyOf = (r: Restaurant) => r.place_key ?? `${r.name}|${r.address ?? ""}`.toLowerCase();
@@ -61,6 +65,8 @@ export function MyAccount() {
   const setCharacter = useSetCharacter();
   const setLeaderboardOptIn = useSetLeaderboardOptIn();
   const [error, setError] = useState("");
+  const deleting = useRef(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const stamps = stampRows(rows).length;
   const board = currentBoard(stamps);
@@ -117,7 +123,7 @@ export function MyAccount() {
     setAvatarBusy(true);
     setError("");
     try {
-      await saveAvatar(await uploadPhoto(res.assets[0].uri, "avatar.jpg"));
+      await saveAvatar(await uploadAlbumPhoto(res.assets[0].uri));
     } catch (e) {
       setError(e instanceof Error ? e.message : "사진을 올리지 못했습니다");
       setAvatarBusy(false);
@@ -142,18 +148,53 @@ export function MyAccount() {
   }
 
   function withdraw() {
-    showDialog("회원 탈퇴", "탈퇴하면 계정과 모든 기록·사진이 되돌릴 수 없게 삭제됩니다. 계속할까요?", [
+    showDialog("회원 탈퇴", "탈퇴하면 계정과 내 기록·사진이 되돌릴 수 없게 삭제됩니다. 상대가 자신의 기록으로 복사해 보관한 내용은 남을 수 있습니다. 계속할까요?", [
       { text: "취소", style: "cancel" },
       {
         text: "탈퇴", style: "destructive",
         onPress: async () => {
-          const res = await apiFetch("/account-delete", { method: "POST" });
-          if (!res.ok) {
-            const body = await res.json().catch(() => null);
-            return setError(body?.error ?? "탈퇴하지 못했습니다");
+          if (deleting.current) return;
+          deleting.current = true;
+          setDeleteBusy(true);
+          setError("");
+          let resume: (() => void) | undefined;
+          let deleted = false;
+          try {
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            if (authError || !user) throw new Error("다시 로그인한 뒤 시도해 주세요.");
+            let appleAuthorizationCode: string | undefined;
+            if (user.identities?.some((identity) => identity.provider === "apple")) {
+              if (!(await AppleAuthentication.isAvailableAsync())) {
+                await WebBrowser.openBrowserAsync(DELETE_ACCOUNT_URL);
+                return;
+              }
+              const credential = await AppleAuthentication.signInAsync({ requestedScopes: [] });
+              if (!credential.authorizationCode) throw new Error("Apple 본인 확인을 완료하지 못했습니다.");
+              appleAuthorizationCode = credential.authorizationCode;
+            }
+            resume = await pauseQueueForDeletion(user.id);
+            const res = await apiFetch("/account-delete", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ appleAuthorizationCode }),
+            });
+            if (!res.ok) {
+              const body = await res.json().catch(() => null);
+              throw new Error(body?.error ?? "탈퇴하지 못했습니다");
+            }
+            deleted = true;
+            try {
+              await purgeDeletedAccountQueue(user.id);
+              await purgeDeletedAccountRecommendations(user.id);
+            }
+            catch { showDialog("계정이 삭제되었습니다", "이 기기의 대기 사진 정리를 완료하지 못했습니다. 앱을 삭제하면 남은 기기 데이터도 지워집니다."); }
+            await supabase.auth.signOut({ scope: "local" });
+          } catch (e) {
+            if ((e as { code?: string })?.code !== "ERR_REQUEST_CANCELED") setError(e instanceof Error ? e.message : "연결을 확인한 뒤 다시 시도해 주세요.");
+          } finally {
+            if (!deleted) resume?.();
+            deleting.current = false;
+            setDeleteBusy(false);
           }
-          await unregisterPushToken();
-          await supabase.auth.signOut();
         },
       },
     ]);
@@ -283,10 +324,11 @@ export function MyAccount() {
         <Row label="라벨첩" onPress={() => router.push("/labels")} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="기록 내려받기" onPress={exportRecords} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="개인정보 처리방침" onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
+        <Row label="계정 삭제 요청 · 문의" onPress={() => WebBrowser.openBrowserAsync(DELETE_ACCOUNT_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="이용약관" onPress={() => WebBrowser.openBrowserAsync(TERMS_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="튜토리얼 다시 보기" onPress={restartTutorial} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
-        <Row label="로그아웃" onPress={async () => { await unregisterPushToken(); await supabase.auth.signOut(); }} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
-        <Row label="회원 탈퇴" onPress={withdraw} danger right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
+        <Row label="로그아웃" onPress={deleteBusy ? undefined : async () => { await unregisterPushToken(); await supabase.auth.signOut(); }} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
+        <Row label={deleteBusy ? "탈퇴 처리 중…" : "회원 탈퇴"} onPress={deleteBusy ? undefined : withdraw} danger right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
       </View>
 
       {!!error && <Text style={{ marginTop: 12, textAlign: "center", fontFamily: F.sans, fontSize: 11.5, color: C.brick }}>{error}</Text>}

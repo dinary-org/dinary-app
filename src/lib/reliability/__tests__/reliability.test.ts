@@ -206,3 +206,16 @@ test("outbox keeps concurrent additions and retries failed local acknowledgement
   await deliverOutbox(io);
   assert.deepEqual(stored, [{ id: "event-2" }]);
 });
+
+test("notification targets reject arbitrary routes, invalid identifiers and another recipient", async () => {
+  const { notificationTarget } = await import("../notification.js");
+  assert.equal(notificationTarget({ url: "https://evil.example" }, "A"), null);
+  assert.equal(notificationTarget({ recordId: -1 }, "A"), null);
+  assert.equal(notificationTarget({ recordId: "42" }, "A"), null);
+  assert.equal(notificationTarget({ recordId: 1.5 }, "A"), null);
+  assert.equal(notificationTarget({ recordId: 42, recipientId: "B" }, "A"), null);
+  assert.equal(notificationTarget({ wishId: "../../admin" }, "A"), null);
+  assert.deepEqual(notificationTarget({ recordId: 42, recipientId: "A" }, "A"), { kind: "record", id: 42 });
+  assert.deepEqual(notificationTarget({ wishId: "12345678-1234-1234-1234-123456789abc" }, "A"), { kind: "wish", id: "12345678-1234-1234-1234-123456789abc" });
+  assert.deepEqual(notificationTarget({ drafts: true }, "A"), { kind: "drafts" });
+});

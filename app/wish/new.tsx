@@ -211,6 +211,12 @@ export default function WishForm() {
       (cleanWhere ? (await forwardGeocode(cleanWhere).catch(() => []))[0] : null) ??
       (await forwardGeocode(cleanName).catch(() => []))[0] ?? null
     );
+    if (notify && (!at || !(await askWishPermissions()))) {
+      setNotify(false);
+      setSaving(false);
+      setError(at ? "근처 알림이 꺼졌어요. 알림 없이 저장하려면 다시 저장해 주세요." : "근처 알림을 켜려면 가게 위치를 먼저 선택해 주세요.");
+      return;
+    }
     let capturePath = capture?.path ?? null;
     if (capture?.local) {
       try { capturePath = await uploadAlbumPhoto(capture.local); }
@@ -240,8 +246,6 @@ export default function WishForm() {
     if (wish?.capture_path && wish.capture_path !== capturePath) void removePhotoObjects([wish.capture_path]);
     await refreshAll(qc);
     router.back();
-    // 근처 알림을 켜고 저장할 때만 알림 · 위치(항상) 권한을 여쭙니다(핸드오프 §7).
-    if (notify && !wish?.notify) void askWishPermissions();
   }
 
   async function remove() {

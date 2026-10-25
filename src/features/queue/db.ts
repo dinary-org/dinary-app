@@ -110,3 +110,20 @@ export async function saveQueueStage(id: number, ownerId: string, patch: { photo
   const result = await (await db()).runAsync(`UPDATE pending_records SET ${entries.map(([k]) => `${k} = ?`).join(", ")} WHERE id = ? AND owner_id = ?`, ...entries.map(([,v]) => v ?? null), id, ownerId);
   if (result.changes !== 1) throw new SessionChanged("queue_entry_removed");
 }
+
+/** Called only after confirmed server deletion, scoped to the deleted owner. */
+export async function purgeDeletedAccountQueue(ownerId: string) {
+  const d = await db();
+  const rows = await listQueue(ownerId);
+  for (const row of rows) {
+    const extras: unknown = (() => { try { return JSON.parse(row.extra_photos ?? "[]"); } catch { return []; } })();
+    const paths = [row.photo_uri, ...(Array.isArray(extras) ? extras.filter((v): v is string => typeof v === "string") : [])];
+    for (const path of paths) {
+      // The queue must never be able to delete files outside app-managed photo storage.
+      if (!path.startsWith(Paths.document.uri)) continue;
+      const file = new File(path);
+      if (file.exists) file.delete();
+    }
+    await d.runAsync("DELETE FROM pending_records WHERE id = ? AND owner_id = ?", row.id, ownerId);
+  }
+}

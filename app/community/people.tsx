@@ -127,10 +127,6 @@ export default function PeopleScreen() {
               <Text style={{ fontFamily: F.sans, fontSize: 13.5, color: C.ink }}>초대 링크 보내기</Text>
               <Text style={{ fontSize: 13, color: C.faint }}>›</Text>
             </Pressable>
-            <View style={{ minHeight: 50, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: C.lineSoft }}>
-              <Text style={{ fontFamily: F.sans, fontSize: 13.5, color: C.faint }}>카카오 친구 불러오기</Text>
-              <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: K.inactive }}>준비 중</Text>
-            </View>
           </View>
 
           {(fr?.friends.length ?? 0) > 0 && (

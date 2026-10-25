@@ -5,10 +5,11 @@ import * as Haptics from "expo-haptics";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Location from "expo-location";
 import * as MediaLibrary from "expo-media-library/legacy";
+import { Asset } from "expo-media-library";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, BackHandler, FlatList, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, BackHandler, FlatList, Image, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -102,7 +103,6 @@ export default function Capture() {
   const [error, setError] = useState("");
   const cameraRef = useRef<CameraView>(null);
   const [busy, setBusy] = useState(false);
-  const [latestPhoto, setLatestPhoto] = useState<string | null>(null);
   const [saveToGallery, setSaveToGallery] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   /** 셔터를 누를 때마다 올라갑니다 — 다시 찍은 뒤 늦게 도착한 이전 위치를 버리는 데 씁니다. */
@@ -124,19 +124,6 @@ export default function Capture() {
   useEffect(() => {
     if (permsKnown && permsGranted && step === "permission") setStep("shoot");
   }, [permsKnown, permsGranted, step]);
-
-  // 갤러리 썸네일 — 최근 사진 1장(권한이 없으면 회색 자리표시).
-  useEffect(() => {
-    if (step !== "shoot") return;
-    (async () => {
-      try {
-        const perm = await MediaLibrary.getPermissionsAsync();
-        if (!perm.granted) return;
-        const { assets } = await MediaLibrary.getAssetsAsync({ first: 1, mediaType: "photo", sortBy: [[MediaLibrary.SortBy.creationTime, false]] });
-        setLatestPhoto(assets[0]?.uri ?? null);
-      } catch { /* 썸네일은 없어도 됩니다 */ }
-    })();
-  }, [step]);
 
   const denied = (camPerm && !camPerm.granted && !camPerm.canAskAgain) || (locPerm && !locPerm.granted && !locPerm.canAskAgain);
 
@@ -200,7 +187,10 @@ export default function Capture() {
   function acceptShot() {
     Haptics.selectionAsync();
     // 사진 앱 저장은 뒤에서 — 실패해도 인증 흐름은 그대로 갑니다.
-    if (saveToGallery && shot) MediaLibrary.saveToLibraryAsync(shot.original).catch(() => {});
+    if (saveToGallery && shot) {
+      const save = Platform.OS === "android" ? Asset.create(shot.original) : MediaLibrary.saveToLibraryAsync(shot.original);
+      void save.catch(() => setToast("사진 앱에 저장하지 못했어요. 앱 안의 기록은 계속할 수 있어요."));
+    }
     setStep("pick");
   }
 
@@ -208,8 +198,8 @@ export default function Capture() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const next = !saveToGallery;
     setSaveToGallery(next);
-    if (next) {
-      const perm = await MediaLibrary.requestPermissionsAsync(true).catch(() => null);
+    if (next && !(Platform.OS === "android" && Number(Platform.Version) >= 30)) {
+      const perm = await MediaLibrary.requestPermissionsAsync(true, []).catch(() => null);
       if (!perm?.granted) {
         setSaveToGallery(false);
         setToast("사진 접근을 허용하면 저장할 수 있어요");
@@ -460,7 +450,7 @@ export default function Capture() {
 
         <View style={[s.shootRow, { bottom: insets.bottom + 104 }]}>
           <Pressable style={s.gallery} onPress={fromGallery} accessibilityLabel="갤러리에서 고르기">
-            {latestPhoto && <Image source={{ uri: latestPhoto }} style={{ width: 46, height: 46, borderRadius: 12 }} />}
+            <Text style={{ color: "white", fontSize: 12 }}>앨범</Text>
           </Pressable>
           <Pressable onPress={shoot} disabled={busy} style={s.shutterOuter} accessibilityLabel="촬영">
             <View style={s.shutterInner} />

@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BellIcon, BookmarkIcon, CameraIcon, ExternalIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { refreshAll } from "@/data/invalidate";
-import { askWishPermissions } from "@/features/notify/geofence";
+import { askWishPermissions, syncWishGeofences, useWishPermissionState } from "@/features/notify/geofence";
 import { useActiveBook } from "@/data/books";
 import { useWishes } from "@/data/queries";
 import { setState } from "@/data/store";
@@ -30,6 +30,7 @@ export default function WishSheetRoute() {
   const { data: wishes = [] } = useWishes();
   const wish = wishes.find((w) => w.id === id);
   const [busy, setBusy] = useState(false);
+  const allowed = useWishPermissionState(wish?.notify);
   const { isCouple, me } = useActiveBook();
 
   if (!wish) return <Pressable style={{ flex: 1 }} onPress={() => router.back()} />;
@@ -47,12 +48,24 @@ export default function WishSheetRoute() {
   const capture = wish.capture_path && (!isCouple || wish.user_id === me?.userId) ? wish.capture_path : null;
 
   async function toggleNotify() {
+    if (busy) return;
     setBusy(true);
-    await supabase.from("wishes").update({ notify: !wish!.notify }).eq("id", wish!.id);
-    setBusy(false);
-    refreshAll(qc);
-    // 근처 알림을 켤 때만 알림 · 위치(항상) 권한을 여쭙니다.
-    if (!wish!.notify) void askWishPermissions();
+    try {
+      const next = !wish!.notify;
+      if (next && (wish!.lat == null || wish!.lng == null)) {
+        showDialog("위치가 필요해요", "수정에서 가게 위치를 먼저 선택해 주세요.");
+        return;
+      }
+      if (next && !(await askWishPermissions())) return;
+      const { error } = await supabase.from("wishes").update({ notify: next }).eq("id", wish!.id).select("id").single();
+      if (error) throw error;
+      await syncWishGeofences(wishes.map((w) => w.id === wish!.id ? { ...w, notify: next } : w));
+      await refreshAll(qc);
+    } catch {
+      showDialog("알림 설정을 저장하지 못했어요", "연결을 확인한 뒤 다시 시도해 주세요.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function leaveGroup() {
@@ -106,8 +119,8 @@ export default function WishSheetRoute() {
             onPress={() => { setState({ kind: wishKind(wish) }); router.replace({ pathname: "/capture", params: { verifyWishId: wish.id, kind: wishKind(wish) } }); }}
             style={{ flex: 1, borderRadius: 18 }}
           />
-          <Pressable onPress={toggleNotify} disabled={busy} accessibilityLabel="근처 알림" style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: wish.notify ? "#e0c3b1" : C.line, backgroundColor: wish.notify ? C.brickSoft : C.card, alignItems: "center", justifyContent: "center" }}>
-            <BellIcon size={16} stroke={wish.notify ? C.brick : C.muted} />
+          <Pressable onPress={toggleNotify} disabled={busy} accessibilityRole="switch" accessibilityState={{ checked: wish.notify && allowed, disabled: busy }} accessibilityLabel={wish.notify && !allowed ? "근처 알림 · 권한 필요" : "근처 알림"} style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: wish.notify && allowed ? "#e0c3b1" : C.line, backgroundColor: wish.notify && allowed ? C.brickSoft : C.card, alignItems: "center", justifyContent: "center" }}>
+            <BellIcon size={16} stroke={wish.notify && allowed ? C.brick : C.muted} />
           </Pressable>
           {url && (
             <Pressable onPress={() => Linking.openURL(url)} accessibilityLabel="출처 열기" style={{ height: 44, borderRadius: 22, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 13, flexDirection: "row", alignItems: "center", gap: 5 }}>
@@ -117,6 +130,7 @@ export default function WishSheetRoute() {
           )}
         </View>
 
+        {wish.notify && !allowed && <Text style={{ marginTop: 8, color: C.brick, fontSize: 12 }}>근처 알림 권한이 필요합니다. 알림을 껐다가 다시 켜 주세요.</Text>}
         <View style={{ marginTop: 12, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 4 }}>
           <Pressable onPress={() => router.replace({ pathname: "/wish/new", params: { id: wish.id } })} style={{ padding: 6 }}><Text style={{ fontFamily: F.sans, fontSize: 12, color: C.faint }}>수정</Text></Pressable>
           <Text style={{ color: "#d8d3c8" }}>·</Text>

@@ -7,3 +7,5 @@ export const WEB_BASE = (process.env.EXPO_PUBLIC_WEB_BASE_URL || "https://dinary
 
 export const PRIVACY_URL = `${WEB_BASE}/privacy/`;
 export const TERMS_URL = `${WEB_BASE}/terms/`;
+
+export const DELETE_ACCOUNT_URL = `${WEB_BASE}/delete-account/`;

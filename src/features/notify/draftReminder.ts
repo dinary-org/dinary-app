@@ -1,3 +1,4 @@
+import { registerPushToken } from "./push";
 import * as Notifications from "expo-notifications";
 import { todayIso } from "@/lib/anniversary";
 import type { Restaurant } from "@/lib/types";
@@ -43,4 +44,5 @@ export async function askDraftReminderPermission() {
   await ensureChannel();
   const now = await Notifications.getPermissionsAsync().catch(() => null);
   if (now && !now.granted && now.canAskAgain) await Notifications.requestPermissionsAsync().catch(() => {});
+  await registerPushToken();
 }

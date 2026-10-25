@@ -1,5 +1,7 @@
 import { restoreShown } from "@/features/recommend/log";
-import { DialogHost } from "@/components/Dialog";
+import { notificationTarget } from "@/lib/reliability/notification";
+import { supabase } from "@/lib/supabase";
+import { DialogHost, showDialog } from "@/components/Dialog";
 import { GowunDodum_400Regular } from "@expo-google-fonts/gowun-dodum";
 import { NotoSansKR_400Regular, NotoSansKR_500Medium, NotoSansKR_700Bold } from "@expo-google-fonts/noto-sans-kr";
 import { JetBrainsMono_400Regular } from "@expo-google-fonts/jetbrains-mono";
@@ -8,7 +10,7 @@ import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
 import { AppState } from "react-native";
 import { bootState } from "@/lib/reliability/boot";
 import { BootScreen } from "@/components/BootScreen";
-import { useActiveBook, useBooks } from "@/data/books";
+import { setActiveBook, useActiveBook, useBooks } from "@/data/books";
 import { useSession } from "@/data/session";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
@@ -66,7 +68,13 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     const now = session?.user.id ?? null;
     const prev = geofenceOwner.current;
     geofenceOwner.current = now;
-    if (prev !== undefined && prev !== now) void syncWishGeofences([]);
+    if (prev !== undefined && prev !== now) {
+      void syncWishGeofences([]);
+      if (prev !== null) {
+        void Notifications.clearLastNotificationResponseAsync().catch(() => {});
+        void Notifications.dismissAllNotificationsAsync().catch(() => {});
+      }
+    }
   }, [session]);
 
   const { data: account, isPending: accountPending, isError: accountError } = useAccount();
@@ -152,16 +160,52 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   }, [userId]);
 
   // 위시가 바뀔 때마다 가까운 20곳으로 지오펜스를 다시 맞춥니다.
-  useEffect(() => { if (session && wishes) void syncWishGeofences(wishes); }, [session, wishes]);
-
-  // 근처 알림을 누르면 그 위시를 인증 대상으로 카메라가 바로 열립니다.
-  const last = Notifications.useLastNotificationResponse();
   useEffect(() => {
-    const wishId = last?.notification.request.content.data?.wishId as string | undefined;
-    if (ready && session && wishId) router.push({ pathname: "/capture", params: { verifyWishId: wishId } });
-    // 보관함 알림을 누르면 보관함으로.
-    if (ready && session && last?.notification.request.content.data?.drafts) router.push("/drafts");
-  }, [last, ready, session, router]);
+    if (!userId || !wishes) return;
+    const sync = () => { void syncWishGeofences(wishes); };
+    sync();
+    const sub = AppState.addEventListener("change", (state) => { if (state === "active") sync(); });
+    return () => sub.remove();
+  }, [userId, wishes]);
+
+  const last = Notifications.useLastNotificationResponse();
+  const handledNotification = useRef<string | null>(null);
+  useEffect(() => {
+    if (!ready || !userId || !account?.termsAgreed || !account.nickname || !last || !books.isSuccess) return;
+    if (["login", "auth", "agree", "welcome"].includes(first ?? "")) return;
+    const key = last.notification.request.identifier + ":" + last.notification.date;
+    if (handledNotification.current === key) return;
+    handledNotification.current = key;
+    const target = notificationTarget(last.notification.request.content.data ?? {}, userId);
+    let cancelled = false;
+    void (async () => {
+      if (target?.kind === "record") {
+        const { data, error } = await supabase.from("restaurants").select("id, book_id").eq("id", target.id).maybeSingle();
+        if (cancelled || (await supabase.auth.getSession()).data.session?.user.id !== userId) return;
+        if (error || !data) {
+          showDialog("기록을 열 수 없어요", "삭제되었거나 접근할 수 없는 기록입니다. 연결 상태도 확인해 주세요.");
+          return;
+        }
+        if (data.book_id) setActiveBook(data.book_id);
+        if (!cancelled) router.push({ pathname: "/record/[id]", params: { id: String(target.id) } });
+      } else if (target?.kind === "wish") {
+        const { data } = await supabase.from("wishes").select("id, book_id").eq("id", target.id).maybeSingle();
+        if (cancelled || (await supabase.auth.getSession()).data.session?.user.id !== userId) return;
+        if (!data) { showDialog("가게를 열 수 없어요", "삭제되었거나 접근할 수 없는 위시입니다."); return; }
+        if (data.book_id) setActiveBook(data.book_id);
+        router.push({ pathname: "/capture", params: { verifyWishId: target.id } });
+      } else if (target?.kind === "drafts") router.push("/drafts");
+    })().catch(() => { if (!cancelled) showDialog("알림을 열지 못했어요", "연결을 확인한 뒤 앱에서 기록을 열어 주세요."); })
+      .finally(() => {
+        // A second tap may arrive while the first lookup is in flight.
+        void Notifications.getLastNotificationResponseAsync().then((latest) => {
+          if (latest && latest.notification.request.identifier + ":" + latest.notification.date === key) {
+            return Notifications.clearLastNotificationResponseAsync();
+          }
+        }).catch(() => {});
+      });
+    return () => { cancelled = true; };
+  }, [last, ready, userId, account?.termsAgreed, account?.nickname, books.isSuccess, first, router]);
 
   // 공유 시트(릴스 · 쇼츠 …)로 받은 글 — 담아두고, 로그인 · 닉네임까지 끝난 뒤 위시 폼으로 넘깁니다.
   // 폼이 받은 글을 판별해 유튜브 · 인스타 링크면 「어느 가게인가요」를 위에 띄우고, 아니면 링크 입력창에 오류와 함께 둡니다.
@@ -213,7 +257,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
       fetching={books.isFetching} onRetry={() => { void books.refetch(); }}
       onCapture={session && account && account.userId === userId && account.nickname && account.termsAgreed ? () => { setCaptureEscape(true); router.push("/capture"); } : undefined} onHidden={hideBoot} />}
     {/* TEMP(테스트용) 튜토리얼 다시 보기 단추 — 로그인 뒤 모든 화면 왼쪽 가운데 */}
-    {signedIn && !showBoot && <TestReplayButton />}
+    {__DEV__ && signedIn && !showBoot && <TestReplayButton />}
     {/* 첫 실행 튜토리얼 — 탭 · 시트 · 전환 판보다 위 */}
     <CoachOverlay />
     </TutorialProvider>

@@ -20,6 +20,10 @@ module.exports = ({ config }) => {
   const pluginName = "@mj-studio/react-native-naver-map";
   return {
     ...config,
+    ios: {
+      ...config.ios,
+      ...(process.env.APPLE_TEAM_ID?.trim() ? { appleTeamId: process.env.APPLE_TEAM_ID.trim() } : {}),
+    },
     plugins: [
       // Keep a single authoritative registration, even if static config adds one later.
       ...(config.plugins ?? []).filter(

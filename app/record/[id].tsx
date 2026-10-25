@@ -83,7 +83,7 @@ export default function RecordRoute() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const { data: rows = [] } = useRows();
+  const { data: rows = [], isPending: recordsLoading, isError: recordsError, refetch: reloadRecords } = useRows();
   const record = rows.find((r) => r.id === Number(id));
   const photos = record ? photosOf(record) : [];
   const cover = record ? Math.min(record.cover_index ?? 0, Math.max(0, photos.length - 1)) : 0;
@@ -108,10 +108,25 @@ export default function RecordRoute() {
     return () => clearTimeout(t);
   }, [keptId]);
 
+  const openedRecordId = record?.id;
+  const currentUserId = me?.userId;
+  useEffect(() => {
+    if (!openedRecordId || !currentUserId) return;
+    void supabase.from("pokes").update({ seen_at: new Date().toISOString() })
+      .eq("record_id", openedRecordId).eq("to_user", currentUserId).is("seen_at", null)
+      .then(() => {}, () => {});
+  }, [openedRecordId, currentUserId]);
+
   if (!record) {
     return (
       <View style={{ flex: 1, backgroundColor: C.paper, paddingTop: insets.top }}>
         <BackButton />
+        {recordsLoading ? <ActivityIndicator style={{ marginTop: 32 }} /> : (
+          <View style={{ padding: 24, gap: 12 }}>
+            <Text>{recordsError ? "기록을 불러오지 못했어요." : "삭제되었거나 접근할 수 없는 기록입니다."}</Text>
+            <Button label="다시 불러오기" onPress={() => { void reloadRecords(); }} />
+          </View>
+        )}
       </View>
     );
   }

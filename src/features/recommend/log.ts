@@ -180,3 +180,11 @@ export async function linkVisit(rec: { recordId: number; name: string; lat: numb
   const hint = await visitAttribution(rec);
   return queueVisit(hint, rec.recordId, rec.verified);
 }
+
+/** Clear account-scoped recommendation history only after confirmed deletion. */
+export async function purgeDeletedAccountRecommendations(owner: string) {
+  await serial(async () => {
+    await AsyncStorage.multiRemove([shownKey(owner), visitsKey(owner)]);
+    if (shownOwner === owner) { shownOwner = null; setState({ recShown: [] }); }
+  });
+}

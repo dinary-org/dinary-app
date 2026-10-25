@@ -20,14 +20,15 @@ export async function sendPoke(bookId: string, recordId: number, toUser: string)
 }
 
 /**
- * 받은 콕 찌르기 — 앱이 앞으로 올 때마다 안 본 것을 읽어 기기 알림으로 띄우고 봤음으로 표시합니다.
- * 보낼 때 푸시(push-send)도 보내고, 푸시가 닿으면 서버가 seen_at 을 채워 여기서는 다시 띄우지 않습니다.
+ * 받은 콕 찌르기 — 앱이 앞으로 올 때마다 안 본 것을 읽어 기기 알림으로 띄웁니다.
+ * 앱 실행 중 같은 찌르기는 한 번만 표시하고, 기록을 열면 읽음 처리합니다.
  * 푸시를 못 받은 기기(권한 없음 · FCM 없는 안드로이드)는 앱을 열 때 여기서 알려 줍니다.
  */
 export function usePokeInbox() {
   const { books, me } = useActiveBook();
   const couple = books?.couple ?? null;
   const busy = useRef(false);
+  const shown = useRef(new Set<string>());
   useEffect(() => {
     if (!me?.userId || !couple) return;
     const names = new Map(couple.members.map((m) => [m.userId, m.nickname]));
@@ -37,18 +38,22 @@ export function usePokeInbox() {
       try {
         const { data } = await supabase
           .from("pokes")
-          .select("record_id, from_user, restaurants(name)")
+          .select("record_id, from_user, created_at, restaurants(name)")
           .eq("to_user", me!.userId)
           .is("seen_at", null);
         if (data?.length) await ensureChannel();
         for (const p of data ?? []) {
+          const key = `${me!.userId}:${p.record_id}:${p.from_user}:${p.created_at}`;
+          if (shown.current.has(key) || !(await Notifications.getPermissionsAsync()).granted) continue;
           const place = (p.restaurants as { name?: string } | null)?.name ?? "기록";
           await Notifications.scheduleNotificationAsync({
-            content: { title: `${iGa(names.get(p.from_user) ?? "상대")} 콕 찔렀어요`, body: `${place}에 한 줄을 남겨 주세요`, data: { recordId: p.record_id } },
+            content: { title: `${iGa(names.get(p.from_user) ?? "상대")} 콕 찔렀어요`, body: `${place}에 한 줄을 남겨 주세요`, data: { recordId: p.record_id, recipientId: me!.userId } },
             trigger: { channelId: CHANNEL },
-          }).catch(() => {});
-          await supabase.from("pokes").update({ seen_at: new Date().toISOString() }).eq("record_id", p.record_id).eq("from_user", p.from_user);
+          });
+          shown.current.add(key);
         }
+      } catch {
+        // Retry on the next foreground event; do not mark an undelivered poke read.
       } finally {
         busy.current = false;
       }

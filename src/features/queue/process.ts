@@ -13,6 +13,7 @@ const MAX_ATTEMPTS = 3;
 const backoff = (attempts: number) => 5000 * 4 ** Math.max(0, attempts - 1);
 
 let running: Promise<void> | null = null;
+const deletingOwners = new Set<string>();
 const listeners = new Set<() => void>();
 export const onQueueChange = (f: () => void) => {
   listeners.add(f);
@@ -22,7 +23,8 @@ export const notifyQueue = () => listeners.forEach((f) => f());
 
 /** 한 건을 올립니다: 사진 업로드 → restaurants insert → 짝 위시 delete → 로컬 파일 삭제. 새 기록 id 를 돌려줍니다. */
 async function currentOwner() {
-  return (await supabase.auth.getSession()).data.session?.user.id ?? null;
+  const id = (await supabase.auth.getSession()).data.session?.user.id ?? null;
+  return id && !deletingOwners.has(id) ? id : null;
 }
 async function processOne(row: QueueRow): Promise<number | null> {
   const payload = JSON.parse(row.payload) as Record<string, unknown>;
@@ -133,4 +135,11 @@ export function startQueueTriggers(qc: QueryClient) {
   // 백오프 시간이 지난 건을 다시 시도합니다.
   const timer = setInterval(run, 30000);
   return () => { app.remove(); net(); clearInterval(timer); };
+}
+
+/** Pause uploads while deleting an account, including an in-flight upload. */
+export async function pauseQueueForDeletion(ownerId: string) {
+  deletingOwners.add(ownerId);
+  await running;
+  return () => { deletingOwners.delete(ownerId); };
 }

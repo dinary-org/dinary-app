@@ -284,11 +284,6 @@ export default function RecordRoute() {
           {!current && !canAddPhotos && (
             <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 1.4, color: C.faint }}>사진 없음</Text>
           )}
-          {!!current && current === verifiedShot && (
-            <View style={{ position: "absolute", right: 16, bottom: 16 }}>
-              <VerifiedMark size={52} />
-            </View>
-          )}
           {anniversary && (
             <Text style={{ position: "absolute", right: 16, top: 14, borderRadius: 10, backgroundColor: C.brick, paddingHorizontal: 9, paddingVertical: 4, fontFamily: F.mono, fontSize: 11, color: C.card, overflow: "hidden" }}>
               {anniversary}
@@ -305,7 +300,6 @@ export default function RecordRoute() {
                 {i === cover && (
                   <Text style={{ position: "absolute", left: 3, top: 3, borderRadius: 5, backgroundColor: C.brick, paddingHorizontal: 3, fontFamily: F.mono, fontSize: 8, color: C.card, overflow: "hidden" }}>대표</Text>
                 )}
-                {url === verifiedShot && <View style={{ position: "absolute", right: 2, bottom: 2 }}><VerifiedMark size={18} /></View>}
               </Pressable>
             ))}
             {pending.map((uri) => (
@@ -332,7 +326,10 @@ export default function RecordRoute() {
         )}
 
         <View style={{ paddingHorizontal: 22, paddingTop: 20 }}>
-          <Text style={[FAINT_BOLD, { fontFamily: F.serif, fontSize: 25, color: C.ink }]}>{record.name}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={[FAINT_BOLD, { flexShrink: 1, fontFamily: F.serif, fontSize: 25, color: C.ink }]}>{record.name}</Text>
+            {record.verified && <VerifiedMark size={24} />}
+          </View>
           <Text style={{ marginTop: 7, fontFamily: F.sans, fontSize: 12, color: C.faint }}>
             {[record.category, record.region].filter(Boolean).join(" · ")}
           </Text>

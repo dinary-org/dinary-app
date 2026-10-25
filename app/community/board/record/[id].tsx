@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThumbIcon, VerifiedMark } from "@/components/icons";
 import { BackButton, Eyebrow, MobileStars, PhotoBox, Pigs } from "@/components/ui";
 import { useBoardRecord } from "@/features/community/api";
-import { photosOf, verifiedShotOf } from "@/lib/record";
+import { photosOf } from "@/lib/record";
 import { SignedImage } from "@/lib/signedPhoto";
 import { dottedDate, verifiedDateTime } from "@/lib/types";
 import { C, F, FAINT_BOLD } from "@/theme";
@@ -43,7 +43,6 @@ export default function BoardRecordScreen() {
   const cover = Math.min(record.cover_index ?? 0, Math.max(0, photos.length - 1));
   const idx = shown ?? cover;
   const current = photos[idx] ?? null;
-  const verifiedShot = verifiedShotOf(record);
   const menus = (record.menus ?? []).filter((m) => m.name.trim());
   const width = Dimensions.get("window").width;
 
@@ -52,11 +51,6 @@ export default function BoardRecordScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }}>
         <PhotoBox src={current} category={record.category} radius={0} style={{ width, height: current ? width : 268, ...(!current && { backgroundColor: "#efeade" }) }}>
           {!current && <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 1.4, color: C.faint }}>사진 없음</Text>}
-          {!!current && current === verifiedShot && (
-            <View style={{ position: "absolute", right: 16, bottom: 16 }}>
-              <VerifiedMark size={52} />
-            </View>
-          )}
         </PhotoBox>
 
         {photos.length > 1 && (
@@ -65,14 +59,16 @@ export default function BoardRecordScreen() {
               <Pressable key={url} onPress={() => setShown(i)} accessibilityLabel={`사진 ${i + 1}`}
                 style={{ width: 54, height: 54, borderRadius: 14, overflow: "hidden", backgroundColor: "#eae5da", borderWidth: i === idx ? 1.5 : 1, borderColor: i === idx ? C.brick : "#ded8cb" }}>
                 <SignedImage uri={url} style={{ width: "100%", height: "100%" }} />
-                {url === verifiedShot && <View style={{ position: "absolute", right: 2, bottom: 2 }}><VerifiedMark size={18} /></View>}
               </Pressable>
             ))}
           </ScrollView>
         )}
 
         <View style={{ paddingHorizontal: 22, paddingTop: 20 }}>
-          <Text style={[FAINT_BOLD, { fontFamily: F.serif, fontSize: 25, color: C.ink }]}>{record.name}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={[FAINT_BOLD, { flexShrink: 1, fontFamily: F.serif, fontSize: 25, color: C.ink }]}>{record.name}</Text>
+            {record.verified && <VerifiedMark size={24} />}
+          </View>
           <Text style={{ marginTop: 7, fontFamily: F.sans, fontSize: 12, color: C.faint }}>
             {[record.category, record.region].filter(Boolean).join(" · ")}
           </Text>

@@ -348,7 +348,6 @@ export default function EditRoute() {
                     ? <Image source={{ uri: pic.ref }} style={{ width: "100%", height: "100%" }} />
                     : <SignedImage uri={pic.ref} style={{ width: "100%", height: "100%" }} />}
                   {i === cover && <Text style={s.coverTag}>대표</Text>}
-                  {pic.ref === lockedRef && <View style={{ position: "absolute", right: 4, bottom: 4 }}><VerifiedMark size={18} /></View>}
                 </Pressable>
               ))}
               {pics.length < MAX_PHOTOS && (
@@ -361,7 +360,10 @@ export default function EditRoute() {
         </View>
 
         <View style={{ marginTop: 18 }}>
-          <Eyebrow>가게</Eyebrow>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <Eyebrow>가게</Eyebrow>
+            {isVerified && <VerifiedMark size={14} />}
+          </View>
           <TextInput
             value={name}
             onChangeText={(t) => { setName(t); setPlaceUrl(null); setSuggestOpen(true); }}

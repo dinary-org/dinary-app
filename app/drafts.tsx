@@ -93,10 +93,12 @@ export default function Drafts() {
           <View key={r.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 20, borderWidth: 1, borderColor: "#e0c3b1", backgroundColor: C.card, padding: 12 }}>
             <View>
               <PhotoBox src={coverPhoto(r)} category={r.category} size={64} radius={15} />
-              {r.verified && <View style={{ position: "absolute", right: -3, bottom: -3 }}><VerifiedMark size={22} /></View>}
             </View>
             <View style={{ flex: 1 }}>
-              <Text numberOfLines={1} style={{ fontFamily: F.serif, fontSize: 15.5, color: C.ink }}>{r.name}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <Text numberOfLines={1} style={{ flexShrink: 1, fontFamily: F.serif, fontSize: 15.5, color: C.ink }}>{r.name}</Text>
+                {r.verified && <VerifiedMark size={17} />}
+              </View>
               <Text style={{ marginTop: 4, fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>{meta(r)}</Text>
               <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Pressable onPress={() => router.push({ pathname: "/record/edit", params: { id: String(r.id) } })} style={{ borderRadius: 15, backgroundColor: C.ink, paddingHorizontal: 14, paddingVertical: 8 }}>

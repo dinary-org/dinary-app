@@ -37,12 +37,12 @@ export default function PlaceCard({ place, onOpen, couple, onShare, noComment }:
         <PhotoBox src={place.photo} category={place.category} size={74} radius={15}>
           {!place.photo && <Text style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: 0.7, color: "rgba(251,250,246,.9)" }}>{place.visits.length}장</Text>}
         </PhotoBox>
-        {place.verified && <View style={{ position: "absolute", right: 2, bottom: 2 }}><VerifiedMark size={21} /></View>}
       </View>
 
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Text numberOfLines={1} style={[tight, FAINT_BOLD, { flexShrink: 1, fontFamily: F.serif, fontSize: 15, lineHeight: 21, color: C.ink }]}>{place.name}</Text>
+          {place.verified && <VerifiedMark size={17} />}
           {place.visits.length > 1 && (
             <View style={[badge, { backgroundColor: "#efe9dc" }]}>
               <Text style={[badgeText, { fontFamily: F.mono, fontSize: 9, color: C.muted }]}>기록 {place.visits.length}</Text>

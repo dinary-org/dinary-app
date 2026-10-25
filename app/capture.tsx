@@ -628,10 +628,13 @@ export default function Capture() {
           <View>
             {shot && <Image source={{ uri: shot.uri }} style={s.donePhoto} />}
             <View style={s.timeBadge}><Text style={s.timeText}>{hhmm(at)}</Text></View>
-            <View style={{ position: "absolute", right: 16, bottom: 16 }}><VerifiedMark size={52} /></View>
           </View>
           <Text style={s.doneTitle}>방문이 인증되었습니다</Text>
-          <Text style={s.doneSub}>{picked?.name} · {stamp}</Text>
+          <View style={{ marginTop: 7, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 }}>
+            <Text style={[s.doneSub, { marginTop: 0, flexShrink: 1 }]}>{picked?.name}</Text>
+            <VerifiedMark size={15} />
+            <Text style={[s.doneSub, { marginTop: 0 }]}>· {stamp}</Text>
+          </View>
           {days != null && (
             <View style={s.wishMet}>
               <BookmarkIcon size={12} stroke={C.brick} fill={C.brick} />

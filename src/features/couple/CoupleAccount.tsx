@@ -23,7 +23,7 @@ import { C, F, TAB_BAR_H } from "@/theme";
 import { Pair } from "./Avatars";
 import { OurStamps, wroteLine } from "./OurStamps";
 import { SinceDays } from "./Since";
-import { useRestartTutorial } from "@/features/tutorial/TutorialProvider";
+import { useRestartTutorial, useTabTutorial, useTutorialTarget } from "@/features/tutorial/TutorialProvider";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -65,6 +65,11 @@ export default function CoupleAccount() {
   const [editDate, setEditDate] = useState(false);
   const [busy, setBusy] = useState(false);
   const restartTutorial = useRestartTutorial();
+  // 첫 실행 튜토리얼 — 우리 도장 · 만난 지 · 통계.
+  useTabTutorial("couple.account");
+  const stampsSpot = useTutorialTarget("couple.stamps");
+  const sinceSpot = useTutorialTarget("couple.since");
+  const statsSpot = useTutorialTarget("couple.stats");
 
   const rows = useMemo(() => allRows.filter((r) => !r.pending), [allRows]);
   const today = todayIso();
@@ -178,10 +183,12 @@ export default function CoupleAccount() {
       </View>
 
       {/* 우리 도장 — 하트 반쪽씩, 둘 다 한 줄을 쓰면 다 찹니다 */}
-      <OurStamps rows={rows} notes={notes} me={me} partner={partner} bookId={book.id} readOnly={readOnly} />
+      <View ref={stampsSpot} collapsable={false}>
+        <OurStamps rows={rows} notes={notes} me={me} partner={partner} bookId={book.id} readOnly={readOnly} />
+      </View>
 
       {/* 만난 지 */}
-      <View style={{ marginTop: 18, flexDirection: "row", alignItems: "center", borderRadius: 22, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 18 }}>
+      <View ref={sinceSpot} collapsable={false} style={{ marginTop: 18, flexDirection: "row", alignItems: "center", borderRadius: 22, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card, padding: 18 }}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontFamily: F.mono, fontSize: 10.5, color: C.faint }}>만난 지</Text>
           <Text style={{ marginTop: 6, fontFamily: F.serif, fontSize: 36, color: C.ink }}>
@@ -200,7 +207,7 @@ export default function CoupleAccount() {
       </View>
 
       {/* 통계 */}
-      <View style={{ marginTop: 14, flexDirection: "row", borderRadius: 18, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card }}>
+      <View ref={statsSpot} collapsable={false} style={{ marginTop: 14, flexDirection: "row", borderRadius: 18, borderWidth: 1, borderColor: C.lineSoft, backgroundColor: C.card }}>
         <Stat value={places.size} label="함께 간 식당" />
         <Stat value={records} label="기록" border />
         <Stat value={verifiedRows.length} label="인증" brick border />

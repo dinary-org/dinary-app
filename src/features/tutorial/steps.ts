@@ -3,8 +3,8 @@
  * targets 는 useTutorialTarget(id) 로 등록한 자리입니다. 등록된 자리가 하나도 없으면 그 단계는 건너뜁니다.
  */
 
-export type TutorialKey = "map" | "couple" | "calendar" | "recommend" | "community.friends" | "community.gallery" | "community.ranking" | "community.board";
-export const TUTORIAL_KEYS: TutorialKey[] = ["map", "couple", "calendar", "recommend", "community.friends", "community.gallery", "community.ranking", "community.board"];
+export type TutorialKey = "map" | "couple" | "couple.account" | "calendar" | "recommend" | "community.friends" | "community.gallery" | "community.ranking" | "community.board";
+export const TUTORIAL_KEYS: TutorialKey[] = ["map", "couple", "couple.account", "calendar", "recommend", "community.friends", "community.gallery", "community.ranking", "community.board"];
 
 export type Step = {
   title: string;
@@ -26,7 +26,7 @@ export const STEPS: Record<TutorialKey, Step[]> = {
     { kind: "intro", title: "다이너리에 오신 걸\n환영해요", desc: "", targets: [] },
     { title: "사진으로 기록", desc: "가게에서 사진을 찍으면 바로 기록이 시작되고, 다녀간 곳으로 인증돼요.", targets: ["tab.camera"], radius: "circle" },
     { title: "직접 추가", desc: "사진 없이 기록을 쓰거나, 가고 싶은 곳을 계획으로 담아요.", targets: ["map.plus"], radius: "circle" },
-    { title: "길게 눌러 보기", desc: "원 안을 꾹 눌러보세요. 그 건물 안이나 근처에 있는 식당 정보가 떠요.", targets: ["map.open"], radius: "circle", sim: "longPress" },
+    { title: "길게 눌러 보기", desc: "지도에서 아무 곳이나 꾹 누르면 그 자리의 건물과 근처 식당이 떠요. 원 안을 꾹 눌러 해 보세요.", targets: ["map.open"], radius: "circle", sim: "longPress" },
     { title: "보관함", desc: "쓰다 만 기록과 올리는 중인 기록이 여기 모여요.", targets: ["map.drafts"], radius: "circle" },
     { title: "내 맛집 목록", desc: "지도에 있는 곳을 목록으로 봐요. 위로 끌어올리면 넓어져요.", targets: ["map.sheet"], radius: 28 },
     { title: "기록장 바꾸기", desc: "개인 기록장과 연인 기록장을 오가요.", targets: ["map.book"], radius: 22 },
@@ -36,12 +36,15 @@ export const STEPS: Record<TutorialKey, Step[]> = {
       couple: { desc: "캘린더 · 추천 · 연인. 처음 들어가면 그 화면도 짧게 알려드릴게요." } },
     { kind: "outro", title: "준비 끝", desc: "다음 식사 때 이 버튼으로 첫 기록을 남겨보세요.", targets: ["tab.camera"], radius: "circle" },
   ],
-  // 연인 기록장을 처음 열었을 때(지도) — 지도 튜토리얼 바로 뒤에 이어질 수도 있습니다.
+  // 연인 기록장을 처음 열었을 때(지도) — 지도 · 목록 · 캘린더 설명은 개인 기록장 튜토리얼과 같아서 연인 탭만 짚습니다.
   couple: [
-    { title: "우리 기록장", desc: "지금은 둘이 함께 쓰는 기록장이에요. 여기를 누르면 개인 기록장으로 돌아가요.", targets: ["map.book"], radius: 22 },
-    { title: "우리 기록", desc: "둘 중 누가 기록해도 여기 함께 쌓여요. 가게마다 서로 남긴 한 줄이 붙고, 아직 비었으면 상대를 기다려요.", targets: ["map.sheet"], radius: 28 },
-    { title: "연인", desc: "우리의 인증, 기념일 식사, 함께 모은 라벨을 봐요. 나만 한 줄을 쓴 기록은 콕 찔러 상대에게 부탁해요.", targets: ["tab.couple"], radius: 16, box: { w: 60, h: 54 } },
-    { title: "기념일", desc: "캘린더 위에 다음 기념일까지 남은 날이 떠요. 기념일마다 그날 함께 먹은 식사를 남겨 둬요.", targets: ["tab.calendar"], radius: 16, box: { w: 60, h: 54 } },
+    { title: "연인", desc: "둘이 함께 쓰는 기록장이에요. 연인 탭에서 우리 도장 · 만난 날 · 함께 간 곳을 모아 봐요. 처음 들어가면 짧게 알려드릴게요.", targets: ["tab.couple"], radius: 16, box: { w: 60, h: 54 } },
+  ],
+  // 연인 탭(연인계정)을 처음 열었을 때.
+  "couple.account": [
+    { title: "우리 도장", desc: "함께 간 기록마다 하트가 하나씩 찍혀요. 둘 다 한 줄을 남기면 하트가 다 차요. 나만 한 줄을 쓴 하트를 누르면 상대를 콕 찔러 부탁할 수 있어요.", targets: ["couple.stamps"], radius: 20 },
+    { title: "만난 지", desc: "사귄 날부터 센 날이에요. 다음 기념일을 누르면 기념일마다 함께 먹은 식사를 모아 봐요.", targets: ["couple.since"], radius: 22 },
+    { title: "우리 숫자", desc: "함께 간 식당, 기록, 인증을 둘이 합쳐 세요.", targets: ["couple.stats"], radius: 18 },
   ],
   calendar: [
     { title: "날짜별 기록", desc: "먹은 날에 가게 이름이 적혀요. 날짜를 누르면 그날 기록을 봐요.", targets: ["calendar.grid"], radius: 20 },
@@ -52,6 +55,7 @@ export const STEPS: Record<TutorialKey, Step[]> = {
     { title: "지금 뭐 먹지", desc: "지금 위치와 시간에 맞는 한 곳을 골라줘요.", targets: ["recommend.now"], radius: 20 },
     { title: "내 위치 · 시간", desc: "추천 기준이 되는 동네와 시간이에요. 눌러서 다른 동네나 시간으로 바꿀 수 있어요.", targets: ["recommend.where"], radius: 16 },
     { title: "둘러보기", desc: "동네와 조건을 골라 여러 곳을 한 번에 봐요.", targets: ["recommend.browse"], radius: 16 },
+    { title: "랜덤 게임", desc: "도저히 못 고르겠을 땐 게임으로 정해요. 추천된 가게 · 카테고리 · 직접 넣은 후보 중에서 하나가 뽑혀요.", targets: ["recommend.games"], radius: 16 },
   ],
   "community.friends": [
     { title: "커뮤니티 메뉴", desc: "친구 · 갤러리 · 랭킹 · 게시판을 오가요. 처음 들어가는 곳마다 짧게 알려드릴게요.", targets: ["community.tab.friends", "community.tab.gallery", "community.tab.ranking", "community.tab.board"], radius: 16, box: { w: 60, h: 54 } },
@@ -75,7 +79,7 @@ export const COMMUNITY_DELAY = 1100;
 
 /** 상호작용 단계에서 해낸 뒤 바뀌는 설명. */
 export const SIM_DONE_DESC: Record<NonNullable<Step["sim"]>, string> = {
-  longPress: "이 건물 안과 근처 식당이 떠요. 눌러서 바로 기록하거나 위시에 담을 수 있어요.",
+  longPress: "건물 안 식당은 층별로, 건물이 없는 곳이면 둘레 식당이 떠요. 가게를 누르면 바로 기록을 시작해요.",
   share: "공유한 식당이 위시에 담겼어요. 지도에서 바로 볼 수 있어요.",
 };
 export const SIM_HINT: Record<NonNullable<Step["sim"]>, string> = { longPress: "원 안을 꾹 누르기", share: "다이너리 누르기" };

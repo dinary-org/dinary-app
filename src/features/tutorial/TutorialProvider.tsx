@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useRouter } from "expo-router";
+import { Dimensions } from "react-native";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { STEPS, TUTORIAL_KEYS, type Step, type TutorialKey } from "./steps";
 
@@ -39,7 +40,9 @@ const storeKey = (k: TutorialKey) => `tutorial.seen.${k}`;
 
 const measure = (node: Measurable) =>
   new Promise<{ x: number; y: number; w: number; h: number } | null>((resolve) => {
-    try { node.measureInWindow((x, y, w, h) => resolve(w > 0 && h > 0 ? { x, y, w, h } : null)); } catch { resolve(null); }
+    // 스크롤 아래(화면 밖)에 있는 자리는 없는 셈 — 그 단계는 건너뜁니다.
+    const H = Dimensions.get("window").height;
+    try { node.measureInWindow((x, y, w, h) => resolve(w > 0 && h > 0 && y < H - 40 && y + h > 40 ? { x, y, w, h } : null)); } catch { resolve(null); }
   });
 
 /** enabled — 로그인 · 닉네임까지 끝나고 부팅 화면이 걷혔을 때만 띄웁니다. couple — 연인 기록장이면 단계 글을 연인용으로. */
@@ -59,9 +62,13 @@ export function TutorialProvider({ enabled, couple, children }: { enabled: boole
       .catch(() => setSeen(new Set()));
   }, []);
 
+  const coupleRef = useRef(couple);
+  useEffect(() => { coupleRef.current = couple; }, [couple]);
   const markSeen = useCallback((k: TutorialKey) => {
-    setSeen((s) => new Set(s ?? []).add(k));
-    void AsyncStorage.setItem(storeKey(k), "1").catch(() => {});
+    // 연인 기록장에서 본 지도 튜토리얼은 「다른 탭」에서 연인 탭까지 짚으니, 연인 안내도 본 것으로.
+    const keys: TutorialKey[] = k === "map" && coupleRef.current ? ["map", "couple"] : [k];
+    setSeen((s) => { const n = new Set(s ?? []); keys.forEach((x) => n.add(x)); return n; });
+    keys.forEach((x) => void AsyncStorage.setItem(storeKey(x), "1").catch(() => {}));
   }, []);
 
   // 처음 들어온 화면의 튜토리얼 — 다른 튜토리얼(특히 지도)이 떠 있으면 띄우지 않습니다.

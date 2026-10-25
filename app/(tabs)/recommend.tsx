@@ -158,10 +158,11 @@ export default function RecommendTab() {
 
   const revisits = useMemo(() => (browseQ.data ?? []).filter((s) => s.kind === "restaurant").slice(0, 10), [browseQ.data]);
 
-  // 첫 실행 튜토리얼 — 지금 뭐 먹지 카드(NowMode 안) · 위치 · 시간 · 둘러보기.
+  // 첫 실행 튜토리얼 — 지금 뭐 먹지 카드(NowMode 안) · 위치 · 시간 · 둘러보기 · 랜덤 게임.
   useTabTutorial("recommend");
   const whereSpot = useTutorialTarget("recommend.where");
   const browseSpot = useTutorialTarget("recommend.browse");
+  const gamesSpot = useTutorialTarget("recommend.games");
 
   return (
     <View style={{ flex: 1, backgroundColor: C.paper }}>
@@ -187,7 +188,7 @@ export default function RecommendTab() {
         </View>
         <View style={{ marginTop: 6, flexDirection: "row", alignItems: "baseline", gap: 12 }}>
           {(Object.keys(REC_MODE_LABEL) as RecMode[]).map((m) => (
-            <ModeTitle key={m} spot={m === "browse" ? browseSpot : undefined} label={REC_MODE_LABEL[m]} on={mode === m} onPress={() => { Haptics.selectionAsync(); setMode(m); }} />
+            <ModeTitle key={m} spot={m === "browse" ? browseSpot : m === "games" ? gamesSpot : undefined} label={REC_MODE_LABEL[m]} on={mode === m} onPress={() => { Haptics.selectionAsync(); setMode(m); }} />
           ))}
         </View>
         {denied && !recPlace && here?.fallback && (

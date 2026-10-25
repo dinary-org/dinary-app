@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
@@ -13,7 +12,6 @@ import { CHANNEL, ensureChannel } from "./channel";
  */
 const TASK = "dinary-wish-geofence";
 const MAX_REGIONS = 20;
-const ASKED_KEY = "asked-wish-permissions";
 const SEP = "|";
 
 // 이 파일을 앱 진입점(루트 레이아웃)에서 import 해야 백그라운드에서도 태스크가 정의됩니다.
@@ -39,16 +37,20 @@ Notifications.setNotificationHandler({
 });
 
 /**
- * 첫 위시를 저장하는 순간 한 번만 알림·위치(항상) 권한을 여쭙니다 — 앱 첫 실행이 아닙니다.
+ * 「가고 싶은 곳 알림」을 켤 때만(위시 폼의 근처 알림 스위치 · 위시 카드의 종) 알림 · 위치(항상) 권한을 여쭙니다 — 앱 첫 실행이 아닙니다.
+ * 이미 답했거나 다시 물을 수 없는 권한은 건너뛰어, 켤 때마다 창이 뜨지 않습니다.
  * Android 는 백그라운드 위치가 전경 권한과 분리된 두 번째 요청입니다.
  */
 export async function askWishPermissions(): Promise<boolean> {
-  if ((await AsyncStorage.getItem(ASKED_KEY)) === "1") return hasGeofencePermissions();
-  await AsyncStorage.setItem(ASKED_KEY, "1");
   await ensureChannel();
-  await Notifications.requestPermissionsAsync();
-  const fg = await Location.requestForegroundPermissionsAsync();
-  if (fg.granted) await Location.requestBackgroundPermissionsAsync();
+  const n = await Notifications.getPermissionsAsync();
+  if (!n.granted && n.canAskAgain) await Notifications.requestPermissionsAsync();
+  let fg = await Location.getForegroundPermissionsAsync();
+  if (!fg.granted && fg.canAskAgain) fg = await Location.requestForegroundPermissionsAsync();
+  if (fg.granted) {
+    const bg = await Location.getBackgroundPermissionsAsync();
+    if (!bg.granted && bg.canAskAgain) await Location.requestBackgroundPermissionsAsync();
+  }
   return hasGeofencePermissions();
 }
 

@@ -114,9 +114,11 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     if (!ready) return;
     // /auth 는 OAuth 딥링크가 세션을 여는 중이라 그대로 둡니다.
     if (!session) { if (first !== "login" && first !== "auth") router.replace("/login"); return; }
+    // 약관 동의가 먼저(첫 로그인 · 아직 동의하지 않은 기존 계정), 그다음 닉네임.
+    if (account && !account.termsAgreed) { if (first !== "agree") router.replace("/agree"); return; }
     if (!account?.nickname) { if (first !== "welcome") router.replace("/welcome"); return; }
-    if (first === "login" || first === "welcome" || first === "auth") router.replace("/");
-  }, [ready, session, account?.nickname, first, router]);
+    if (first === "login" || first === "welcome" || first === "auth" || first === "agree") router.replace("/");
+  }, [ready, session, account, first, router]);
 
   // 오프라인 큐 — 앱 복귀·연결 복구에서 비웁니다.
   useEffect(() => (userId ? startQueueTriggers(qc) : undefined), [userId, qc]);
@@ -167,7 +169,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     resetShareIntent();
     if (text) setState({ pendingShare: text });
   }, [hasShareIntent, shareIntent, resetShareIntent]);
-  const signedIn = ready && !!session && !!account?.nickname && first !== "login" && first !== "welcome" && first !== "auth";
+  const signedIn = ready && !!session && !!account?.nickname && account.termsAgreed && first !== "login" && first !== "welcome" && first !== "auth" && first !== "agree";
   useEffect(() => {
     if (!signedIn || !pendingShare) return;
     setState({ pendingShare: null });
@@ -195,6 +197,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
       <Stack.Screen name="auth" />
       <Stack.Screen name="login" />
       <Stack.Screen name="welcome" />
+      <Stack.Screen name="agree" options={{ gestureEnabled: false }} />
     </Stack>
     {/* 앱 전체 공지 — 메인 탭에 있을 때만 상단 배너로 */}
     <NoticeBanner enabled={signedIn && !showBoot && first === "(tabs)"} />
@@ -204,7 +207,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     <DialogHost />
     {showBoot && <BootScreen key={bootOwner ?? "signed-out"} state={bootStatus} characterId={account && account.userId === userId ? account.characterId : undefined}
       fetching={books.isFetching} onRetry={() => { void books.refetch(); }}
-      onCapture={session && account && account.userId === userId && account.nickname ? () => { setCaptureEscape(true); router.push("/capture"); } : undefined} onHidden={hideBoot} />}
+      onCapture={session && account && account.userId === userId && account.nickname && account.termsAgreed ? () => { setCaptureEscape(true); router.push("/capture"); } : undefined} onHidden={hideBoot} />}
     </>
   );
 }

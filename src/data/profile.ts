@@ -20,6 +20,8 @@ export type AccountInfo = {
   characterId: CharacterId;
   /** 랭킹 참여(기본 구경만) — 커뮤니티 §7 */
   leaderboardOptIn: boolean;
+  /** 이용약관 · 개인정보 처리방침에 동의했는지(terms_agreed_at) — 아니면 Gate 가 /agree 로 보냅니다. */
+  termsAgreed: boolean;
 };
 
 export const useAccount = () => {
@@ -43,7 +45,7 @@ export const useAccount = () => {
       const cacheKey = `account.profile:${user.id}`;
       if (error) {
         const cached = await AsyncStorage.getItem(cacheKey).catch(() => null);
-        if (cached) { try { const value = JSON.parse(cached) as AccountInfo; if (value.userId === user.id) return value; } catch {} }
+        if (cached) { try { const value = JSON.parse(cached) as AccountInfo; if (value.userId === user.id) return { ...value, termsAgreed: value.termsAgreed ?? true }; } catch {} }
       }
       const account: AccountInfo = {
         userId: user.id,
@@ -54,6 +56,8 @@ export const useAccount = () => {
         titleLabelId: profile?.title_label_id ?? null,
         characterId: isCharacterId(profile?.character_id) ? profile.character_id : DEFAULT_CHARACTER,
         leaderboardOptIn: profile?.leaderboard_opt_in === true,
+        // 조회가 실패했을 때(오프라인 등)는 막지 않습니다 — 동의 화면에서 저장도 못 하고 갇히니까요.
+        termsAgreed: !!error || !!profile?.terms_agreed_at,
       };
       if (!error) await AsyncStorage.setItem(cacheKey, JSON.stringify(account)).catch(() => {});
       return account;

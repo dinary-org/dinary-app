@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BellIcon, BookmarkIcon, CameraIcon, ExternalIcon } from "@/components/icons";
 import { Button } from "@/components/ui";
 import { refreshAll } from "@/data/invalidate";
+import { askWishPermissions } from "@/features/notify/geofence";
 import { useActiveBook } from "@/data/books";
 import { useWishes } from "@/data/queries";
 import { setState } from "@/data/store";
@@ -50,6 +51,8 @@ export default function WishSheetRoute() {
     await supabase.from("wishes").update({ notify: !wish!.notify }).eq("id", wish!.id);
     setBusy(false);
     refreshAll(qc);
+    // 근처 알림을 켤 때만 알림 · 위치(항상) 권한을 여쭙니다.
+    if (!wish!.notify) void askWishPermissions();
   }
 
   async function leaveGroup() {

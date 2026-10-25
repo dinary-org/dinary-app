@@ -240,8 +240,8 @@ export default function WishForm() {
     if (wish?.capture_path && wish.capture_path !== capturePath) void removePhotoObjects([wish.capture_path]);
     await refreshAll(qc);
     router.back();
-    // 첫 위시를 저장하는 순간 알림·위치 권한을 여쭙니다(핸드오프 §7).
-    if (isNew) askWishPermissions();
+    // 근처 알림을 켜고 저장할 때만 알림 · 위치(항상) 권한을 여쭙니다(핸드오프 §7).
+    if (notify && !wish?.notify) void askWishPermissions();
   }
 
   async function remove() {

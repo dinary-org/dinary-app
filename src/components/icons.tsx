@@ -1,5 +1,4 @@
 import Svg, { Circle, Path, Polygon, Rect } from "react-native-svg";
-import { C } from "@/theme";
 
 type P = { size?: number; stroke?: string; strokeWidth?: number; fill?: string };
 
@@ -128,16 +127,11 @@ export const LocateIcon = ({ size = 22, stroke = "#b4552d", strokeWidth = 1.7 }:
   </Svg>
 );
 
-/** 앱 아이콘의 「D」(assets/icon.png 1024 판에서 그대로 딴 윤곽) — 가운데 (514, 505), 높이 513. */
-const ICON_D =
-  "M287 249L460 249C640 249 755 340 755 498C755 660 640 762 455 762L278 762Q270 762 273 748L276 735Q278 729 286 728C313 725 327 711 327 670L327 334C327 302 318 289 286 287Q278 286 279 279L283 256Q284 249 290 249Z" +
-  "M427 292L465 292C610 292 685 372 685 497C685 640 602 718 465 718L432 718C406 718 398 707 398 680L398 332C398 303 406 292 427 292Z";
-
-/** 인증 마크 — 앱 아이콘을 뒤집은 모양: 벽돌색 둥근 사각 안에 흰 「D」. 글자가 아니라 도형이라 작아도 굵기가 같습니다. */
+/** 인증 마크 — 버스트 위에 체크. */
 export const VerifiedMark = ({ size = 52 }: { size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 100 100">
-    <Rect width="100" height="100" rx="24" fill={C.brick} />
-    <Path d={ICON_D} fill="#fff" fillRule="evenodd" transform="translate(50 50) scale(0.135) translate(-514 -505)" />
+    <Polygon points={BURST_POINTS} fill="#b4552d" />
+    <Path d="M30 52l14 14 27-30" stroke="#fbfaf6" strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </Svg>
 );
 

@@ -8,7 +8,7 @@ import { STAMPS_PER_BOARD } from "@/lib/labels";
 import { C, F } from "@/theme";
 
 /**
- * 도장 한 개 — 24각 톱니 seal 안에 흰 「D」(지시서 4 §2). 숫자는 넣지 않고, 기울이지도 않습니다.
+ * 도장 한 개 — 인증마크와 같은 24각 톱니 seal 안에 흰 「D」(지시서 4 §2). 숫자는 넣지 않고, 기울이지도 않습니다.
  * ring 이면 안쪽에 흰 점선 원(리캡 표지의 큰 도장) — 그만큼 D 를 조금 작게.
  */
 export function Stamp({ size = 44, ring }: { size?: number; ring?: boolean }) {

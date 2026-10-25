@@ -1,0 +1,44 @@
+import Constants from "expo-constants";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
+import { supabase } from "@/lib/supabase";
+
+/**
+ * 원격 푸시 — 이 기기의 Expo 푸시 토큰을 내 계정에 등록합니다(push_tokens). 보내기는 Edge Function push-send.
+ * 알림 권한이 있을 때만 등록하고, 권한은 여기서 묻지 않습니다(위시 · 보관함에 처음 담을 때 묻습니다).
+ * 안드로이드는 FCM 설정이 들어간 빌드부터 토큰이 나옵니다 — 그 전에는 조용히 건너뜁니다.
+ */
+let lastToken: string | null = null;
+
+export async function registerPushToken() {
+  try {
+    if (Platform.OS !== "ios" && Platform.OS !== "android") return;
+    if (!(await Notifications.getPermissionsAsync()).granted) return;
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
+    const { data: token } = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
+    lastToken = token;
+    await supabase.rpc("register_push_token", { p_token: token, p_platform: Platform.OS });
+  } catch {
+    // 시뮬레이터 · FCM 없는 안드로이드 빌드 · 오프라인 — 다음에 다시.
+  }
+}
+
+/** 로그아웃 직전에 — 이 기기로 이전 계정의 알림이 오지 않게. */
+export async function unregisterPushToken() {
+  if (!lastToken) return;
+  await supabase.rpc("unregister_push_token", { p_token: lastToken }).then(() => {}, () => {});
+  lastToken = null;
+}
+
+/** 콕 찌른 뒤 — 상대 기기로 바로 푸시. 실패해도 상대가 앱을 열면 알림이 뜹니다(usePokeInbox). */
+export function pushPoke(recordId: number) {
+  void supabase.functions.invoke("push-send", { body: { kind: "poke", recordId } }).catch(() => {});
+}
+
+/** 운영자 시험 — 내 기기들로 알림 견본 세 가지. */
+export async function pushTest(): Promise<{ sent: number; tokens: number; errors: string[] }> {
+  await registerPushToken();
+  const { data, error } = await supabase.functions.invoke<{ sent: number; tokens: number; errors: string[] }>("push-send", { body: { kind: "test" } });
+  if (error) throw new Error(error.message);
+  return data ?? { sent: 0, tokens: 0, errors: [] };
+}

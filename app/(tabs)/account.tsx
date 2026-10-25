@@ -21,6 +21,7 @@ import { Stamp } from "@/features/stamps/Stamp";
 import { useSeenLabels } from "@/lib/labelSeen";
 import { currentBoard, earnedLabels, nextBowl, stampRows, STAMPS_PER_BOARD, tourTitles } from "@/lib/labels";
 import { uploadPhoto } from "@/lib/photos";
+import { unregisterPushToken } from "@/features/notify/push";
 import { supabase } from "@/lib/supabase";
 import type { Restaurant } from "@/lib/types";
 import { C, F } from "@/theme";
@@ -148,6 +149,7 @@ export function MyAccount() {
             const body = await res.json().catch(() => null);
             return setError(body?.error ?? "탈퇴하지 못했습니다");
           }
+          await unregisterPushToken();
           await supabase.auth.signOut();
         },
       },
@@ -279,7 +281,7 @@ export function MyAccount() {
         <Row label="기록 내려받기" onPress={exportRecords} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="개인정보 처리방침" onPress={() => WebBrowser.openBrowserAsync(PRIVACY_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="이용약관" onPress={() => WebBrowser.openBrowserAsync(TERMS_URL)} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
-        <Row label="로그아웃" onPress={() => supabase.auth.signOut()} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
+        <Row label="로그아웃" onPress={async () => { await unregisterPushToken(); await supabase.auth.signOut(); }} right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
         <Row label="회원 탈퇴" onPress={withdraw} danger right={<Text style={{ fontSize: 13, color: C.faint }}>›</Text>} />
       </View>
 

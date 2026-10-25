@@ -4,6 +4,7 @@ import { AppState } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { iGa } from "@/lib/josa";
 import { useActiveBook } from "@/data/books";
+import { pushPoke } from "@/features/notify/push";
 
 /** 콕 찌르기 — 한 줄을 나만 쓴 기록에서 상대에게. 다시 찌르면 시각만 새로(안 본 상태로). */
 export async function sendPoke(bookId: string, recordId: number, toUser: string) {
@@ -14,11 +15,13 @@ export async function sendPoke(bookId: string, recordId: number, toUser: string)
     { onConflict: "record_id,from_user" }
   );
   if (error) throw new Error(error.message);
+  pushPoke(recordId);
 }
 
 /**
  * 받은 콕 찌르기 — 앱이 앞으로 올 때마다 안 본 것을 읽어 기기 알림으로 띄우고 봤음으로 표시합니다.
- * 원격 푸시(앱이 꺼져 있을 때)는 아직 없습니다: 받은 사람이 앱을 열 때 알려 줍니다.
+ * 보낼 때 푸시(push-send)도 보내고, 푸시가 닿으면 서버가 seen_at 을 채워 여기서는 다시 띄우지 않습니다.
+ * 푸시를 못 받은 기기(권한 없음 · FCM 없는 안드로이드)는 앱을 열 때 여기서 알려 줍니다.
  */
 export function usePokeInbox() {
   const { books, me } = useActiveBook();

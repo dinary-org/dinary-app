@@ -27,6 +27,7 @@ import { startQueueTriggers } from "@/features/queue/process";
 // 이 import 가 백그라운드 지오펜스 태스크를 정의합니다 — 반드시 앱 진입점에서 불러야 합니다.
 import { clearDraftReminder, syncDraftReminder } from "@/features/notify/draftReminder";
 import { syncWishGeofences } from "@/features/notify/geofence";
+import { registerPushToken } from "@/features/notify/push";
 import { clearMonthWidget, syncMonthWidget } from "@/lib/widget";
 import { C } from "@/theme";
 
@@ -134,6 +135,14 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
     void syncDraftReminder([...mine.values()], nickname);
   }, [session, rows, bookRows, nickname]);
   useEffect(() => { if (session === null) void clearDraftReminder(); }, [session]);
+
+  // 푸시 토큰 — 로그인 · 앱이 앞으로 올 때(알림 권한을 막 허용한 뒤 포함) 이 기기를 내 계정에 등록합니다.
+  useEffect(() => {
+    if (!userId) return;
+    void registerPushToken();
+    const sub = AppState.addEventListener("change", (s) => { if (s === "active") void registerPushToken(); });
+    return () => sub.remove();
+  }, [userId]);
 
   // 위시가 바뀔 때마다 가까운 20곳으로 지오펜스를 다시 맞춥니다.
   useEffect(() => { if (session && wishes) void syncWishGeofences(wishes); }, [session, wishes]);

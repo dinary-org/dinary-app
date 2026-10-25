@@ -10,6 +10,7 @@ import {
   useAdminNotices, useCurrentTheme, useIsAdmin, useRankBans, useReports, type AppNotice, type RankBan, type ReportRow,
 } from "@/features/community/api";
 import { Avatar, K, Segmented, timeAgo } from "@/features/community/ui";
+import { pushTest } from "@/features/notify/push";
 import { supabase } from "@/lib/supabase";
 import { C, F } from "@/theme";
 
@@ -40,7 +41,7 @@ export default function AdminScreen() {
             options={[{ id: "notice", label: "공지" }, { id: "reports", label: "신고함" }, { id: "theme", label: "주제" }, { id: "rank", label: "랭킹" }]}
           />
           <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40, gap: 12 }} keyboardShouldPersistTaps="handled">
-            {section === "notice" && <NoticeForm />}
+            {section === "notice" && <><PushTest /><NoticeForm /></>}
             {section === "reports" && <ReportsBox />}
             {section === "theme" && <ThemeForm />}
             {section === "rank" && <RankBans />}
@@ -59,6 +60,35 @@ function Submit({ text, onPress, disabled }: { text: string; onPress: () => void
     <Pressable onPress={onPress} disabled={disabled} style={{ marginTop: 4, minHeight: 48, borderRadius: 16, backgroundColor: C.ink, alignItems: "center", justifyContent: "center", opacity: disabled ? 0.4 : 1 }}>
       <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.card }}>{text}</Text>
     </Pressable>
+  );
+}
+
+/** 푸시 시험 — 내 기기(이 계정으로 로그인한 기기)로만 알림 견본 세 가지를 보냅니다. 다른 사람에게는 가지 않습니다. */
+function PushTest() {
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState("");
+  async function run() {
+    setBusy(true);
+    setResult("");
+    try {
+      const r = await pushTest();
+      setResult(r.tokens === 0
+        ? "이 계정에 등록된 기기가 없어요 — 알림을 허용했는지 확인해 주세요"
+        : `기기 ${r.tokens}대에 ${r.sent}건 보냄${r.errors.length ? ` · 실패: ${[...new Set(r.errors)].join(", ")}` : ""}`);
+    } catch (e) {
+      setResult(e instanceof Error ? e.message : "보내지 못했습니다");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, padding: 14, gap: 8 }}>
+      <Text style={label}>푸시 시험 · 내 기기에만</Text>
+      <Pressable onPress={run} disabled={busy} style={{ minHeight: 44, borderRadius: 14, borderWidth: 1, borderColor: C.ink, alignItems: "center", justifyContent: "center", opacity: busy ? 0.4 : 1 }}>
+        <Text style={{ fontFamily: F.sansMd, fontSize: 13, color: C.ink }}>시험 알림 보내기</Text>
+      </Pressable>
+      {!!result && <Text style={{ fontFamily: F.sans, fontSize: 11.5, color: C.muted }}>{result}</Text>}
+    </View>
   );
 }
 

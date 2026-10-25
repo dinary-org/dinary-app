@@ -133,16 +133,26 @@ export const LocateIcon = ({ size = 22, stroke = "#b4552d", strokeWidth = 1.7 }:
 /**
  * 인증 마크 = 도장판의 도장 — 24각 톱니 seal 안에 흰 「D」(지시서 4 §2). 숫자는 넣지 않고, 기울이지도 않습니다.
  * ring 이면 안쪽에 흰 점선 원(리캡 표지의 큰 도장) — 그만큼 D 를 조금 작게.
+ * heavy(인증 마크 기본) — D 를 상하좌우로 조금씩 겹쳐 찍어 더 두껍게. 도장판의 도장(Stamp)은 heavy 없이.
  */
-export const VerifiedMark = ({ size = 52, ring }: { size?: number; ring?: boolean }) => (
-  <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-    <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: "absolute" }}>
-      <Polygon points={BURST_POINTS} fill={C.brick} />
-      {ring && <Circle cx={50} cy={50} r={36} fill="none" stroke="#fff" strokeOpacity={0.7} strokeWidth={1.5} strokeDasharray="4 3.5" />}
-    </Svg>
-    <Text style={{ fontFamily: F.serif, fontSize: size * (ring ? 0.27 : 0.31), lineHeight: size * (ring ? 0.33 : 0.38), color: "#fff", ...WHITE_BOLD }}>D</Text>
-  </View>
-);
+export const VerifiedMark = ({ size = 52, ring, heavy = true }: { size?: number; ring?: boolean; heavy?: boolean }) => {
+  const d = { fontFamily: F.serif, fontSize: size * (ring ? 0.27 : 0.31), lineHeight: size * (ring ? 0.33 : 0.38), color: "#fff", ...WHITE_BOLD };
+  const o = Math.max(0.4, size * 0.014);
+  return (
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: "absolute" }}>
+        <Polygon points={BURST_POINTS} fill={C.brick} />
+        {ring && <Circle cx={50} cy={50} r={36} fill="none" stroke="#fff" strokeOpacity={0.7} strokeWidth={1.5} strokeDasharray="4 3.5" />}
+      </Svg>
+      <View>
+        <Text style={d}>D</Text>
+        {heavy && [[-o, 0], [o, 0], [0, -o], [0, o]].map(([x, y]) => (
+          <Text key={`${x},${y}`} style={[d, { position: "absolute", left: x, top: y }]}>D</Text>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 /** 고운돋움은 굵기가 하나라 흰 그림자를 둘러 700 처럼 보이게. */
 const WHITE_BOLD = { textShadowColor: "#fff", textShadowRadius: 1.4, textShadowOffset: { width: 0, height: 0 } };

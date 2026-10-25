@@ -8,7 +8,7 @@ import { C, F } from "@/theme";
 
 /** 도장 한 개 — 인증 마크(VerifiedMark)와 같은 그림. ring 이면 안쪽에 흰 점선 원(리캡 표지의 큰 도장). */
 export function Stamp({ size = 44, ring }: { size?: number; ring?: boolean }) {
-  return <VerifiedMark size={size} ring={ring} />;
+  return <VerifiedMark size={size} ring={ring} heavy={false} />;
 }
 
 /** 빈 칸 — 점선 원. label 이 있으면 가운데 Mono 다음 번호. */

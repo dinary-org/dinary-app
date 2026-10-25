@@ -47,7 +47,7 @@ function Gate({ fontsLoaded }: { fontsLoaded: boolean }) {
   // 로그인한 계정이 바뀌면 캐시를 새로 읽습니다.
   const userId = session?.user.id;
   useEffect(() => {
-    setState({ recShown: [], recHeading: null, recCourse: null, recHere: null, recPlace: null, recAt: null, recFilter: null, ghost: null, linkPick: null });
+    setState({ recShown: [], recHeading: null, recCourse: null, recHere: null, recPlace: null, recAt: null, recAnySlot: false, recFilter: null, ghost: null, linkPick: null });
     void restoreShown(userId ?? null);
     if (userId) void qc.invalidateQueries();
   }, [userId, qc]);

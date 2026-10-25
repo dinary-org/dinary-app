@@ -2,6 +2,7 @@ import * as Haptics from "expo-haptics";
 import { useIsFocused, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Animated, AppState, PanResponder, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
 import { Text } from "@/components/Text";
 import { PaperMap } from "@/components/PaperMap";
 import { setState, type RecHere } from "@/data/store";
@@ -83,18 +84,24 @@ export function NowMode({
       <Text style={{ fontSize: 11, color: kind === "exc" ? REC.excInk : C.faint }}>✕</Text>
     </Pressable>
   );
+  // 점심 · 저녁 — 지금 결과가 어느 끼니 기준인지 보이게 켜진 쪽은 벽돌색 테두리 · 연한 벽돌 바탕 + 해 · 달. 다시 누르면 풀립니다.
   const meal = (m: "lunch" | "dinner", label: string) => {
     const on = slot === m;
+    const ink = on ? C.brick : REC.label;
     return (
       <Pressable
         key={m}
         onPress={() => { Haptics.selectionAsync(); onMeal(m); }}
         accessibilityRole="button"
         accessibilityState={{ selected: on }}
-        accessibilityLabel={`${label} 기준으로 보기`}
-        style={{ height: 36, borderRadius: 18, paddingHorizontal: 13, justifyContent: "center", borderWidth: 1, borderColor: on ? REC.ink : C.lineSoft, backgroundColor: on ? REC.ink : REC.paper }}
+        accessibilityLabel={on ? `${label} 기준 풀기` : `${label} 기준으로 보기`}
+        style={{
+          height: 36, borderRadius: 18, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 5,
+          borderWidth: 1.5, borderColor: on ? C.brick : C.lineSoft, backgroundColor: on ? C.brickSoft : REC.paper,
+        }}
       >
-        <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: on ? REC.paper : C.ink }}>{label}</Text>
+        <MealIcon slot={m} color={ink} />
+        <Text style={{ fontFamily: F.sansMd, fontSize: 12.5, color: on ? C.brick : REC.label }}>{label}</Text>
       </Pressable>
     );
   };
@@ -167,11 +174,27 @@ export function NowMode({
 /** 카드 위 안내 한 줄 — 푼 조건 · 다시 쓴 곳 · 후보 출처. */
 function noteLine(r: Relax, cycled: boolean, kakao: "ok" | "partial" | "unavailable" | "loading") {
   const lines = [
-    r.kind === "wider" ? `가까운 곳이 적어 ${formatDistance(r.radius)}까지 넓혀 찾았어요` : r.kind === "mine" ? "근처 후보가 적어 내 위시리스트 · 다시 간 곳으로 채웠어요" : "",
+    r.kind === "mine" ? "근처 후보가 적어 내 위시리스트 · 다시 간 곳으로 채웠어요" : "",
     cycled ? "새로 고를 곳이 모자라 앞서 본 곳도 다시 넣었어요" : "",
     kakao === "unavailable" ? "주변 가게 검색이 잠시 안 돼 Dinary 기록으로만 골랐어요" : "",
   ];
   return lines.filter(Boolean).join(" · ");
+}
+
+/** 끼니 칩 아이콘 — 점심은 해, 저녁은 달(13px). */
+function MealIcon({ slot, color }: { slot: "lunch" | "dinner"; color: string }) {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+      {slot === "lunch" ? (
+        <>
+          <Circle cx={12} cy={12} r={4} />
+          <Path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+        </>
+      ) : (
+        <Path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
+      )}
+    </Svg>
+  );
 }
 
 const emptyText = { fontFamily: F.sans, fontSize: 12.5, lineHeight: 20, color: C.faint, textAlign: "center" } as const;

@@ -39,6 +39,8 @@ export type RecInput = {
   avoid?: string[];
   /** Explicit research opt-in. The app passes no seed while exploration is disabled. */
   explorationSeed?: string;
+  /** 점심 · 저녁을 풀었으면 끼니(시간대)를 셈에서 뺍니다 — 내 기록의 시간대 맞춤 · 가게의 이 시간대 인증 모두 중립. */
+  anySlot?: boolean;
 };
 
 export type RecResult = {
@@ -74,7 +76,8 @@ export function buildContext(input: RecInput): RecContext {
   const recent = mealRows(bookScoped(input.rows, input.bookId)).map((r) => ({ date: r.visited_at!, cat: recordCategory(r.category, r.name, r.kind).recCat as RecCategory | null }));
   const weatherAge = input.weather ? Math.abs(input.at.getTime() - Date.parse(input.weather.observedAt)) : Infinity;
   const weather = weatherAge <= REC_CONFIG.weather.maxAgeMinutes * 60000 ? input.weather : null;
-  return { today: clock.date, dow: clock.dow, slot: mealSlotOf(clock.minutes), taste, filter: input.filter, couple: input.couple, weather, recent };
+  const slot = input.anySlot ? "other" : mealSlotOf(clock.minutes);
+  return { today: clock.date, dow: clock.dow, slot, taste, filter: input.filter, couple: input.couple, weather, recent };
 }
 
 export function recommend(input: RecInput): RecResult {
@@ -82,7 +85,8 @@ export function recommend(input: RecInput): RecResult {
   const ctx = buildContext(input);
   const rows = bookScoped(input.rows, input.bookId).filter((r) => !r.visited_at || dayDiff(r.visited_at, ctx.today) >= 0);
   const wishes = bookScoped(input.wishes, input.bookId);
-  const poolAt = (radius: number) => buildPool({ here: input.here, radius, kakao: input.kakao, stats: input.stats, rows, wishes });
+  const stats = input.anySlot ? input.stats.map((s) => ({ ...s, slot_dow: 0, slot_any: 0 })) : input.stats;
+  const poolAt = (radius: number) => buildPool({ here: input.here, radius, kakao: input.kakao, stats, rows, wishes });
 
   // A — 1.5km 에서 시작해 걸러진 후보가 모자라면 3km.
   let radius: number = cfg.radii[0];

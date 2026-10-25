@@ -49,6 +49,8 @@ type State = {
   /** 추천 탭 머리에서 고른 자리 · 시각 — null 이면 지금 위치 · 지금 시각. 앱을 닫으면 잊습니다. */
   recPlace: RecHere | null;
   recAt: number | null;
+  /** 점심 · 저녁을 다시 눌러 풀었는지 — 끼니와 상관없이 추천합니다. 앱을 닫으면 잊습니다. */
+  recAnySlot: boolean;
   /** 최근 화면에 보인 추천 카드 — 그 가게를 인증하면 추천 세션과 잇습니다(features/recommend/log.ts). 좌표는 기기에만. */
   recShown: RecShown[];
 };
@@ -60,7 +62,7 @@ export type RecHere = { lat: number; lng: number; name: string | null; fallback:
 let state: State = {
   kind: "restaurant", ghost: null, linkPick: null, groupDraft: null, openWishGroup: null, wishToast: null, pendingShare: null,
   mapSegment: "records", communityTab: "friends", boardTab: "all", communitySeenSince: null,
-  recFilter: null, recHeading: null, recCourse: null, recHere: null, recPlace: null, recAt: null, recShown: [],
+  recFilter: null, recHeading: null, recCourse: null, recHere: null, recPlace: null, recAt: null, recAnySlot: false, recShown: [],
 };
 const subs = new Set<() => void>();
 

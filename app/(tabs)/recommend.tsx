@@ -51,7 +51,7 @@ export default function RecommendTab() {
   const { data: notes } = useRecordNotes();
   const { data: rows = EMPTY_ROWS } = useRows();
   const { data: wishes = EMPTY_WISHES } = useWishes();
-  const { recFilter, recPlace, recAt } = useAppState();
+  const { recFilter, recPlace, recAt, recAnySlot } = useAppState();
   const today = todayIso();
 
   const [mode, setMode] = useState<RecMode>("now");
@@ -98,7 +98,7 @@ export default function RecommendTab() {
   // 「다시 추천」 — 앞서 보여 준 5곳들. 기준(자리 · 시각 · 필터 · 기록장)이 바뀌면 처음부터.
   const [shown, setShown] = useState<string[][]>([]);
   const [explorationSeed] = useState(uuid);
-  const basis = `${here?.lat.toFixed(3)},${here?.lng.toFixed(3)}|${at ?? "now"}|${JSON.stringify(filter)}|${bookId}`;
+  const basis = `${here?.lat.toFixed(3)},${here?.lng.toFixed(3)}|${at ?? "now"}|${recAnySlot ? "any" : "slot"}|${JSON.stringify(filter)}|${bookId}`;
   useEffect(() => { setShown([]); setWantWide(false); }, [basis]);
   // 보고 있는 카드 — 새 5곳이 오면 첫 장부터.
   const [pickIndex, setPickIndex] = useState(0);
@@ -121,9 +121,10 @@ export default function RecommendTab() {
       kakao: kakaoData?.candidates ?? [], kakaoRadius: kakaoData?.radius ?? null,
       stats: nowQ.data ?? [], rows, wishes, notes: isCouple ? notes : undefined, weather, avoid: shown.flat(),
       explorationSeed: REC_CONFIG.exploration.enabled ? `${explorationSeed}|${basis}|${shown.length}` : undefined,
+      anySlot: recAnySlot,
     });
     // 시계(30초)마다 다시 고르지 않게 분 단위가 아닌 기준 시각만 봅니다.
-  }, [here, at, timeBasis, filter, isCouple, bookId, kakaoData, nowQ.data, rows, wishes, notes, weather, shown, explorationSeed, basis]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [here, at, timeBasis, recAnySlot, filter, isCouple, bookId, kakaoData, nowQ.data, rows, wishes, notes, weather, shown, explorationSeed, basis]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (result?.wantRadius === wide) setWantWide(true); }, [result?.wantRadius, wide]);
 
   // A book/context/feature change starts a fresh immutable logging snapshot, even with the same picks.
@@ -144,11 +145,14 @@ export default function RecommendTab() {
   const playCategory = (cat: RecCategory) => { setState({ recFilter: { inc: [cat], exc: filter.exc.filter((x) => x !== cat), date: today } }); showNow(); };
 
   // 점심 · 저녁 — 오늘 그 끼니 시각(12:00 · 18:30)으로 기준 시각을 옮깁니다. 지금이 그 끼니면 지금으로.
+  // 켜진 쪽을 다시 누르면 풀어서 끼니와 상관없이(기준 시각도 지금으로) 추천합니다.
   const slotNow = mealSlotOf(seoulClock(clock).minutes);
+  const mealOn = recAnySlot ? "other" : result?.ctx.slot ?? slotNow;
   const setMeal = (m: "lunch" | "dinner") => {
-    if (m === slotNow) return setState({ recAt: null });
+    if (m === mealOn) return setState({ recAnySlot: true, recAt: null });
+    if (m === slotNow) return setState({ recAnySlot: false, recAt: null });
     const d = new Date(`${seoulClock(clock).date}T${m === "lunch" ? "12:00" : "18:30"}:00+09:00`);
-    setState({ recAt: d.getTime() });
+    setState({ recAnySlot: false, recAt: d.getTime() });
   };
 
   const revisits = useMemo(() => (browseQ.data ?? []).filter((s) => s.kind === "restaurant").slice(0, 10), [browseQ.data]);
@@ -215,7 +219,7 @@ export default function RecommendTab() {
             error={nowQ.isError && kakaoState === "unavailable"}
             kakao={kakaoState}
             filter={filter}
-            slot={result?.ctx.slot ?? slotNow}
+            slot={mealOn}
             pointLabel={recPlace ? "고른 위치" : "내 위치"}
             index={pickIndex}
             onIndex={setPickIndex}

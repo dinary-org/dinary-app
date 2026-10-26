@@ -14,7 +14,6 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import {
   BellIcon, BookmarkIcon, CameraIcon, DownloadIcon, FlashIcon, FlipIcon, MapPinIcon, RefreshIcon, VerifiedMark,
 } from "@/components/icons";
@@ -406,15 +405,17 @@ export default function Capture() {
     );
   }
 
+  // 촬영 · 확인 화면이 함께 쓰는 틀 — 위 머리, 3:4 프레임(아이폰 사진 비율), 아래 단추 자리.
+  const header = insets.top + 96;
+  const footer = insets.bottom + 150;
+  const frameH = Math.min((win.width * 4) / 3, win.height - header - footer);
+
   if (step === "shoot") {
     const hasUltra = lenses.includes(ULTRA);
     const zoomChoices = ZOOMS.filter((o) => o.lens == null || hasUltra);
     const factor = (lens === ULTRA ? 0.5 : 1) * toFactor(zoom);
     // 지금 배율에 가장 가까운 프리셋을 켜고, 핀치로 옮긴 배율은 그 자리에 숫자로 보여 줍니다.
     const activeLabel = lens === ULTRA ? ".5×" : zoom >= ZOOMS[2].zoom ? "2×" : "1×";
-    const header = insets.top + 96;
-    const footer = insets.bottom + 150;
-    const frameH = Math.min((win.width * 4) / 3, win.height - header - footer);
     return (
       <View style={s.darkRoot}>
         <View style={{ height: header }}>
@@ -467,7 +468,7 @@ export default function Capture() {
           </View>
         </GestureDetector>
 
-        <View style={{ flex: 1, justifyContent: "center", paddingBottom: insets.bottom }}>
+        <View style={{ flex: 1, paddingTop: 22, paddingBottom: insets.bottom }}>
           <View style={[s.shootRow, { position: "relative" }]}>
             <View style={{ width: 46 }} />
             <Pressable onPress={shoot} disabled={busy} style={s.shutterOuter} accessibilityLabel="촬영">
@@ -487,47 +488,49 @@ export default function Capture() {
     const loc = geo ? `위치 읽음 (정확도 ${geo.acc}m)` : geoErr ? "위치를 읽지 못했어요" : "위치 읽는 중…";
     return (
       <View style={s.darkRoot}>
-        <Image source={{ uri: shot.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-        <Fade edge="top" height={insets.top + 150} />
-        <Fade edge="bottom" height={insets.bottom + 300} />
-
-        <Pressable style={[s.roundDark, { left: 16, top: insets.top + 8 }]} onPress={close} accessibilityLabel="닫기">
-          <Text style={{ color: C.card, fontSize: 16 }}>✕</Text>
-        </Pressable>
-        <Pressable
-          style={[s.savePill, { top: insets.top + 8 }, saveToGallery && { backgroundColor: C.brick }]}
-          onPress={toggleSave}
-          accessibilityRole="switch"
-          accessibilityState={{ checked: saveToGallery }}
-          accessibilityLabel="사진 앱에 저장"
-        >
-          <DownloadIcon size={15} stroke={saveToGallery ? C.card : "rgba(251,250,246,.85)"} />
-          <Text style={[s.saveText, saveToGallery && { color: C.card }]}>저장</Text>
-        </Pressable>
-
-        <View style={[s.titleBlock, { top: insets.top + 14 }]} pointerEvents="none">
-          <Text style={s.shootTitle}>이 사진으로 할까요?</Text>
-          <View style={s.pill}><Text style={s.reviewChip}>{shotAt ? `${hhmm(shotAt)} · ` : ""}{loc}</Text></View>
-        </View>
-
-        {toast && (
-          <View style={[s.toast, { bottom: insets.bottom + 44 + 190 }]} pointerEvents="none">
-            <Text style={s.toastText}>{toast}</Text>
-          </View>
-        )}
-
-        <View style={[s.reviewBottom, { bottom: insets.bottom + 44 }]}>
-          <Text style={s.reviewNote}>위치는 셔터를 누른 순간 기준입니다. 다시 찍으면 새로 읽습니다.</Text>
-          <Pressable style={({ pressed }) => [s.useBtn, pressed && { opacity: 0.85 }]} onPress={acceptShot}>
-            <Text style={s.darkText}>이 사진 쓰기</Text>
+        <View style={{ height: header }}>
+          <Pressable style={[s.roundDark, { left: 16, top: insets.top + 8 }]} onPress={close} accessibilityLabel="닫기">
+            <Text style={{ color: C.card, fontSize: 16 }}>✕</Text>
           </Pressable>
           <Pressable
-            style={({ pressed }) => [s.retakeBtn, pressed && { backgroundColor: "rgba(251,250,246,.08)" }]}
-            onPress={retake}
+            style={[s.savePill, { top: insets.top + 8 }, saveToGallery && { backgroundColor: C.brick }]}
+            onPress={toggleSave}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: saveToGallery }}
+            accessibilityLabel="사진 앱에 저장"
           >
-            <RefreshIcon size={16} stroke={C.card} strokeWidth={1.7} />
-            <Text style={s.darkText}>다시 찍기</Text>
+            <DownloadIcon size={15} stroke={saveToGallery ? C.card : "rgba(251,250,246,.85)"} />
+            <Text style={[s.saveText, saveToGallery && { color: C.card }]}>저장</Text>
           </Pressable>
+          <View style={[s.titleBlock, { top: insets.top + 14 }]} pointerEvents="none">
+            <Text style={s.shootTitle}>이 사진으로 할까요?</Text>
+            <View style={s.pill}><Text style={s.reviewChip}>{shotAt ? `${hhmm(shotAt)} · ` : ""}{loc}</Text></View>
+          </View>
+        </View>
+
+        <View style={{ height: frameH, overflow: "hidden" }}>
+          <Image source={{ uri: shot.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          {toast && (
+            <View style={[s.toast, { bottom: 14 }]} pointerEvents="none">
+              <Text style={s.toastText}>{toast}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={[s.reviewBottom, { paddingBottom: insets.bottom }]}>
+          <Text style={s.reviewNote}>위치는 셔터를 누른 순간 기준입니다. 다시 찍으면 새로 읽습니다.</Text>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Pressable
+              style={({ pressed }) => [s.retakeBtn, { flex: 1 }, pressed && { backgroundColor: "rgba(251,250,246,.08)" }]}
+              onPress={retake}
+            >
+              <RefreshIcon size={16} stroke={C.card} strokeWidth={1.7} />
+              <Text style={s.darkText}>다시 찍기</Text>
+            </Pressable>
+            <Pressable style={({ pressed }) => [s.useBtn, { flex: 1 }, pressed && { opacity: 0.85 }]} onPress={acceptShot}>
+              <Text style={s.darkText}>이 사진 쓰기</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     );
@@ -728,26 +731,6 @@ export default function Capture() {
   );
 }
 
-/** 사진 위 글자를 읽히게 하는 어두운 그라데이션 — 위·아래 가장자리. */
-function Fade({ edge, height }: { edge: "top" | "bottom"; height: number }) {
-  const id = `fade-${edge}`;
-  const top = edge === "top";
-  return (
-    <Svg
-      pointerEvents="none" width="100%" height={height}
-      style={{ position: "absolute", left: 0, right: 0, ...(top ? { top: 0 } : { bottom: 0 }) }}
-    >
-      <Defs>
-        <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={C.dark} stopOpacity={top ? 0.72 : 0} />
-          <Stop offset="1" stopColor={C.dark} stopOpacity={top ? 0 : 0.88} />
-        </LinearGradient>
-      </Defs>
-      <Rect width="100%" height="100%" fill={`url(#${id})`} />
-    </Svg>
-  );
-}
-
 function PermCard({ icon, title, body, dashed }: { icon: React.ReactNode; title: string; body: string; dashed?: boolean }) {
   return (
     <View style={[s.perm, dashed ? { borderStyle: "dashed", borderColor: C.line, backgroundColor: "transparent" } : null]}>
@@ -836,9 +819,9 @@ const s = StyleSheet.create({
   },
   saveText: { fontFamily: F.sansMd, fontSize: 12, color: "rgba(251,250,246,.85)" },
   reviewChip: { fontFamily: F.mono, fontSize: 10.5, color: "rgba(251,250,246,.8)" },
-  // 확인 단계 단추 — 높이는 고정 56(글꼴과 무관), 너비만 화면에 맞춰 늘어납니다.
-  reviewBottom: { position: "absolute", left: 24, right: 24, flexDirection: "column", gap: 10 },
-  reviewNote: { marginBottom: 6, textAlign: "center", fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: "rgba(251,250,246,.6)" },
+  // 확인 단계 단추 — 높이는 고정 56(글꼴과 무관), 두 단추가 한 줄에서 반씩 나눠 씁니다.
+  reviewBottom: { flex: 1, justifyContent: "center", paddingHorizontal: 20, gap: 12 },
+  reviewNote: { textAlign: "center", fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: "rgba(251,250,246,.6)" },
   useBtn: { height: 56, borderRadius: 20, backgroundColor: C.brick, alignItems: "center", justifyContent: "center" },
   retakeBtn: {
     height: 56, borderRadius: 20, borderWidth: 1, borderColor: "rgba(251,250,246,.3)", backgroundColor: "transparent",

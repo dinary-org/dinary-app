@@ -1,6 +1,8 @@
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { photoPath } from "./signedPhoto";
+import { File, Paths } from "expo-file-system";
+import * as MediaLibrary from "expo-media-library/legacy";
+import { photoPath, signedUrl } from "./signedPhoto";
 import { supabase } from "./supabase";
 
 const BUCKET = "restaurant-photos";
@@ -58,4 +60,26 @@ export async function pickAlbumUris(limit: number): Promise<string[]> {
     mediaTypes: ["images"], quality: 0.9, allowsMultipleSelection: true, selectionLimit: limit,
   });
   return res.canceled ? [] : res.assets.slice(0, limit).map((a) => a.uri);
+}
+
+/**
+ * 기록 사진 한 장을 사진 앱에 저장합니다 — 서명 주소로 캐시에 받아 넘기고 캐시는 지웁니다.
+ * 아직 올라가지 않은 사진(file://)은 그대로 넘깁니다. 사진 접근을 거절하면 false.
+ */
+export async function savePhotoToLibrary(ref: string): Promise<boolean> {
+  const perm = await MediaLibrary.requestPermissionsAsync(true);
+  if (!perm.granted) return false;
+  if (ref.startsWith("file://")) {
+    await MediaLibrary.saveToLibraryAsync(ref);
+    return true;
+  }
+  const url = await signedUrl(ref);
+  if (!url) throw new Error("사진을 받지 못했어요");
+  const file = await File.downloadFileAsync(url, new File(Paths.cache, `dinary-${Date.now()}.jpg`), { idempotent: true });
+  try {
+    await MediaLibrary.saveToLibraryAsync(file.uri);
+  } finally {
+    try { file.delete(); } catch { /* 캐시는 OS 가 치웁니다 */ }
+  }
+  return true;
 }

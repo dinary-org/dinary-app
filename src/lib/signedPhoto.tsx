@@ -27,6 +27,12 @@ async function sign(path: string): Promise<string | null> {
   return data.signedUrl;
 }
 
+/** 사진 값 → 지금 받을 수 있는 주소 한 번(훅 밖에서 — 저장 등). 외부 주소는 그대로. */
+export async function signedUrl(ref: string): Promise<string | null> {
+  const path = photoPath(ref);
+  return path ? sign(path) : ref;
+}
+
 /** 사진 값(경로 또는 예전 주소) → 화면에 쓸 주소. 서명 전에는 null. 외부 주소는 그대로. */
 export function useSignedUri(ref: string | null | undefined): string | null {
   const path = photoPath(ref);

@@ -5,7 +5,7 @@ import { ActivityIndicator, Dimensions, Image, Modal, Platform, Pressable, Scrol
 import { showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BookmarkIcon, ShareIcon, ThumbIcon, VerifiedMark } from "@/components/icons";
+import { BookmarkIcon, DownloadIcon, ShareIcon, ThumbIcon, VerifiedMark } from "@/components/icons";
 import { ShareSheet } from "@/components/ShareSheet";
 import { BackButton, BottomSheetModal, Button, Eyebrow, MobileStars, PhotoBox, Pigs } from "@/components/ui";
 import { copyToPersonal, PARTNER_COLOR, setActiveBook, useActiveBook, useAnniversaryPicks, useRecordNotes, type BookMember } from "@/data/books";
@@ -15,7 +15,7 @@ import { Pair } from "@/features/couple/Avatars";
 import CoupleNotes from "@/features/couple/CoupleNotes";
 import { dottedWithDay, mealLabels } from "@/lib/anniversary";
 import { iGa } from "@/lib/josa";
-import { MAX_PHOTOS, pickAlbumUris, removePhotoObjects, uploadAlbumPhoto } from "@/lib/photos";
+import { MAX_PHOTOS, pickAlbumUris, removePhotoObjects, savePhotoToLibrary, uploadAlbumPhoto } from "@/lib/photos";
 import { photosOf, verifiedShotOf } from "@/lib/record";
 import { supabase } from "@/lib/supabase";
 import { SOURCE_LABEL } from "@/lib/sourceLink";
@@ -102,6 +102,13 @@ export default function RecordRoute() {
   const { data: personalRows = [] } = usePersonalRows();
   const [keeping, setKeeping] = useState(false);
   const [keptId, setKeptId] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [savingPhoto, setSavingPhoto] = useState(false);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2400);
+    return () => clearTimeout(t);
+  }, [toast]);
   useEffect(() => {
     if (keptId == null) return;
     const t = setTimeout(() => setKeptId(null), 3000);
@@ -155,6 +162,19 @@ export default function RecordRoute() {
   // 연인 기록은 둘 다 사진을 더할 수 있습니다. 인증·인증 사진은 그대로 둡니다.
   const canAddPhotos = !readOnly && !record.pending;
   const room = MAX_PHOTOS - photos.length - pending.length;
+
+  /** 사진 한 장을 기기 사진 앱에 내려받습니다. */
+  async function downloadPhoto(ref: string) {
+    if (savingPhoto) return;
+    setSavingPhoto(true);
+    try {
+      setToast((await savePhotoToLibrary(ref)) ? "사진 앱에 저장했어요" : "사진 접근을 허용하면 저장할 수 있어요");
+    } catch {
+      setToast("사진을 저장하지 못했어요");
+    } finally {
+      setSavingPhoto(false);
+    }
+  }
 
   /** 사진 목록을 한꺼번에 바꿔 저장합니다(photo_url 은 늘 대표와 맞춥니다). verified · verified_at 은 건드리지 않습니다. */
   async function savePhotos(list: string[], coverAt: number) {
@@ -283,6 +303,12 @@ export default function RecordRoute() {
           )}
           {!current && !canAddPhotos && (
             <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 1.4, color: C.faint }}>사진 없음</Text>
+          )}
+          {current && (
+            <Pressable onPress={() => downloadPhoto(current)} disabled={savingPhoto} hitSlop={6} accessibilityLabel="사진 앱에 저장"
+              style={{ position: "absolute", right: 14, bottom: 14, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(23,22,20,.45)", alignItems: "center", justifyContent: "center" }}>
+              {savingPhoto ? <ActivityIndicator size="small" color={C.card} /> : <DownloadIcon size={17} />}
+            </Pressable>
           )}
           {anniversary && (
             <Text style={{ position: "absolute", right: 16, top: 14, borderRadius: 10, backgroundColor: C.brick, paddingHorizontal: 9, paddingVertical: 4, fontFamily: F.mono, fontSize: 11, color: C.card, overflow: "hidden" }}>
@@ -473,6 +499,7 @@ export default function RecordRoute() {
         const locked = photos[i] === verifiedShot;
         const isCover = i === cover;
         const rows: { label: string; sub: string; disabled?: boolean; danger?: boolean; onPress: () => void }[] = [
+          { label: "사진 앱에 저장", sub: "이 기기 사진 앱에 내려받아요", onPress: () => { setSheetIdx(null); void downloadPhoto(photos[i]); } },
           isCover
             ? { label: "대표 사진", sub: "지금 대표 사진이에요", disabled: true, onPress: () => {} }
             : { label: locked ? "대표 사진" : "대표 사진으로", sub: "상세 맨 위와 목록에 보여요", onPress: () => setCoverAt(i) },
@@ -502,6 +529,11 @@ export default function RecordRoute() {
           </BottomSheetModal>
         );
       })()}
+      {toast && keptId == null && (
+        <View pointerEvents="none" style={{ position: "absolute", alignSelf: "center", bottom: insets.bottom + 16, borderRadius: 16, backgroundColor: C.ink, paddingVertical: 11, paddingHorizontal: 16 }}>
+          <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.card }}>{toast}</Text>
+        </View>
+      )}
       {keptId != null && (
         <View style={{ position: "absolute", left: 24, right: 24, bottom: insets.bottom + 16, borderRadius: 16, backgroundColor: C.ink, paddingVertical: 13, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <Text style={{ fontFamily: F.sans, fontSize: 12.5, color: C.card }}>개인 기록에 남겼어요</Text>

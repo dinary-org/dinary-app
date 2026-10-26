@@ -23,7 +23,7 @@ export const ShareButton = ({ onPress }: { onPress: () => void }) => (
 
 function ScopeRow({
   title, sub, right, dim, last,
-}: { title: string; sub: string; right: React.ReactNode; dim?: boolean; last?: boolean }) {
+}: { title: string; sub?: string; right: React.ReactNode; dim?: boolean; last?: boolean }) {
   return (
     <View
       style={{
@@ -33,7 +33,7 @@ function ScopeRow({
     >
       <View style={{ flex: 1 }}>
         <Text style={{ fontFamily: F.sansMd, fontSize: 13.5, color: C.ink }}>{title}</Text>
-        <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 11, color: C.faint }}>{sub}</Text>
+        {!!sub && <Text style={{ marginTop: 2, fontFamily: F.sans, fontSize: 11, color: C.faint }}>{sub}</Text>}
       </View>
       {right}
     </View>
@@ -83,14 +83,10 @@ export function ShareSheet({ record, visible, onClose }: { record: Restaurant; v
       <ScrollView style={{ maxHeight: height * 0.78 }} showsVerticalScrollIndicator={false}>
         <Eyebrow wide>기록 공유</Eyebrow>
         <Text style={{ marginTop: 6, fontFamily: F.serif, fontSize: 22, color: C.ink }}>{record.name}</Text>
-        <Text style={{ marginTop: 4, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>
-          어디까지 보낼지 고르세요. 아래로 갈수록 더 많이 보입니다.
-        </Text>
 
         <View style={{ marginTop: 14, borderWidth: 1, borderColor: "#ded8cb", borderRadius: 18, backgroundColor: C.card, overflow: "hidden" }}>
           <ScopeRow
             title="가게 · 위치 · 메뉴"
-            sub="항상 함께 갑니다"
             right={
               <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: C.brickSoft, alignItems: "center", justifyContent: "center" }}>
                 <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke={C.brick} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">

@@ -9,7 +9,8 @@ import { Asset } from "expo-media-library";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, BackHandler, FlatList, Image, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, BackHandler, FlatList, Image, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { DialogHost, showDialog } from "@/components/Dialog";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,7 +34,6 @@ import { StampBoard } from "@/features/stamps/Stamp";
 import { earnedLabels, stampRows, stampSlot, STAMPS_PER_BOARD } from "@/lib/labels";
 import { enqueue, persistPhoto } from "@/features/queue/db";
 import { visitAttribution } from "@/features/recommend/log";
-import { MAX_PHOTOS, pickAlbumUris } from "@/lib/photos";
 import { supabase } from "@/lib/supabase";
 import {
   findMatchingWish, wishCopies, wishKind, wishMetInfo, WISH_AUTO_M, type Kind, type Restaurant, type Wish,
@@ -48,11 +48,16 @@ type Shot = { uri: string; original: string };
 const SAVE_KEY = "capture.saveToGallery";
 
 const FLASH_CYCLE: FlashMode[] = ["off", "on", "auto"];
+const ULTRA = "builtInUltraWideCamera";
 const ZOOMS = [
-  { label: ".5×", zoom: 0, lens: "builtInUltraWideCamera" },
+  { label: ".5×", zoom: 0, lens: ULTRA },
   { label: "1×", zoom: 0, lens: undefined },
   { label: "2×", zoom: 0.2, lens: undefined },
 ] as const;
+/** expo-camera 의 zoom(0~1) ↔ 배율 — 2× 프리셋(0.2)에 맞춘 근사. */
+const ZOOM_PER_X = 0.2;
+const toFactor = (z: number) => 1 + z / ZOOM_PER_X;
+const toZoom = (f: number) => Math.min(1, Math.max(0, (f - 1) * ZOOM_PER_X));
 
 const camMessage = (denied: boolean) =>
   denied ? "카메라 권한이 거부되었습니다. 설정에서 허용해 주세요." : "카메라를 열 수 없습니다.";
@@ -61,6 +66,7 @@ const camMessage = (denied: boolean) =>
 export default function Capture() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const win = useWindowDimensions();
   const qc = useQueryClient();
   const params = useLocalSearchParams<{ verifyWishId?: string; kind?: Kind }>();
   const { data: rows = [] } = useRows();
@@ -90,7 +96,9 @@ export default function Capture() {
   const [geoErr, setGeoErr] = useState<string | null>(null);
   const [facing, setFacing] = useState<CameraType>("back");
   const [flash, setFlash] = useState<FlashMode>("off");
-  const [zoomIdx, setZoomIdx] = useState(1);
+  const [zoom, setZoom] = useState(0);
+  const [lens, setLens] = useState<string | undefined>(undefined);
+  const pinchBase = useRef(0);
   const [lenses, setLenses] = useState<string[]>([]);
   const appState = useAppState();
   const [pickKind, setPickKind] = useState<Kind>(params.kind ?? appState.kind);
@@ -172,6 +180,12 @@ export default function Capture() {
     }
   }
 
+  // 두 손가락으로 벌리고 오므려 배율을 바꿉니다 — 지금 렌즈 안에서만(.5× 렌즈로 넘어가진 않음).
+  const pinch = Gesture.Pinch()
+    .runOnJS(true)
+    .onStart(() => { pinchBase.current = toFactor(zoom); })
+    .onUpdate((e) => setZoom(toZoom(pinchBase.current * e.scale)));
+
   /** 사진과 그 순간 읽은 위치를 버리고 촬영으로 돌아갑니다 — 가게 찾기도 함께 멈춥니다(geo 가 비면서). */
   function retake() {
     shotSeq.current++;
@@ -218,13 +232,6 @@ export default function Capture() {
     });
     return () => sub.remove();
   }, [step]);
-
-  async function fromGallery() {
-    const uris = await pickAlbumUris(MAX_PHOTOS);
-    if (!uris.length) return;
-    // 갤러리 사진은 인증되지 않습니다 — 기록 입력에 앨범 사진으로만 붙습니다
-    router.replace({ pathname: "/record/edit", params: { kind: pickKind, photos: JSON.stringify(uris) } });
-  }
 
   /** 인증 없이 기록만 남깁니다 — 이름·종류를 채워 기록 입력을 엽니다. */
   function onUnverified(name?: string, k?: Kind, place?: Candidate) {
@@ -400,67 +407,78 @@ export default function Capture() {
   }
 
   if (step === "shoot") {
-    const z = ZOOMS[zoomIdx];
-    const hasUltra = lenses.includes("builtInUltraWideCamera");
-    const zoomChoices = ZOOMS.map((o, i) => ({ ...o, i })).filter((o) => o.lens == null || hasUltra);
+    const hasUltra = lenses.includes(ULTRA);
+    const zoomChoices = ZOOMS.filter((o) => o.lens == null || hasUltra);
+    const factor = (lens === ULTRA ? 0.5 : 1) * toFactor(zoom);
+    // 지금 배율에 가장 가까운 프리셋을 켜고, 핀치로 옮긴 배율은 그 자리에 숫자로 보여 줍니다.
+    const activeLabel = lens === ULTRA ? ".5×" : zoom >= ZOOMS[2].zoom ? "2×" : "1×";
+    const header = insets.top + 96;
+    const footer = insets.bottom + 150;
+    const frameH = Math.min((win.width * 4) / 3, win.height - header - footer);
     return (
       <View style={s.darkRoot}>
-        <CameraView
-          ref={cameraRef}
-          style={StyleSheet.absoluteFill}
-          facing={facing}
-          flash={flash}
-          zoom={z.zoom}
-          selectedLens={z.lens}
-          onAvailableLensesChanged={(e) => setLenses(e.lenses)}
-        />
-        <Pressable style={[s.roundDark, { left: 16, top: insets.top + 8 }]} onPress={close}>
-          <Text style={{ color: C.card, fontSize: 16 }}>✕</Text>
-        </Pressable>
-        <Pressable
-          style={[s.roundDark, { right: 16, top: insets.top + 8 }]}
-          onPress={() => setFlash(FLASH_CYCLE[(FLASH_CYCLE.indexOf(flash) + 1) % FLASH_CYCLE.length])}
-        >
-          <FlashIcon />
-          {flash !== "on" && <Text style={s.flashTag}>{flash === "auto" ? "A" : "×"}</Text>}
-        </Pressable>
+        <View style={{ height: header }}>
+          <Pressable style={[s.roundDark, { left: 16, top: insets.top + 8 }]} onPress={close}>
+            <Text style={{ color: C.card, fontSize: 16 }}>✕</Text>
+          </Pressable>
+          <Pressable
+            style={[s.roundDark, { right: 16, top: insets.top + 8 }]}
+            onPress={() => setFlash(FLASH_CYCLE[(FLASH_CYCLE.indexOf(flash) + 1) % FLASH_CYCLE.length])}
+          >
+            <FlashIcon />
+            {flash !== "on" && <Text style={s.flashTag}>{flash === "auto" ? "A" : "×"}</Text>}
+          </Pressable>
+          <View style={[s.titleBlock, { top: insets.top + 14 }]} pointerEvents="none">
+            <Text style={s.shootTitle}>식사 인증하기</Text>
+            <View style={s.pill}><Text style={s.pillText}>{geo ? `정확도 ${geo.acc}m` : "위치는 촬영 순간에 읽습니다"}</Text></View>
+          </View>
+        </View>
 
-        <View style={[s.titleBlock, { top: insets.top + 14 }]} pointerEvents="none">
-          <Text style={s.shootTitle}>지금 여기</Text>
-          <View style={s.pill}><Text style={s.pillText}>{geo ? `정확도 ${geo.acc}m` : "위치는 촬영 순간에 읽습니다"}</Text></View>
-          {verifyWish && (
-            <View style={[s.pill, { backgroundColor: "rgba(180,85,45,.34)", flexDirection: "row", gap: 5, alignItems: "center" }]}>
-              <BookmarkIcon size={11} stroke={C.card} fill={C.card} />
-              <Text style={[s.pillText, { color: C.card }]}>{verifyWish.name} · 담아둔 곳</Text>
+        <GestureDetector gesture={pinch}>
+          <View style={{ height: frameH, overflow: "hidden" }} collapsable={false}>
+            <CameraView
+              ref={cameraRef}
+              style={StyleSheet.absoluteFill}
+              facing={facing}
+              flash={flash}
+              zoom={zoom}
+              selectedLens={lens}
+              onAvailableLensesChanged={(e) => setLenses(e.lenses)}
+            />
+            {verifyWish && (
+              <View style={[s.pill, s.wishPill]} pointerEvents="none">
+                <BookmarkIcon size={11} stroke={C.card} fill={C.card} />
+                <Text style={[s.pillText, { color: C.card }]}>{verifyWish.name} · 담아둔 곳</Text>
+              </View>
+            )}
+            <View style={[s.zooms, { bottom: 14 }]}>
+              {zoomChoices.map((o) => {
+                const on = o.label === activeLabel;
+                return (
+                  <Pressable key={o.label} onPress={() => { Haptics.selectionAsync(); setLens(o.lens); setZoom(o.zoom); }}
+                    style={[s.zoomBtn, on && s.zoomOn]}>
+                    <Text style={[s.zoomText, on && { fontSize: 12.5 }]}>
+                      {on ? `${factor < 1 ? factor.toFixed(1).replace(/^0/, "") : +factor.toFixed(1)}×` : o.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
-          )}
-        </View>
+          </View>
+        </GestureDetector>
 
-        <View style={[s.zooms, { bottom: insets.bottom + 214 }]}>
-          {zoomChoices.map((o) => {
-            const on = o.i === zoomIdx;
-            return (
-              <Pressable key={o.label} onPress={() => { Haptics.selectionAsync(); setZoomIdx(o.i); }}
-                style={[s.zoomBtn, on && s.zoomOn]}>
-                <Text style={[s.zoomText, on && { fontSize: 12.5 }]}>{o.label}</Text>
-              </Pressable>
-            );
-          })}
+        <View style={{ flex: 1, justifyContent: "center", paddingBottom: insets.bottom }}>
+          <View style={[s.shootRow, { position: "relative" }]}>
+            <View style={{ width: 46 }} />
+            <Pressable onPress={shoot} disabled={busy} style={s.shutterOuter} accessibilityLabel="촬영">
+              <View style={s.shutterInner} />
+            </Pressable>
+            <Pressable style={s.flip} onPress={() => setFacing(facing === "back" ? "front" : "back")}>
+              <FlipIcon stroke="rgba(251,250,246,.65)" />
+            </Pressable>
+          </View>
+          {!!error && <Text style={[s.note, { position: "relative", marginTop: 14, color: "#f3b89f" }]}>{error}</Text>}
         </View>
-
-        <View style={[s.shootRow, { bottom: insets.bottom + 104 }]}>
-          <Pressable style={s.gallery} onPress={fromGallery} accessibilityLabel="갤러리에서 고르기">
-            <Text style={{ color: "white", fontSize: 12 }}>앨범</Text>
-          </Pressable>
-          <Pressable onPress={shoot} disabled={busy} style={s.shutterOuter} accessibilityLabel="촬영">
-            <View style={s.shutterInner} />
-          </Pressable>
-          <Pressable style={s.flip} onPress={() => setFacing(facing === "back" ? "front" : "back")}>
-            <FlipIcon stroke="rgba(251,250,246,.65)" />
-          </Pressable>
-        </View>
-        <Text style={[s.note, { bottom: insets.bottom + 56 }]}>갤러리에서 고른 사진은 인증되지 않아요</Text>
-        {!!error && <Text style={[s.note, { bottom: insets.bottom + 30, color: "#f3b89f" }]}>{error}</Text>}
       </View>
     );
   }
@@ -803,12 +821,12 @@ const s = StyleSheet.create({
   shootTitle: { fontFamily: F.serif, fontSize: 18, color: C.card },
   pill: { borderRadius: 14, backgroundColor: "rgba(251,250,246,.12)", paddingVertical: 5, paddingHorizontal: 12 },
   pillText: { fontFamily: F.sans, fontSize: 11, color: "rgba(251,250,246,.8)" },
+  wishPill: { position: "absolute", top: 12, alignSelf: "center", backgroundColor: "rgba(180,85,45,.6)", flexDirection: "row", gap: 5, alignItems: "center" },
   zooms: { position: "absolute", left: 0, right: 0, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8 },
   zoomBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(251,250,246,.14)", alignItems: "center", justifyContent: "center" },
   zoomOn: { width: 50, height: 50, borderRadius: 25, backgroundColor: "rgba(251,250,246,.26)" },
   zoomText: { fontFamily: F.mono, fontSize: 11, color: C.card },
   shootRow: { position: "absolute", left: 0, right: 0, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 34 },
-  gallery: { width: 46, height: 46, borderRadius: 12, backgroundColor: "rgba(251,250,246,.2)", overflow: "hidden" },
   shutterOuter: { width: 78, height: 78, borderRadius: 39, borderWidth: 3, borderColor: "rgba(251,250,246,.85)", alignItems: "center", justifyContent: "center" },
   shutterInner: { width: 62, height: 62, borderRadius: 31, backgroundColor: C.card },
   flip: { width: 46, height: 46, borderRadius: 23, backgroundColor: "rgba(251,250,246,.1)", alignItems: "center", justifyContent: "center" },

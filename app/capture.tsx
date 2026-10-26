@@ -347,7 +347,8 @@ export default function Capture() {
         verified: true,
         captured_at: at.toISOString(),
         acc: fix?.acc ?? null,
-        pending: !writeNow,
+        // 이어서 쓰더라도 먼저 보관함에 둡니다 — 기록 입력에서 저장(별점 필수)해야 pending 이 풀립니다. 그냥 나가면 보관함에 남습니다.
+        pending: true,
         from_wish: fromWish,
       };
 

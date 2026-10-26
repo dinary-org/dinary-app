@@ -131,7 +131,7 @@ export default function EditRoute() {
 
   const missing = !name.trim() ? "가게 이름을 적어주세요" : !rating ? "별점을 매겨주세요" : "";
   const canSave = !missing;
-  const title = isNew ? (visitedAt && visitedAt !== today() ? "이날 뭐 먹었나요" : "오늘 뭐 먹었나요") : "기록 고치기";
+  const title = isNew ? (visitedAt && visitedAt !== today() ? "이날 뭐 먹었나요" : "오늘 뭐 먹었나요") : record?.pending ? "기록 완성하기" : "기록 고치기";
   const preLat = p.lat ? Number(p.lat) : null;
   const preLng = p.lng ? Number(p.lng) : null;
   const [spot, setSpot] = useState<{ lat: number; lng: number } | null>(

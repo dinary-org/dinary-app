@@ -518,7 +518,6 @@ export default function Capture() {
         </View>
 
         <View style={[s.reviewBottom, { paddingBottom: insets.bottom }]}>
-          <Text style={s.reviewNote}>위치는 셔터를 누른 순간 기준입니다. 다시 찍으면 새로 읽습니다.</Text>
           <View style={{ flexDirection: "row", gap: 10 }}>
             <Pressable
               style={({ pressed }) => [s.retakeBtn, { flex: 1 }, pressed && { backgroundColor: "rgba(251,250,246,.08)" }]}
@@ -821,7 +820,6 @@ const s = StyleSheet.create({
   reviewChip: { fontFamily: F.mono, fontSize: 10.5, color: "rgba(251,250,246,.8)" },
   // 확인 단계 단추 — 높이는 고정 56(글꼴과 무관), 두 단추가 한 줄에서 반씩 나눠 씁니다.
   reviewBottom: { flex: 1, justifyContent: "center", paddingHorizontal: 20, gap: 12 },
-  reviewNote: { textAlign: "center", fontFamily: F.sans, fontSize: 12, lineHeight: 19, color: "rgba(251,250,246,.6)" },
   useBtn: { height: 56, borderRadius: 20, backgroundColor: C.brick, alignItems: "center", justifyContent: "center" },
   retakeBtn: {
     height: 56, borderRadius: 20, borderWidth: 1, borderColor: "rgba(251,250,246,.3)", backgroundColor: "transparent",

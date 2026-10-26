@@ -394,13 +394,10 @@ export default function EditRoute() {
         <View style={{ marginTop: 14 }}>
           <Eyebrow>방문일</Eyebrow>
           {isVerified ? (
-            <>
-              <View style={[s.verifiedBox]}>
-                <VerifiedMark size={20} />
-                <Text style={{ fontFamily: F.mono, fontSize: 13.5, color: C.ink }}>{verifiedDateTime(record!.verified_at!)}</Text>
-              </View>
-              <Text style={{ marginTop: 6, fontFamily: F.sans, fontSize: 11.5, color: C.faint }}>사진을 찍은 시각이 그대로 찍혀 고칠 수 없습니다.</Text>
-            </>
+            <View style={[s.verifiedBox]}>
+              <VerifiedMark size={20} />
+              <Text style={{ fontFamily: F.mono, fontSize: 13.5, color: C.ink }}>{verifiedDateTime(record!.verified_at!)}</Text>
+            </View>
           ) : (
             <>
               <Pressable onPress={() => setPickDate(true)} style={[fieldStyle, { justifyContent: "center" }]}>
@@ -479,7 +476,7 @@ export default function EditRoute() {
           <Eyebrow>메뉴명</Eyebrow>
           {menus.map((m, i) => (
             <View key={i} style={{ flexDirection: "row", alignItems: "stretch", gap: 6 }}>
-              <TextInput value={m.name} onChangeText={(t) => setMenuAt(i, { name: t })} placeholder="먹은 것" placeholderTextColor="#b3ada1" style={[fieldStyle, s.menuField, { flex: 1 }]} />
+              <TextInput value={m.name} onChangeText={(t) => setMenuAt(i, { name: t })} placeholder="메뉴" placeholderTextColor="#b3ada1" style={[fieldStyle, s.menuField, { flex: 1 }]} />
               {([1, -1] as const).map((v) => {
                 const on = m.vote === v;
                 const onColor = v === 1 ? C.brick : C.ink;

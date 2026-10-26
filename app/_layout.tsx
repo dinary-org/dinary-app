@@ -33,6 +33,7 @@ import { syncWishGeofences } from "@/features/notify/geofence";
 import { registerPushToken } from "@/features/notify/push";
 import { clearMonthWidget, syncMonthWidget } from "@/lib/widget";
 import { C } from "@/theme";
+import { useFirstLaunchUpdate } from "@/lib/firstLaunchUpdate";
 import CoachOverlay from "@/features/tutorial/CoachOverlay";
 import { TutorialProvider } from "@/features/tutorial/TutorialProvider";
 import TestReplayButton from "@/features/tutorial/TestReplayButton";
@@ -268,12 +269,14 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     GowunDodum_400Regular, NotoSansKR_400Regular, NotoSansKR_500Medium, NotoSansKR_700Bold, JetBrainsMono_400Regular,
   });
+  // 새로 설치한 첫 실행이면 스플래시 뒤에서 최신 업데이트를 먼저 받아 다시 엽니다(최대 5초).
+  const updateChecked = useFirstLaunchUpdate();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="dark" />
-          <Gate fontsLoaded={fontsLoaded} />
+          <Gate fontsLoaded={fontsLoaded && updateChecked} />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

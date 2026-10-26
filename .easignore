@@ -1,0 +1,23 @@
+# EAS 빌드에 올리지 않을 것. .easignore 가 있으면 EAS 는 .gitignore 를 읽지 않으므로 그 규칙도 여기에 그대로 둡니다.
+
+# ── .gitignore 와 같음 ──
+node_modules/
+.expo/
+dist/
+ios/
+android/
+.env
+.env*.local
+*.tsbuildinfo
+expo-env.d.ts
+targets/*/Assets.xcassets/
+supabase/.temp/
+
+# ── 저장소에 안 넣는 작업물 · 비밀 키 (커밋 안 한 채 폴더에 두면 빌드에 같이 올라감) ──
+*.p8
+marketing/
+.claude/
+dinary-feature-graphic.png
+dinary-icon-*.png
+claude-code-prompt-tutorial.md
+skills-lock.json

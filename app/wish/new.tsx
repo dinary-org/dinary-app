@@ -220,7 +220,7 @@ export default function WishForm() {
     let capturePath = capture?.path ?? null;
     if (capture?.local) {
       try { capturePath = await uploadAlbumPhoto(capture.local); }
-      catch (e) { setSaving(false); return setError(e instanceof Error ? e.message : "캡처를 올리지 못했습니다"); }
+      catch (e) { setSaving(false); return setError(e instanceof Error ? e.message : "사진을 올리지 못했습니다"); }
     }
     const payload = {
       name: cleanName, where_text: cleanWhere || null, category: category || null, note: note.trim() || null,
@@ -312,8 +312,8 @@ export default function WishForm() {
               {capture.local
                 ? <Image source={{ uri: capture.local }} style={s.thumb} />
                 : <View style={[s.thumb, { backgroundColor: "#eadfd3" }]}><SignedImage uri={capture.path} style={s.thumb} /></View>}
-              <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sans, fontSize: 12, color: "#8f4323" }}>캡처 1장 · 나만 보여요</Text>
-              <Pressable onPress={() => setCapture(null)} accessibilityLabel="캡처 지우기" hitSlop={10}>
+              <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.sans, fontSize: 12, color: "#8f4323" }}>사진 1장</Text>
+              <Pressable onPress={() => setCapture(null)} accessibilityLabel="사진 지우기" hitSlop={10}>
                 <Text style={{ fontSize: 11, color: "#a29a8c" }}>✕</Text>
               </Pressable>
             </View>

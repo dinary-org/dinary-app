@@ -107,7 +107,7 @@ export default function WishSheetRoute() {
           <Text style={{ flex: 1, fontFamily: F.serif, fontSize: 14, lineHeight: 26, color: "#2e2a25" }}>{body || "적어둔 말이 없습니다."}</Text>
           {capture && (
             <View style={{ width: 44, height: 58, borderRadius: 8, overflow: "hidden", backgroundColor: "#eadfd3" }}>
-              <SignedImage uri={capture} style={{ width: 44, height: 58 }} accessibilityLabel="캡처 · 나만 보여요" />
+              <SignedImage uri={capture} style={{ width: 44, height: 58 }} accessibilityLabel="사진" />
             </View>
           )}
         </View>

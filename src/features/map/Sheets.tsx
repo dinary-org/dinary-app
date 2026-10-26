@@ -34,14 +34,14 @@ export function FilterSheet(p: {
       )}
       {p.keywords.length > 0 && (
         <>
-          <View style={{ marginTop: 18 }}><Eyebrow>낱말</Eyebrow></View>
+          <View style={{ marginTop: 18 }}><Eyebrow>키워드</Eyebrow></View>
           <View style={{ marginTop: 9, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
             {p.keywords.map((k) => <Chip key={k} label={k} active={p.selectedKeywords.includes(k)} onPress={() => p.onToggleKeyword(k)} />)}
           </View>
         </>
       )}
       <View style={{ marginTop: 18, flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-        <Chip label="재방문한 곳만" active={p.revisitOnly} onPress={p.onToggleRevisit} />
+        <Chip label="재방문할 곳만" active={p.revisitOnly} onPress={p.onToggleRevisit} />
         <Chip label="인증된 기록만" active={p.verifiedOnly} onPress={p.onToggleVerified} />
       </View>
       {/* 지금 지도에 보이는 범위 안 기록만 — 켜는 순간의 범위로 고정합니다. */}

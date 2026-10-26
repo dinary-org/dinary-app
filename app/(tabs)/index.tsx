@@ -313,6 +313,8 @@ export default function MapTab() {
   }, [flyTo]);
 
   // 목록(검색·필터) 결과가 바뀌면 지도를 그 범위에 맞춥니다 — 시트·지역 보기가 떠 있는 동안은 건너뜁니다.
+  // 「현 지도에 있는 기록만」이 켜져 있을 때도 건너뜁니다 — 목록이 지도를 따라가야지, 지도가 목록을 따라가면 맴돕니다.
+  const boundsOn = viewBounds != null;
   useEffect(() => {
     if (!started) return;
     const pts = filtered.filter((p) => p.lat != null && p.lng != null);
@@ -322,9 +324,9 @@ export default function MapTab() {
     lastFit.current = key;
     // 처음 불러온 기록 범위는 건너뜁니다 — 내 위치에서 시작했으니까요.
     if (startedHere.current) { startedHere.current = false; return; }
-    if (overlayOpen || holdFit.current) { holdFit.current = false; return; }
+    if (overlayOpen || holdFit.current || boundsOn) { holdFit.current = false; return; }
     fitTo(pts.map((p) => [p.lat as number, p.lng as number]));
-  }, [started, filtered, overlayOpen, fitTo]);
+  }, [started, filtered, overlayOpen, boundsOn, fitTo]);
 
   async function locate() {
     Haptics.selectionAsync();
@@ -645,7 +647,10 @@ export default function MapTab() {
           onMapLongPress(e.latitude, e.longitude);
         }}
         onCameraIdle={(e) => {
-          regionRef.current = { s: e.region.latitude, w: e.region.longitude, n: e.region.latitude + e.region.latitudeDelta, e: e.region.longitude + e.region.longitudeDelta };
+          const region = { s: e.region.latitude, w: e.region.longitude, n: e.region.latitude + e.region.latitudeDelta, e: e.region.longitude + e.region.longitudeDelta };
+          regionRef.current = region;
+          // 「현 지도에 있는 기록만」이 켜져 있으면 지도를 옮길 때마다 지금 화면 범위로 다시 거릅니다.
+          setViewBounds((v) => (v ? region : v));
           if (e.zoom != null) zoomRef.current = e.zoom;
           refreshLabels();
         }}

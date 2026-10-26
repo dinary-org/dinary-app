@@ -75,13 +75,13 @@ export default function Drafts() {
                     <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.card }}>{failed ? "다시 올리기" : "지금 올리기"}</Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => showDialog("이 인증을 버릴까요?", "올라가지 않은 사진과 기록이 지워집니다.", [
+                    onPress={() => showDialog("이 인증을 삭제할까요?", "올라가지 않은 사진과 기록이 지워집니다.", [
                       { text: "취소", style: "cancel" },
-                      { text: "버리기", style: "destructive", onPress: async () => { await removeFromQueue(q.id, q.owner_id); removePhoto(q.photo_uri); (JSON.parse(q.extra_photos ?? "[]") as string[]).forEach(removePhoto); notifyQueue(); } },
+                      { text: "삭제하기", style: "destructive", onPress: async () => { await removeFromQueue(q.id, q.owner_id); removePhoto(q.photo_uri); (JSON.parse(q.extra_photos ?? "[]") as string[]).forEach(removePhoto); notifyQueue(); } },
                     ])}
                     style={{ paddingHorizontal: 4, paddingVertical: 8 }}
                   >
-                    <Text style={{ fontFamily: F.sans, fontSize: 12, color: "#a29a8c" }}>버리기</Text>
+                    <Text style={{ fontFamily: F.sans, fontSize: 12, color: "#a29a8c" }}>삭제하기</Text>
                   </Pressable>
                 </View>
               </View>
@@ -105,7 +105,7 @@ export default function Drafts() {
                   <Text style={{ fontFamily: F.sans, fontSize: 12, color: C.card }}>기록 쓰기</Text>
                 </Pressable>
                 <Pressable onPress={() => discard(r.id)} disabled={busyId === r.id} style={{ paddingHorizontal: 4, paddingVertical: 8, opacity: busyId === r.id ? 0.5 : 1 }}>
-                  <Text style={{ fontFamily: F.sans, fontSize: 12, color: "#a29a8c" }}>버리기</Text>
+                  <Text style={{ fontFamily: F.sans, fontSize: 12, color: "#a29a8c" }}>삭제하기</Text>
                 </Pressable>
               </View>
             </View>

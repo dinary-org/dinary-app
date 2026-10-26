@@ -304,12 +304,6 @@ export default function RecordRoute() {
           {!current && !canAddPhotos && (
             <Text style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 1.4, color: C.faint }}>사진 없음</Text>
           )}
-          {current && (
-            <Pressable onPress={() => downloadPhoto(current)} disabled={savingPhoto} hitSlop={6} accessibilityLabel="사진 앱에 저장"
-              style={{ position: "absolute", right: 14, bottom: 14, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(23,22,20,.45)", alignItems: "center", justifyContent: "center" }}>
-              {savingPhoto ? <ActivityIndicator size="small" color={C.card} /> : <DownloadIcon size={17} />}
-            </Pressable>
-          )}
           {anniversary && (
             <Text style={{ position: "absolute", right: 16, top: 14, borderRadius: 10, backgroundColor: C.brick, paddingHorizontal: 9, paddingVertical: 4, fontFamily: F.mono, fontSize: 11, color: C.card, overflow: "hidden" }}>
               {anniversary}
@@ -470,6 +464,19 @@ export default function RecordRoute() {
       <View style={{ position: "absolute", left: 16, top: insets.top + 8, backgroundColor: "rgba(251,250,246,.92)", borderRadius: 22 }}>
         <BackButton />
       </View>
+      {current && (
+        <Pressable
+          onPress={() => downloadPhoto(current)}
+          disabled={savingPhoto}
+          accessibilityLabel="사진 앱에 저장"
+          style={[
+            { position: "absolute", right: record.pending ? 16 : 68, top: insets.top + 8, width: 44, height: 44, borderRadius: 22, backgroundColor: "rgba(251,250,246,.92)", alignItems: "center", justifyContent: "center" },
+            Platform.select({ ios: { shadowColor: C.ink, shadowOpacity: 0.14, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }, default: { elevation: 3 } }),
+          ]}
+        >
+          {savingPhoto ? <ActivityIndicator size="small" color={C.ink} /> : <DownloadIcon size={18} stroke={C.ink} />}
+        </Pressable>
+      )}
       {!record.pending && (
         <>
           <Pressable

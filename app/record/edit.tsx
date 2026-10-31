@@ -66,8 +66,9 @@ export default function EditRoute() {
   // 인증된 기록은 촬영 시각이 방문일이라 고칠 수 없습니다(시각이 없는 옛 기록은 날짜칸을 씁니다).
   const isVerified = !!record && record.verified && !!record.verified_at;
 
-  const [newKind, setNewKind] = useState<Kind>(p.kind === "cafe" ? "cafe" : "restaurant");
-  const kind: Kind = record?.kind ?? newKind;
+  // 고치기에서도 맛집 · 카페를 바꿀 수 있습니다 — 자동 분류가 틀린 곳(아이스크림 가게 등)을 바로잡게.
+  const [newKind, setNewKind] = useState<Kind>(record?.kind ?? (p.kind === "cafe" ? "cafe" : "restaurant"));
+  const kind: Kind = newKind;
   const categories = CATEGORIES[kind];
 
   const [name, setName] = useState(record?.name ?? p.name ?? "");
@@ -243,7 +244,7 @@ export default function EditRoute() {
 
       if (record) {
         const region = regionFromAddress(cleanAddress) || record.region;
-        const { error } = await supabase.from("restaurants").update({ ...shared, ...photoFields, region, pending: false }).eq("id", record.id);
+        const { error } = await supabase.from("restaurants").update({ ...shared, ...photoFields, kind, region, pending: false }).eq("id", record.id);
         if (error) throw new Error(error.message);
         await removePhotoObjects(photosOf(record).filter((u) => !refs.includes(u)));
         // 연인 기록이면 별점·메모가 곧 찍은 사람의 한 줄입니다(HANDOFF-couple §3-6).
@@ -311,7 +312,7 @@ export default function EditRoute() {
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 20, paddingBottom: insets.bottom + 40 }}>
         <Text style={{ fontFamily: F.serif, fontSize: 25, color: C.ink }}>{title}</Text>
 
-        {isNew && p.revisit !== "1" && (
+        {(isNew ? p.revisit !== "1" : !!record) && (
           <View style={{ marginTop: 18, gap: 9 }}>
             <Eyebrow>맛집 · 카페</Eyebrow>
             <View style={{ flexDirection: "row", gap: 7 }}>

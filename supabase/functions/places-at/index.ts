@@ -11,6 +11,7 @@
  *   (SUPABASE_URL · SUPABASE_ANON_KEY · SUPABASE_SERVICE_ROLE_KEY 는 Supabase 가 넣어 줍니다)
  */
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { sweetCategory } from "../_shared/food-kind.ts";
 
 declare const EdgeRuntime: { waitUntil(p: Promise<unknown>): void } | undefined;
 
@@ -121,6 +122,8 @@ function kakaoCategory(p: KakaoPlace): { kind: Place["kind"]; cat: string | null
     const cat = /베이커리|제과|빵/.test(sub) ? "베이커리" : /디저트|아이스크림|떡/.test(sub) ? "디저트" : /차|티/.test(parts[2] ?? "") ? "차" : "커피";
     return { kind: "cafe", cat, label };
   }
+  const sweet = sweetCategory(p.category_name, p.place_name);
+  if (sweet) return { kind: "cafe", cat: sweet, label };
   const known = ["한식", "중식", "일식", "양식", "아시안", "분식"];
   const hit = parts.slice(1).map((v) => known.find((k) => v.startsWith(k))).find(Boolean) ?? null;
   return { kind: "restaurant", cat: hit, label };

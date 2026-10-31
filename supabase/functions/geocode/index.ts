@@ -9,6 +9,8 @@
  *
  * 환경변수(Edge Function secrets): KAKAO_REST_API_KEY
  */
+import { sweetCategory } from "../_shared/food-kind.ts";
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-region",
@@ -100,15 +102,17 @@ Deno.serve(async (req) => {
       const toPlaces = (kind: "restaurant" | "cafe") => (json: { documents?: Record<string, string>[] }): NearbyPlace[] =>
         (json?.documents ?? []).map((d) => {
           const address = d.road_address_name || d.address_name;
+          // 음식점 그룹이어도 아이스크림 · 빵 · 간식 가게는 카페로 — _shared/food-kind.ts.
+          const sweet = kind === "restaurant" ? sweetCategory(d.category_name, d.place_name) : null;
           return {
             name: d.place_name,
             address,
             region: gu(address),
-            category: category(d.category_name),
+            category: sweet ?? category(d.category_name),
             lat: Number(d.y),
             lng: Number(d.x),
             distance: Number(d.distance) || 0,
-            kind,
+            kind: sweet ? "cafe" : kind,
             place_url: d.place_url || null,
           };
         });
@@ -161,15 +165,17 @@ Deno.serve(async (req) => {
       const toPlaces = (kind: "restaurant" | "cafe") => (json: { documents?: Record<string, string>[] }): NearbyPlace[] =>
         (json?.documents ?? []).map((d) => {
           const address = d.road_address_name || d.address_name;
+          // 음식점 그룹이어도 아이스크림 · 빵 · 간식 가게는 카페로 — _shared/food-kind.ts.
+          const sweet = kind === "restaurant" ? sweetCategory(d.category_name, d.place_name) : null;
           return {
             name: d.place_name,
             address,
             region: gu(address),
-            category: category(d.category_name),
+            category: sweet ?? category(d.category_name),
             lat: Number(d.y),
             lng: Number(d.x),
             distance: from ? Number(d.distance) || 0 : 0,
-            kind,
+            kind: sweet ? "cafe" : kind,
             place_url: d.place_url || null,
           };
         });

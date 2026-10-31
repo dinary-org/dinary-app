@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Pressable, ScrollView, TextInput, View } from "react-native";
 import { showDialog } from "@/components/Dialog";
+import { CheckIcon } from "@/components/icons";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -11,7 +12,7 @@ import {
   useAdminNotices, useCurrentTheme, useIsAdmin, useRankBans, useReports, type AppNotice, type RankBan, type ReportRow,
 } from "@/features/community/api";
 import { Avatar, K, Segmented, timeAgo } from "@/features/community/ui";
-import { pushTest } from "@/features/notify/push";
+import { pushNotice, pushTest } from "@/features/notify/push";
 import { supabase } from "@/lib/supabase";
 import { C, F } from "@/theme";
 
@@ -103,10 +104,12 @@ function NoticeForm() {
   /** 고치는 앱 공지 — 기간 단추를 누르지 않으면(daysTouched) 기간은 그대로 둡니다. */
   const [edit, setEdit] = useState<AppNotice | null>(null);
   const [daysTouched, setDaysTouched] = useState(false);
+  /** 새 앱 공지를 모든 기기에 푸시로도 — 올릴 때만 고릅니다(고치기에선 다시 보내지 않음). */
+  const [push, setPush] = useState(false);
   const [busy, setBusy] = useState(false);
   const { data: notices = [] } = useAdminNotices(kind === "app");
 
-  const reset = () => { setEdit(null); setTitle(""); setBody(""); setDays(7); setDaysTouched(false); };
+  const reset = () => { setEdit(null); setTitle(""); setBody(""); setDays(7); setDaysTouched(false); setPush(false); };
 
   function startEdit(n: AppNotice) {
     setEdit(n);
@@ -115,12 +118,40 @@ function NoticeForm() {
     setDaysTouched(false);
   }
 
+  const withPush = kind === "app" && !edit && push;
+
+  /** 푸시는 모든 사람에게 가고 되돌릴 수 없어서 한 번 더 묻습니다. */
+  function submit() {
+    if (!withPush) return void send();
+    showDialog("모든 사용자에게 푸시를 보낼까요?", `「${title.trim()}」 — 보낸 알림은 되돌릴 수 없어요.`, [
+      { text: "취소", style: "cancel" },
+      { text: "올리고 보내기", onPress: () => void send() },
+    ]);
+  }
+
   async function send() {
     setBusy(true);
     try {
       if (edit) await adminUpdateNotice(qc, edit.id, { title, body, ...(daysTouched ? { days } : {}) });
       else if (kind === "board") await createPost(qc, { type: "free", title, body, pinned: true });
-      else await adminCreateNotice(qc, title, body, days);
+      else {
+        const id = await adminCreateNotice(qc, title, body, days);
+        if (withPush) {
+          // 공지는 이미 걸렸습니다 — 푸시만 실패하면 그렇게 알립니다.
+          let sentText: string;
+          try {
+            const r = await pushNotice(id);
+            sentText = `기기 ${r.tokens}대에 ${r.sent}건 보냈습니다${r.errors.length ? ` · 실패: ${[...new Set(r.errors)].join(", ")}` : ""}`;
+          } catch (e) {
+            sentText = `푸시는 보내지 못했습니다 — ${e instanceof Error ? e.message : ""}`;
+          }
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          showDialog("앱 공지를 걸었습니다", sentText);
+          reset();
+          setBusy(false);
+          return;
+        }
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       showDialog(edit ? "공지를 고쳤습니다" : kind === "board" ? "게시판에 공지를 올렸습니다" : "앱 공지를 걸었습니다");
       reset();
@@ -171,10 +202,18 @@ function NoticeForm() {
               );
             })}
           </View>
-          {/* TODO(푸시): 앱 전체 공지 푸시 알림 발송은 이번 범위 밖입니다. */}
+          {!edit && (
+            <Pressable onPress={() => setPush((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: push }}
+              style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={{ width: 20, height: 20, borderRadius: 6, borderWidth: push ? 0 : 1.5, borderColor: K.dashed, backgroundColor: push ? C.brick : "transparent", alignItems: "center", justifyContent: "center" }}>
+                {push && <CheckIcon size={12} stroke={C.card} />}
+              </View>
+              <Text style={{ flex: 1, fontFamily: F.sans, fontSize: 12.5, color: C.ink }}>푸시 알림으로도 보내기 · 알림을 허용한 모든 사용자에게</Text>
+            </Pressable>
+          )}
         </>
       )}
-      <Submit text={busy ? (edit ? "고치는 중…" : "올리는 중…") : edit ? "고치기" : "올리기"} onPress={send} disabled={!title.trim() || busy} />
+      <Submit text={busy ? (edit ? "고치는 중…" : "올리는 중…") : edit ? "고치기" : withPush ? "올리고 푸시 보내기" : "올리기"} onPress={submit} disabled={!title.trim() || busy} />
 
       {kind === "app" && (
         <View style={{ marginTop: 18, gap: 10 }}>

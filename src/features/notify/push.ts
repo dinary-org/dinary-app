@@ -52,3 +52,10 @@ export async function pushTest(): Promise<{ sent: number; tokens: number; errors
   if (error) throw new Error(error.message);
   return data ?? { sent: 0, tokens: 0, errors: [] };
 }
+
+/** 운영자 — 앱 전체 공지 한 건을 등록된 모든 기기에 푸시로. 서버가 공지마다 한 번만 보냅니다. */
+export async function pushNotice(noticeId: number): Promise<{ sent: number; tokens: number; errors: string[] }> {
+  const { data, error } = await supabase.functions.invoke<{ sent: number; tokens: number; errors: string[] }>("push-send", { body: { kind: "notice", noticeId } });
+  if (error) throw new Error(error.message);
+  return data ?? { sent: 0, tokens: 0, errors: [] };
+}

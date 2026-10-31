@@ -738,7 +738,8 @@ export const useRankBans = (enabled: boolean) =>
     },
   });
 export const adminResolveReport = (qc: QueryClient, id: number, note?: string) => adminRpc(qc, "admin_resolve_report", { p_id: id, p_note: note ?? null });
-export const adminCreateNotice = (qc: QueryClient, title: string, body: string, days: number | null) =>
+/** 새 공지 id 를 돌려줍니다(푸시 보내기에 씁니다). */
+export const adminCreateNotice = (qc: QueryClient, title: string, body: string, days: number | null): Promise<number> =>
   adminRpc(qc, "admin_create_notice", { p_title: title, p_body: body || null, p_ends_at: days == null ? null : new Date(Date.now() + days * 86400000).toISOString() });
 export const adminSaveTheme = (qc: QueryClient, t: { title: string; description: string; startsOn: string; endsOn: string; id?: number | null }) =>
   adminRpc(qc, "admin_save_theme", { p_title: t.title, p_starts_on: t.startsOn, p_ends_on: t.endsOn, p_description: t.description || null, p_id: t.id ?? null });
